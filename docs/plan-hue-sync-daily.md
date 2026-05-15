@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-15 (revue cohérence post-gel — v1.0 écran, AppStream, i18n, tray GNOME)  
+Dernière revue : 2026-05-15 (Phase 1.5 — accueil épuré, Réglages avancés repliés, journal replié)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -106,11 +106,11 @@ Objectif : un utilisateur qui connaît Hue Sync sur Windows/macOS doit retrouver
 | Intensité (4 niveaux) | Tuiles Subtle→Max branchées → `LUMAWAY_REACTIVITY`, désactivées pendant sync | Garder comme seul contrôle d’intensité sur l’accueil ; vérifier libellés traduits en Phase 1.4 |
 | Luminosité | Curseur Brightness traduit via gettext | Reste validation visuelle multi-locale |
 | Pairing en 2 étapes | Boutons Discover / Pair traduits dans Réglages | Assistant traduit : trouver pont → associer |
-| Pas de clés visibles | `app_key` / `client_key` dans Réglages | Masquer ; remplir automatiquement |
+| Pas de clés visibles | Accueil sans clés ; `app_key` / `client_key` repliées dans Réglages avancés | Remplir automatiquement via association ; assistant traduit à livrer en 1.6 |
 | Zone Entertainment | Liste déroulante + switch zone ✓ | « Test lights » traduit ; clarifier zone on/off vs sync (tâche 1.16) |
-| Logs techniques | Zone logs visible sur l’accueil | Repliable ou uniquement dans Réglages |
+| Logs techniques | Journal replié dans Réglages | Garder replié par défaut ; messages humains en premier plan |
 | Profil `vivid` / `game`… | Menu déroulant anglais technique | Déduit du **mode** ; avancé seulement |
-| `Capture profile` / Calibrate | Visible dans Réglages | Garder en Avancé + proposition auto si échec |
+| `Capture profile` / Calibrate | Repliés dans Réglages avancés | Garder en Avancé + proposition auto si échec |
 | Tray | Absent | Phase 1.7 si support StatusNotifier/AppIndicator détecté ; fallback fenêtre Start/Stop obligatoire + notification minimale si disponible |
 | Langue UI | Gettext initialisé ; accueil/réglages/statuts principaux + erreurs courantes migrés | Revue visuelle locale + complétion au fil des écrans restants |
 | Langue ≠ OS | N/A | Optionnel : `LUMAWAY_LANG` ou sélecteur dans Réglages |
@@ -271,7 +271,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.2 | **Câbler l’intensité** | Fait : `preset_row()` → `LUMAWAY_REACTIVITY` (§6.1), accueil sans curseur « Reactivity », tuiles **insensibles pendant sync**, défaut Jeu = High au premier run sans valeur sauvegardée. |
 | 1.3 | Mapping modes → moteur | Voir §6–§6.1 ; au **Start** : `LUMAWAY_SYNC_MODE`, preset dérivé, `LUMAWAY_COLOR_PROFILE` imposé par le mode (écrase la valeur Réglages sauf mode « avancé » futur) ; ne plus utiliser `DEFAULT_PRESET` en dur. |
 | 1.4 | **Chaînes i18n complètes** | Socle livré : libellés accueil + réglages + statuts principaux via `tr(...)` / `tr_format(...)`, `po/fr.po` étendu, erreurs courantes via codes stables + `user_messages` ; reste revue visuelle locale et extension au fil des écrans ajoutés. |
-| 1.5 | **Écran principal épuré** | Retirer de l’accueil : `duration`, `profile`, `color_profile`, champs clés ; journal repliable ou dans Réglages ; option **cinema** uniquement en Réglages avancé (§6). |
+| 1.5 | **Écran principal épuré** | Fait : accueil limité aux gestes quotidiens ; `duration`, `profile`, `color_profile`, clés, réactivité fine, actions Quality/Calibrate et journal repliés dans Réglages avancés ; option **cinema** uniquement en Réglages avancé (§6). |
 | 1.6 | Assistant première utilisation | Pages traduites : pont → bouton physique → zone → test lumières → mode → démarrer. |
 | 1.7 | Icône barre système | StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter (confirmation si sync) **quand le bureau le supporte**. Sur GNOME vanilla sans extension tray, fallback requis : fenêtre qui conserve Start/Stop + notification minimale pour erreurs critiques si le portail/serveur de notifications est disponible. |
 | 1.8 | Démarrage de session | Autostart app + option traduite « Start sync when the app opens ». |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -712,7 +712,7 @@ Tous requis sauf mention « optionnel » :
 | Fichier | Action |
 |---------|--------|
 | [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après finalisation UX Phase 1 |
-| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; reste épuration accueil |
+| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages |
 | README | Section « Comparaison Hue Sync » + guide traduction (Phase 4) |
 | [`test-matrix.md`](test-matrix.md) | Garder aligné avec §15.2 et §15.3 à chaque jalon |
 
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-15 | Phase 1.5 écran épuré | Accueil sans champs techniques ; Réglages garde pont/zone/luminosité/autostart visibles, clés/profils/durée/réactivité fine/Quality/Calibrate et journal repliés |
 | 2026-05-15 | Phase 1.4 `user_messages` | Codes stables GUI ajoutés pour Hue auth, pont injoignable, DTLS, conflit Entertainment, Portal et capture ; rendu gettext |
 | 2026-05-15 | Phase 1.4 i18n GUI | Accueil, Réglages et statuts principaux migrés vers gettext ; `po/fr.po` étendu |
 | 2026-05-15 | Phase 1.2 intensité | `preset_row()` branché sur `LUMAWAY_REACTIVITY` ; défaut Jeu = High sans valeur sauvegardée ; tuiles désactivées pendant sync |

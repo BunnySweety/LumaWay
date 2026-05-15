@@ -63,6 +63,9 @@ msgstr "100 conserve la luminosité capturée"
 msgid "Activate"
 msgstr "Activer"
 
+msgid "Advanced"
+msgstr "Avancé"
+
 msgid "Application key"
 msgstr "Clé d'application"
 

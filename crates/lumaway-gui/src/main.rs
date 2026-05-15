@@ -704,6 +704,14 @@ fn section(title: &str) -> gtk::Box {
     container
 }
 
+fn expander(title: &str, child: &impl IsA<gtk::Widget>, expanded: bool) -> gtk::Expander {
+    let translated = i18n::tr(title);
+    let expander = gtk::Expander::new(Some(&translated));
+    expander.set_child(Some(child));
+    expander.set_expanded(expanded);
+    expander
+}
+
 struct ModeTile {
     mode: SyncMode,
     button: gtk::ToggleButton,
@@ -1076,18 +1084,16 @@ fn open_settings_window(ui: &Ui) {
     let connection = section("Connection");
     connection.add_css_class("compact-card");
     connection.append(&row("Bridge address", &bridge));
-    connection.append(&row("Bridge hardware id", &bridge_id_label));
     connection.append(&row("Zone ID", &area));
-    connection.append(&row("Application key", &app_key));
-    connection.append(&row("Streaming key", &client_key));
+    let connection_advanced = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    connection_advanced.append(&row("Bridge hardware id", &bridge_id_label));
+    connection_advanced.append(&row("Application key", &app_key));
+    connection_advanced.append(&row("Streaming key", &client_key));
+    connection.append(&expander("Advanced", &connection_advanced, false));
 
     let tuning = section("Sync");
     tuning.add_css_class("compact-card");
     tuning.append(&row("Brightness", &intensity));
-    tuning.append(&row("Reactivity", &reactivity));
-    tuning.append(&row("Capture profile", &profile));
-    tuning.append(&row("Color profile", &color_profile));
-    tuning.append(&row("Duration (ms)", &duration));
     tuning.append(&autostart);
 
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
@@ -1110,13 +1116,23 @@ fn open_settings_window(ui: &Ui) {
     save.add_css_class("suggested-action");
     actions.append(&detect);
     actions.append(&pair);
-    actions.append(&profiles);
-    actions.append(&quality);
-    actions.append(&calibrate);
     actions.append(&save);
 
-    let logs = section("Log");
-    logs.add_css_class("compact-card");
+    let advanced_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    advanced_actions.set_halign(gtk::Align::End);
+    advanced_actions.append(&profiles);
+    advanced_actions.append(&quality);
+    advanced_actions.append(&calibrate);
+
+    let tuning_advanced = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    tuning_advanced.append(&row("Reactivity", &reactivity));
+    tuning_advanced.append(&row("Capture profile", &profile));
+    tuning_advanced.append(&row("Color profile", &color_profile));
+    tuning_advanced.append(&row("Duration (ms)", &duration));
+    tuning_advanced.append(&advanced_actions);
+    tuning.append(&expander("Advanced", &tuning_advanced, false));
+
+    let logs = gtk::Box::new(gtk::Orientation::Vertical, 10);
     let log_view = gtk::TextView::builder()
         .buffer(&ui.logs)
         .editable(false)
@@ -1129,6 +1145,9 @@ fn open_settings_window(ui: &Ui) {
         .vexpand(true)
         .build();
     logs.append(&log_scroll);
+    let logs_expander = expander("Log", &logs, false);
+    logs_expander.add_css_class("view");
+    logs_expander.add_css_class("compact-card");
 
     let body = gtk::Box::new(gtk::Orientation::Vertical, 12);
     body.set_margin_top(18);
@@ -1138,7 +1157,7 @@ fn open_settings_window(ui: &Ui) {
     body.append(&connection);
     body.append(&tuning);
     body.append(&actions);
-    body.append(&logs);
+    body.append(&logs_expander);
 
     let scrolled = gtk::ScrolledWindow::builder()
         .child(&body)
