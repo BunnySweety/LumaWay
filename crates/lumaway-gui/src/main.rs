@@ -9,7 +9,7 @@ use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Command, ExitStatus, Stdio};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -113,6 +113,7 @@ struct AppState {
     auto_quit_after_sync: bool,
     echo_logs: bool,
     pending_restart: bool,
+    stop_requested: bool,
 }
 
 enum GuiEvent {
@@ -154,6 +155,7 @@ fn build_ui(app: &adw::Application) {
         auto_quit_after_sync: env_flag("LUMAWAY_GUI_QUIT_AFTER_SYNC"),
         echo_logs: env_flag("LUMAWAY_GUI_ECHO_LOGS"),
         pending_restart: false,
+        stop_requested: false,
     }));
 
     let saved = read_env_file().unwrap_or_default();
@@ -1839,6 +1841,7 @@ fn start_sync_with_log_reset(
     {
         let mut state = state.borrow_mut();
         state.pending_restart = false;
+        state.stop_requested = false;
         state.child = Some(child);
     }
     set_running_state(ui, true);
@@ -1861,6 +1864,7 @@ fn schedule_sync_restart(ui: &Ui, state: &Rc<RefCell<AppState>>) {
         if state.child.is_some() {
             let should_stop = !state.pending_restart;
             state.pending_restart = true;
+            state.stop_requested = true;
             should_stop
         } else {
             false
@@ -1874,6 +1878,9 @@ fn schedule_sync_restart(ui: &Ui, state: &Rc<RefCell<AppState>>) {
 
 fn stop_sync(ui: &Ui, state: &Rc<RefCell<AppState>>) {
     let mut state = state.borrow_mut();
+    if state.child.is_some() {
+        state.stop_requested = true;
+    }
     if let Some(child) = state.child.as_mut() {
         let _ = Command::new("kill")
             .arg("-INT")
@@ -1887,16 +1894,20 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
     let ui = ui.clone();
     glib::timeout_add_local(std::time::Duration::from_millis(200), move || {
         let mut finished = false;
-        let (events, auto_quit_after_sync, sync_running, restart_requested) = {
+        let mut exit_status = None;
+        let mut wait_error = None;
+        let (events, auto_quit_after_sync, sync_running, restart_requested, stop_requested) = {
             let mut state = state.borrow_mut();
             let auto_quit_after_sync = state.auto_quit_after_sync;
             if let Some(child) = state.child.as_mut() {
                 match child.try_wait() {
-                    Ok(Some(_status)) => {
+                    Ok(Some(status)) => {
+                        exit_status = Some(status);
                         finished = true;
                     }
                     Ok(None) => {}
-                    Err(_error) => {
+                    Err(error) => {
+                        wait_error = Some(error.to_string());
                         finished = true;
                     }
                 }
@@ -1911,15 +1922,21 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                 append_log(&ui.logs, "\n");
             }
 
+            let restart_requested = finished && state.pending_restart;
+            let stop_requested = finished && state.stop_requested;
             if finished {
                 state.child = None;
+                state.stop_requested = false;
+                if !restart_requested {
+                    state.pending_restart = false;
+                }
             }
-            let restart_requested = finished && state.pending_restart;
             (
                 drain_events(&state.event_queue),
                 auto_quit_after_sync,
                 state.child.is_some(),
                 restart_requested,
+                stop_requested,
             )
         };
 
@@ -1934,6 +1951,12 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                     append_user_error(&ui.logs, &error.to_string());
                     state.borrow_mut().pending_restart = false;
                 }
+            } else if let Some(error) = wait_error.as_deref() {
+                report_unexpected_sync_stop(&ui, None, Some(error));
+            } else if !stop_requested
+                && exit_status.as_ref().is_some_and(|status| !status.success())
+            {
+                report_unexpected_sync_stop(&ui, exit_status.as_ref(), None);
             } else if auto_quit_after_sync {
                 ui.window.close();
             }
@@ -1941,6 +1964,25 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
 
         glib::ControlFlow::Continue
     });
+}
+
+fn report_unexpected_sync_stop(ui: &Ui, status: Option<&ExitStatus>, wait_error: Option<&str>) {
+    set_connection_header(ui, "Sync stopped", "Press Start to try again", "warning");
+    if let Some(error) = wait_error {
+        append_log_msg_format(
+            &ui.logs,
+            "Sync stopped unexpectedly: {error}",
+            &[("error", error.trim())],
+        );
+    } else if let Some(status) = status {
+        append_log_msg_format(
+            &ui.logs,
+            "Sync stopped unexpectedly ({status}).",
+            &[("status", &status.to_string())],
+        );
+    } else {
+        append_log_msg(&ui.logs, "Sync stopped unexpectedly.");
+    }
 }
 
 fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {

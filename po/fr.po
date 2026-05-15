@@ -282,6 +282,18 @@ msgstr "Synchronisation"
 msgid "Sync events will appear here."
 msgstr "Les événements de synchronisation apparaîtront ici."
 
+msgid "Sync stopped"
+msgstr "Synchronisation arrêtée"
+
+msgid "Sync stopped unexpectedly."
+msgstr "La synchronisation s'est arrêtée de manière inattendue."
+
+msgid "Sync stopped unexpectedly ({status})."
+msgstr "La synchronisation s'est arrêtée de manière inattendue ({status})."
+
+msgid "Sync stopped unexpectedly: {error}"
+msgstr "La synchronisation s'est arrêtée de manière inattendue : {error}"
+
 msgid "Turn the selected zone on or off"
 msgstr "Activer ou désactiver la zone sélectionnée"
 
