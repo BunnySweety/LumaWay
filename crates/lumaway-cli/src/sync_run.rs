@@ -187,7 +187,7 @@ async fn sync_average_color_loop(
         stats.encode.record(encode_started.elapsed());
 
         let send_started = Instant::now();
-        send_dtls_frame(transport, message)?;
+        send_sync_dtls_frame(transport, message)?;
         stats.send.record(send_started.elapsed());
 
         sequence = sequence.wrapping_add(1);
@@ -657,6 +657,11 @@ fn capture_stream_stale(last_capture_at: Instant, now: Instant, stale_timeout: D
     now.duration_since(last_capture_at) >= stale_timeout
 }
 
+fn send_sync_dtls_frame(transport: &mut impl DtlsTransport, message: &[u8]) -> Result<()> {
+    send_dtls_frame(transport, message)
+        .context("bridge lost during sync while sending Hue Entertainment frame")
+}
+
 fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
     let Some(token) = normalize_portal_restore_token(selection.restore_token.as_deref()) else {
         return Ok(());
@@ -673,8 +678,21 @@ fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{capture_stream_stale, normalize_portal_restore_token};
+    use super::{capture_stream_stale, normalize_portal_restore_token, send_sync_dtls_frame};
+    use lumaway_hue::{DtlsTransport, HueError, HueStreamMessage};
     use std::time::{Duration, Instant};
+
+    struct FailingTransport;
+
+    impl DtlsTransport for FailingTransport {
+        fn send(&mut self, message: &HueStreamMessage) -> lumaway_hue::Result<()> {
+            self.send_bytes(message.as_bytes())
+        }
+
+        fn send_bytes(&mut self, _bytes: &[u8]) -> lumaway_hue::Result<()> {
+            Err(HueError::Dtls("connection timed out".into()))
+        }
+    }
 
     #[test]
     fn normalizes_portal_restore_token() {
@@ -700,5 +718,20 @@ mod tests {
             started + Duration::from_secs(5),
             Duration::from_secs(5)
         ));
+    }
+
+    #[test]
+    fn labels_mid_sync_dtls_send_failures_as_bridge_loss() {
+        let mut transport = FailingTransport;
+
+        let error = send_sync_dtls_frame(&mut transport, b"frame").unwrap_err();
+        let text = error
+            .chain()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(": ");
+
+        assert!(text.contains("bridge lost during sync"));
+        assert!(text.contains("Hue Entertainment DTLS failed"));
     }
 }

@@ -6,6 +6,7 @@ pub enum UserMessageCode {
     MissingSyncConfig,
     HueAuthRejected,
     HueBridgeUnavailable,
+    HueBridgeLost,
     HueDtlsFailed,
     HueAreaConflict,
     PortalCancelled,
@@ -23,6 +24,7 @@ impl UserMessageCode {
             Self::MissingSyncConfig => "gui.missing_sync_config",
             Self::HueAuthRejected => "hue.auth_rejected",
             Self::HueBridgeUnavailable => "hue.bridge_unavailable",
+            Self::HueBridgeLost => "hue.bridge_lost",
             Self::HueDtlsFailed => "hue.dtls_failed",
             Self::HueAreaConflict => "hue.area_conflict",
             Self::PortalCancelled => "portal.cancelled",
@@ -44,6 +46,7 @@ impl UserMessageCode {
             ),
             Self::HueAuthRejected => i18n::tr("The Hue bridge rejected the saved pairing key."),
             Self::HueBridgeUnavailable => i18n::tr("The Hue bridge is unreachable."),
+            Self::HueBridgeLost => i18n::tr("The Hue bridge connection was lost during sync."),
             Self::HueDtlsFailed => i18n::tr("The Hue Entertainment connection failed."),
             Self::HueAreaConflict => {
                 i18n::tr("Another Hue app may already be using this Entertainment zone.")
@@ -71,6 +74,9 @@ impl UserMessageCode {
             Self::HueBridgeUnavailable => {
                 i18n::tr("Check that the bridge is powered on and reachable on the network.")
             }
+            Self::HueBridgeLost => i18n::tr(
+                "Check that the bridge is powered on and reachable, then start sync again.",
+            ),
             Self::HueDtlsFailed => {
                 i18n::tr("Stop sync, wait a few seconds, then start sync again.")
             }
@@ -99,6 +105,7 @@ impl UserMessageCode {
             self,
             Self::HueAuthRejected
                 | Self::HueBridgeUnavailable
+                | Self::HueBridgeLost
                 | Self::HueDtlsFailed
                 | Self::HueAreaConflict
         )
@@ -120,6 +127,7 @@ impl UserMessageCode {
             self,
             Self::ZoneOff
                 | Self::HueBridgeUnavailable
+                | Self::HueBridgeLost
                 | Self::HueDtlsFailed
                 | Self::HueAreaConflict
                 | Self::PortalCancelled
@@ -135,6 +143,7 @@ impl UserMessageCode {
             Self::MissingSyncConfig
                 | Self::HueAuthRejected
                 | Self::HueBridgeUnavailable
+                | Self::HueBridgeLost
                 | Self::HueAreaConflict
                 | Self::PortalUnavailable
                 | Self::CaptureTooDark
@@ -168,6 +177,11 @@ pub fn classify_error(error: &str) -> UserMessageCode {
             || lower.contains("conflict"))
     {
         return UserMessageCode::HueAreaConflict;
+    }
+    if lower.contains("bridge lost during sync")
+        || lower.contains("hue bridge connection was lost during sync")
+    {
+        return UserMessageCode::HueBridgeLost;
     }
     if lower.contains("hue entertainment dtls failed")
         || lower.contains("dtls connect attempt failed")
@@ -284,6 +298,10 @@ mod tests {
             UserMessageCode::HueBridgeUnavailable
         );
         assert_eq!(
+            classify_error("bridge lost during sync while sending Hue Entertainment frame: Hue Entertainment DTLS failed: connection timed out"),
+            UserMessageCode::HueBridgeLost
+        );
+        assert_eq!(
             classify_error("Hue Entertainment DTLS failed: handshake failed"),
             UserMessageCode::HueDtlsFailed
         );
@@ -309,6 +327,8 @@ mod tests {
         assert!(!UserMessageCode::HueAuthRejected.offers_retry_action());
         assert!(UserMessageCode::HueBridgeUnavailable.offers_retry_action());
         assert!(UserMessageCode::HueBridgeUnavailable.offers_settings_action());
+        assert!(UserMessageCode::HueBridgeLost.offers_retry_action());
+        assert!(UserMessageCode::HueBridgeLost.offers_settings_action());
         assert!(UserMessageCode::PortalStreamClosed.offers_retry_action());
         assert!(!UserMessageCode::PortalStreamClosed.offers_settings_action());
         assert!(!UserMessageCode::Unknown.offers_retry_action());

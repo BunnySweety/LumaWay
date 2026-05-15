@@ -50,6 +50,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - GUI classified errors: Portal/capture/bridge failures expose contextual `Retry` and/or `Open Settings` recovery actions.
 - Portal flow: GUI shows the translated screen/window selection reminder; `lumaway sync` reuses and persists `LUMAWAY_PORTAL_RESTORE_TOKEN` when the portal provides one.
 - Portal stream closed: after more than 5 seconds without new frames, sync exits with a classified Portal-stream error and the GUI exposes `Retry`.
+- Bridge lost during sync: a mid-stream DTLS send failure is annotated as bridge loss, stops the sync loop, and maps to a translated GUI recovery message.
 - `tv-wayland` preset still works as alias after `video-wayland` is introduced.
 
 ## Success Criteria
@@ -128,6 +129,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: sync timing metric aggregation and display are covered with unit tests.
 - `cargo test`: reusable stream-frame encoding is covered with unit tests.
 - `cargo test`: sync cadence helpers, capture poll validation, and extended sync stats counters are covered with unit tests.
+- `cargo test`: mid-sync DTLS send failures are annotated as bridge loss and GUI classification maps them to the bridge-lost recovery message.
 - `cargo test`: relative 2D channel sample mapping, configurable edge margin, manual crop bounds, same-height vertical centering, and fallback placement are covered with unit tests.
 - `cargo test`: sampled dark-border detection, fully dark frame handling, crop aggregation, auto-crop edge cap validation, manual-plus-auto crop merging, and copyable crop args are covered with unit tests.
 

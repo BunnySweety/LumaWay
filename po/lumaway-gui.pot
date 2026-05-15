@@ -383,6 +383,9 @@ msgstr ""
 msgid "The Hue bridge is unreachable."
 msgstr ""
 
+msgid "The Hue bridge connection was lost during sync."
+msgstr ""
+
 msgid "The Hue bridge rejected the saved pairing key."
 msgstr ""
 
@@ -423,6 +426,9 @@ msgid "Start sync again and choose the screen or window to sync."
 msgstr ""
 
 msgid "Start sync again and reselect the screen in the portal dialog."
+msgstr ""
+
+msgid "Check that the bridge is powered on and reachable, then start sync again."
 msgstr ""
 
 msgid "Stop sync, wait a few seconds, then start sync again."

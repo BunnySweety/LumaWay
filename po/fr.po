@@ -405,6 +405,9 @@ msgstr "Une autre application Hue utilise peut-être déjà cette zone Entertain
 msgid "The Hue bridge is unreachable."
 msgstr "Le pont Hue est injoignable."
 
+msgid "The Hue bridge connection was lost during sync."
+msgstr "La connexion au pont Hue a été perdue pendant la synchronisation."
+
 msgid "The Hue bridge rejected the saved pairing key."
 msgstr "Le pont Hue a refusé la clé d'association enregistrée."
 
@@ -446,6 +449,9 @@ msgstr "Relancez la synchronisation et choisissez l'écran ou la fenêtre à syn
 
 msgid "Start sync again and reselect the screen in the portal dialog."
 msgstr "Relancez la synchronisation et resélectionnez l'écran dans la fenêtre du portail."
+
+msgid "Check that the bridge is powered on and reachable, then start sync again."
+msgstr "Vérifiez que le pont est allumé et joignable, puis relancez la synchronisation."
 
 msgid "Stop sync, wait a few seconds, then start sync again."
 msgstr "Arrêtez la synchronisation, attendez quelques secondes, puis relancez-la."
