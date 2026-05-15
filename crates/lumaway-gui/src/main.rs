@@ -100,6 +100,8 @@ struct Ui {
     logs: gtk::TextBuffer,
     event_queue: Arc<Mutex<VecDeque<GuiEvent>>>,
     bridge_id: Rc<RefCell<String>>,
+    /// Live Settings window; disabled while sync is running and cleared on destroy.
+    settings_window: Rc<RefCell<Option<gtk::Window>>>,
     /// Live label in the open Settings window; cleared on destroy.
     settings_bridge_id_label: Rc<RefCell<Option<gtk::Label>>>,
 }
@@ -455,6 +457,7 @@ fn build_widgets(
         logs,
         event_queue,
         bridge_id: Rc::new(RefCell::new(saved_bridge_id)),
+        settings_window: Rc::new(RefCell::new(None)),
         settings_bridge_id_label: Rc::new(RefCell::new(None)),
     }
 }
@@ -1023,6 +1026,11 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
 }
 
 fn open_settings_window(ui: &Ui) {
+    if let Some(window) = ui.settings_window.borrow().as_ref() {
+        window.present();
+        return;
+    }
+
     let window = gtk::Window::builder()
         .title(i18n::tr("Settings"))
         .default_width(440)
@@ -1324,9 +1332,12 @@ fn open_settings_window(ui: &Ui) {
     });
 
     let settings_ui = ui.clone();
+    let settings_window_slot = ui.settings_window.clone();
+    *settings_window_slot.borrow_mut() = Some(window.clone());
     let settings_label_slot = ui.settings_bridge_id_label.clone();
     *settings_label_slot.borrow_mut() = Some(bridge_id_label.clone());
     window.connect_destroy(move |_| {
+        *settings_ui.settings_window.borrow_mut() = None;
         *settings_ui.settings_bridge_id_label.borrow_mut() = None;
     });
 
@@ -2149,7 +2160,7 @@ fn apply_sync_idle_button_style(ui: &Ui) {
 }
 
 fn apply_sync_running_button_style(ui: &Ui) {
-    ui.start.set_label(&i18n::tr("Stop syncing"));
+    ui.start.set_label(&i18n::tr("Stop sync"));
     ui.start.remove_css_class("suggested-action");
     ui.start.remove_css_class("primary-sync");
     ui.start.add_css_class("destructive-action");
@@ -2163,6 +2174,7 @@ fn set_running_state(ui: &Ui, running: bool) {
     }
     ui.auth.set_sensitive(!running);
     ui.discover.set_sensitive(!running);
+    ui.settings.set_sensitive(!running);
     ui.bridge.set_sensitive(!running);
     ui.area.set_sensitive(!running);
     ui.area_select.set_sensitive(!running);
@@ -2172,9 +2184,14 @@ fn set_running_state(ui: &Ui, running: bool) {
     ui.client_key.set_sensitive(!running);
     ui.duration.set_sensitive(!running);
     ui.reactivity.set_sensitive(!running);
+    ui.profile.set_sensitive(!running);
+    ui.color_profile.set_sensitive(!running);
     let tiles = ui.intensity_tiles.borrow();
     set_intensity_tiles_sensitive(tiles.as_slice(), !running);
     ui.autostart.set_sensitive(!running);
+    if let Some(window) = ui.settings_window.borrow().as_ref() {
+        window.set_sensitive(!running);
+    }
     update_zone_controls(ui, running);
 }
 
