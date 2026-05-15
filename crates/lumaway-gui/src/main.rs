@@ -2286,6 +2286,26 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
             ui.area_model
                 .splice(0, ui.area_model.n_items(), &label_refs);
             *ui.area_options.borrow_mut() = areas.clone();
+            if areas.is_empty() {
+                ui.suppress_area_toggle.set(true);
+                ui.area.set_text("");
+                ui.area_enabled.set_active(false);
+                ui.suppress_area_toggle.set(false);
+                set_connection_header(
+                    ui,
+                    "No Entertainment zone",
+                    "Create one in the Hue app",
+                    "warning",
+                );
+                update_zone_controls(ui, sync_running);
+                update_area_lights_subtitle(ui);
+                append_log_msg(&ui.logs, "No Entertainment zones found.");
+                append_log_msg(
+                    &ui.logs,
+                    "Create an Entertainment area in the Philips Hue app, add lights, then open Settings and press Save to reload zones.",
+                );
+                return;
+            }
             if let Some(index) = selected_area_index(&areas, &previous_area) {
                 ui.suppress_area_toggle.set(true);
                 ui.area_select.set_selected(index as u32);
@@ -3293,6 +3313,7 @@ mod tests {
         assert_eq!(selected_area_index(&areas, "TV"), Some(1));
         assert_eq!(selected_area_index(&areas, ""), Some(0));
         assert_eq!(selected_area_index(&areas, "missing"), Some(0));
+        assert_eq!(selected_area_index(&[], "missing"), None);
     }
 
     #[test]

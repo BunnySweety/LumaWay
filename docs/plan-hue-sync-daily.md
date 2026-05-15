@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1 — dialogue À propos)
+Dernière revue : 2026-05-16 (Phase 1.6 — aucune zone Entertainment)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -272,7 +272,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.3 | Mapping modes → moteur | Voir §6–§6.1 ; au **Start** : `LUMAWAY_SYNC_MODE`, preset dérivé, `LUMAWAY_COLOR_PROFILE` imposé par le mode (écrase la valeur Réglages sauf mode « avancé » futur) ; ne plus utiliser `DEFAULT_PRESET` en dur. |
 | 1.4 | **Chaînes i18n complètes** | Socle livré : libellés accueil + réglages + statuts principaux via `tr(...)` / `tr_format(...)`, `po/fr.po` étendu, erreurs courantes via codes stables + `user_messages` ; reste revue visuelle locale et extension au fil des écrans ajoutés. |
 | 1.5 | **Écran principal épuré** | Fait : accueil limité aux gestes quotidiens ; `duration`, `profile`, `color_profile`, clés, réactivité fine, actions Quality/Calibrate et journal repliés dans Réglages avancés ; option **cinema** uniquement en Réglages avancé (§6). |
-| 1.6 | Assistant première utilisation | Pages traduites : pont → bouton physique → zone → test lumières → mode → démarrer. |
+| 1.6 | Assistant première utilisation | Partiel livré : si le pont ne renvoie aucune zone Entertainment, l’accueil affiche un état guidé pour créer une zone dans l’app Hue puis recharger ; assistant complet pont → bouton physique → zone → test lumières → mode → démarrer reste à faire. |
 | 1.7 | Icône barre système | StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter (confirmation si sync) **quand le bureau le supporte**. Sur GNOME vanilla sans extension tray, fallback requis : fenêtre qui conserve Start/Stop + notification minimale pour erreurs critiques si le portail/serveur de notifications est disponible. |
 | 1.8 | Démarrage de session | Fait : option Réglages traduite pour ouvrir LumaWay à la connexion via `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`; option séparée « Start sync when app opens » conservée pour lancer la sync à l’ouverture. |
 | 1.9 | Échecs explicites | Fait : erreurs Portal / capture / pont classifiées via gettext et complétées par actions contextuelles `Retry` et/ou `Open Settings` sur l’accueil. |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : aucune zone Entertainment guidée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -653,7 +653,7 @@ Tous requis sauf mention « optionnel » :
 | **Échec DTLS** / handshake | **3 tentatives au total** puis message i18n ; doc comportement complet en Phase 4 ([open-questions.md](open-questions.md)) | 1.13 + 4 |
 | **Fallback GNOME sans tray** | Fenêtre Start/Stop toujours accessible ; notification minimale pour erreurs critiques si disponible | 1.7 / 1.13 |
 | **Conflit Entertainment** (autre app / zone) | Message : une seule zone active ; actions `Retry` / `Open Settings` selon le contexte | 1.9 |
-| **Aucune zone** configurée | Guide : créer une zone dans l’app **Hue** (lien ou étapes) | 1.6 |
+| **Aucune zone** configurée | Livré partiel : état accueil “No Entertainment zone” + journal guidant la création d’une zone Entertainment dans l’app Hue, ajout de lumières, puis rechargement via Réglages > Save ; assistant complet reste 1.6 | 1.6 |
 | **Instance unique** GUI | Une seule fenêtre / une seule sync ; second lancement active l’instance existante | 1.14 |
 | **À propos** | Livré : `AdwAboutDialog` depuis l’accueil avec version Cargo, licence MPL-2.0, dépôt/issues GitHub, données locales, pas de télémétrie, mention **Philips Hue** nominative + non-affiliation Signify | 1 |
 | **AppStream** | `io.github.BunnySweety.LumaWay.metainfo.xml` traduit en + fr, installé par le script, validable par `appstreamcli` si présent | 0 / 4 |
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.6 aucune zone | Retour `list-areas` vide transformé en état guidé : zone désactivée, en-tête clair, étapes app Hue puis rechargement |
 | 2026-05-16 | Phase 1 À propos | Dialogue `AdwAboutDialog` ajouté : version, MPL-2.0, dépôt, confidentialité locale, zéro télémétrie, mention Philips Hue nominative |
 | 2026-05-16 | Phase 1.13 veille | Reprise après veille détectée par écart horloge murale / monotone > 5 s ; sync arrêtée avec message i18n et action `Retry` |
 | 2026-05-16 | Phase 1.13 pont perdu | Échec d’envoi DTLS pendant sync annoté “bridge lost during sync” et mappé GUI vers message i18n + actions `Retry` / `Open Settings` |

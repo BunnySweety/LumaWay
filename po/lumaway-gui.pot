@@ -83,6 +83,18 @@ msgstr ""
 msgid "Bridge connected"
 msgstr ""
 
+msgid "No Entertainment zone"
+msgstr ""
+
+msgid "Create one in the Hue app"
+msgstr ""
+
+msgid "No Entertainment zones found."
+msgstr ""
+
+msgid "Create an Entertainment area in the Philips Hue app, add lights, then open Settings and press Save to reload zones."
+msgstr ""
+
 msgid "Bridge configured"
 msgstr ""
 

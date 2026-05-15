@@ -59,6 +59,7 @@ LUMAWAY_CLIENT_KEY=...
 Do not put real local credentials in Git.
 
 The GUI detects the controller automatically at startup when no bridge address is configured. It automatically fetches configured zones when `LUMAWAY_BRIDGE` and `LUMAWAY_APP_KEY` are already available, preserving the saved zone if it is present in the returned list. The association action fills `LUMAWAY_APP_KEY` and `LUMAWAY_CLIENT_KEY` after the physical link button is pressed, then refreshes the zone list automatically. Manual discovery / zone refresh actions remain available, and the translated light-test action sends a short red validation color to the selected zone before starting screen sync.
+If the bridge has no Entertainment zone, the main window disables the zone switch, shows `No Entertainment zone`, and logs the Hue app steps: create an Entertainment area, add lights, then reopen Settings and press Save to reload zones.
 
 ## Validation mode
 
