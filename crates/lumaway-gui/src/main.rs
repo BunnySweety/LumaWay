@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 mod i18n;
+mod user_messages;
 
 const APP_ID: &str = "io.github.BunnySweety.LumaWay";
 const DEFAULT_SYNC_MODE: SyncMode = SyncMode::Video;
@@ -999,7 +1000,7 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         if sync_running(&start_state) {
             stop_sync(&start_ui, &start_state);
         } else if let Err(error) = start_sync(&start_ui, &start_state) {
-            append_log(&start_ui.logs, &format!("error: {error}\n"));
+            append_user_error(&start_ui.logs, &error.to_string());
             apply_sync_idle_button_style(&start_ui);
             update_zone_controls(&start_ui, false);
         }
@@ -1900,7 +1901,7 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
             set_running_state(&ui, false);
             if restart_requested && ui.area_enabled.is_active() {
                 if let Err(error) = start_sync_with_log_reset(&ui, &state, false) {
-                    append_log(&ui.logs, &format!("error: {error}\n"));
+                    append_user_error(&ui.logs, &error.to_string());
                     state.borrow_mut().pending_restart = false;
                 }
             } else if auto_quit_after_sync {
@@ -2098,15 +2099,24 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
         }
         GuiEvent::Error(error) => {
             let error = error.trim();
-            if is_hue_authentication_error(error) {
+            let code = user_messages::classify_error(error);
+            if code == user_messages::UserMessageCode::HueAuthRejected {
                 set_connection_header(ui, "Pairing required", "Press Pair in Settings", "warning");
-                append_log_msg(&ui.logs, "error: saved Hue application key was rejected. Press the bridge button, then press Pair in Settings.");
-            } else if ui_can_load_areas(ui) {
+                append_user_error(&ui.logs, error);
+            } else if code.is_portal_or_capture_error() {
+                set_connection_header(
+                    ui,
+                    "Screen capture stopped",
+                    "Press Start to try again",
+                    "warning",
+                );
+                append_user_error(&ui.logs, error);
+            } else if code.is_bridge_error() || ui_can_load_areas(ui) {
                 set_connection_header(ui, "Bridge not connected", "Check Settings", "warning");
-                append_log(&ui.logs, &format!("error: {error}\n"));
+                append_user_error(&ui.logs, error);
             } else {
                 update_health(ui);
-                append_log(&ui.logs, &format!("error: {error}\n"));
+                append_user_error(&ui.logs, error);
             }
         }
     }
@@ -2452,11 +2462,6 @@ fn parse_key_value_words(line: &str) -> HashMap<String, String> {
         .collect()
 }
 
-fn is_hue_authentication_error(error: &str) -> bool {
-    error.contains("Hue bridge authentication failed")
-        || error.contains("saved Hue application key was rejected")
-}
-
 fn append_log(buffer: &gtk::TextBuffer, text: &str) {
     let mut iter = buffer.end_iter();
     buffer.insert(&mut iter, text);
@@ -2468,6 +2473,10 @@ fn append_log_msg(buffer: &gtk::TextBuffer, message: &str) {
 
 fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&str, &str)]) {
     append_log(buffer, &format!("{}\n", i18n::tr_format(message, values)));
+}
+
+fn append_user_error(buffer: &gtk::TextBuffer, error: &str) {
+    append_log(buffer, &user_messages::format_user_error(error));
 }
 
 fn config_path() -> PathBuf {
@@ -2734,11 +2743,11 @@ mod tests {
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
         format_bridge_title, format_capture_quality_summary, initial_reactivity_percent,
-        initial_sync_mode, intensity_level_for_percent, is_hue_authentication_error,
-        lumaway_bin_override_rejection_reason, parse_area_state_output, parse_areas_output,
-        parse_auth_output, parse_bridge_discovery_output, parse_bridge_info_output,
-        parse_profile_list_output, preset_for_sync_mode, sanitize_color_profile,
-        sanitize_profile_name, selected_area_index, IntensityLevel,
+        initial_sync_mode, intensity_level_for_percent, lumaway_bin_override_rejection_reason,
+        parse_area_state_output, parse_areas_output, parse_auth_output,
+        parse_bridge_discovery_output, parse_bridge_info_output, parse_profile_list_output,
+        preset_for_sync_mode, sanitize_color_profile, sanitize_profile_name, selected_area_index,
+        IntensityLevel,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -2889,17 +2898,6 @@ mod tests {
         assert!(summary.contains("Capture quality: low_temporal_variation"));
         assert!(summary.contains("warnings: low_luma,low_saturation,low_temporal_variation"));
         assert!(summary.contains("channel separation: 8.7"));
-    }
-
-    #[test]
-    fn detects_hue_authentication_errors() {
-        assert!(is_hue_authentication_error(
-            "Error: Hue bridge authentication failed"
-        ));
-        assert!(is_hue_authentication_error(
-            "saved Hue application key was rejected; pair again"
-        ));
-        assert!(!is_hue_authentication_error("portal request failed"));
     }
 
     #[test]

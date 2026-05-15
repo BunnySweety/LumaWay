@@ -344,6 +344,81 @@ msgstr ""
 msgid "— (load zones after pairing)"
 msgstr ""
 
+msgid "Bridge address, zone, and pairing keys are required before sync can start."
+msgstr ""
+
+msgid "Check that the bridge is powered on and reachable on the network."
+msgstr ""
+
+msgid "Check that xdg-desktop-portal and the desktop portal backend are running."
+msgstr ""
+
+msgid "Check the details below, then try again."
+msgstr ""
+
+msgid "Details: {details}"
+msgstr ""
+
+msgid "Enable the zone switch, then start sync again."
+msgstr ""
+
+msgid "Another Hue app may already be using this Entertainment zone."
+msgstr ""
+
+msgid "The Hue bridge is unreachable."
+msgstr ""
+
+msgid "The Hue bridge rejected the saved pairing key."
+msgstr ""
+
+msgid "The Hue Entertainment connection failed."
+msgstr ""
+
+msgid "Open Settings and run Quality or Calibrate."
+msgstr ""
+
+msgid "Open Settings, pair the bridge, and select an Entertainment zone."
+msgstr ""
+
+msgid "Press Start to try again"
+msgstr ""
+
+msgid "Press the bridge button, then use Pair in Settings to create new keys."
+msgstr ""
+
+msgid "Screen capture is not available through the desktop portal."
+msgstr ""
+
+msgid "Screen capture is too dark to sync reliably."
+msgstr ""
+
+msgid "Screen capture stopped"
+msgstr ""
+
+msgid "Screen selection was cancelled."
+msgstr ""
+
+msgid "Start sync again and choose the screen or window to sync."
+msgstr ""
+
+msgid "Start sync again and reselect the screen in the portal dialog."
+msgstr ""
+
+msgid "Stop sync, wait a few seconds, then start sync again."
+msgstr ""
+
+msgid "Stop the other Hue sync app or choose a different Entertainment zone."
+msgstr ""
+
+msgid "No screen frames arrived from the selected source."
+msgstr ""
+
+msgid "Something went wrong."
+msgstr ""
+
+msgid "Turn on the selected Entertainment zone before starting sync."
+msgstr ""
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr ""
 

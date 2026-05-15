@@ -345,6 +345,81 @@ msgstr "{count} zones chargées."
 msgid "— (load zones after pairing)"
 msgstr "— (chargez les zones après l'association)"
 
+msgid "Bridge address, zone, and pairing keys are required before sync can start."
+msgstr "L'adresse du pont, la zone et les clés d'association sont requises avant de démarrer la synchronisation."
+
+msgid "Check that the bridge is powered on and reachable on the network."
+msgstr "Vérifiez que le pont est allumé et joignable sur le réseau."
+
+msgid "Check that xdg-desktop-portal and the desktop portal backend are running."
+msgstr "Vérifiez que xdg-desktop-portal et le backend portail du bureau sont démarrés."
+
+msgid "Check the details below, then try again."
+msgstr "Vérifiez les détails ci-dessous, puis réessayez."
+
+msgid "Details: {details}"
+msgstr "Détails : {details}"
+
+msgid "Enable the zone switch, then start sync again."
+msgstr "Activez l'interrupteur de zone, puis relancez la synchronisation."
+
+msgid "Another Hue app may already be using this Entertainment zone."
+msgstr "Une autre application Hue utilise peut-être déjà cette zone Entertainment."
+
+msgid "The Hue bridge is unreachable."
+msgstr "Le pont Hue est injoignable."
+
+msgid "The Hue bridge rejected the saved pairing key."
+msgstr "Le pont Hue a refusé la clé d'association enregistrée."
+
+msgid "The Hue Entertainment connection failed."
+msgstr "La connexion Hue Entertainment a échoué."
+
+msgid "Open Settings and run Quality or Calibrate."
+msgstr "Ouvrez Réglages puis lancez Qualité ou Calibrer."
+
+msgid "Open Settings, pair the bridge, and select an Entertainment zone."
+msgstr "Ouvrez Réglages, associez le pont et sélectionnez une zone Entertainment."
+
+msgid "Press Start to try again"
+msgstr "Appuyez sur Démarrer pour réessayer"
+
+msgid "Press the bridge button, then use Pair in Settings to create new keys."
+msgstr "Appuyez sur le bouton du pont, puis utilisez Associer dans Réglages pour créer de nouvelles clés."
+
+msgid "Screen capture is not available through the desktop portal."
+msgstr "La capture d'écran n'est pas disponible via le portail du bureau."
+
+msgid "Screen capture is too dark to sync reliably."
+msgstr "La capture d'écran est trop sombre pour une synchronisation fiable."
+
+msgid "Screen capture stopped"
+msgstr "Capture d'écran arrêtée"
+
+msgid "Screen selection was cancelled."
+msgstr "La sélection de l'écran a été annulée."
+
+msgid "Start sync again and choose the screen or window to sync."
+msgstr "Relancez la synchronisation et choisissez l'écran ou la fenêtre à synchroniser."
+
+msgid "Start sync again and reselect the screen in the portal dialog."
+msgstr "Relancez la synchronisation et resélectionnez l'écran dans la fenêtre du portail."
+
+msgid "Stop sync, wait a few seconds, then start sync again."
+msgstr "Arrêtez la synchronisation, attendez quelques secondes, puis relancez-la."
+
+msgid "Stop the other Hue sync app or choose a different Entertainment zone."
+msgstr "Arrêtez l'autre application Hue Sync ou choisissez une autre zone Entertainment."
+
+msgid "No screen frames arrived from the selected source."
+msgstr "Aucune image d'écran n'est arrivée depuis la source sélectionnée."
+
+msgid "Something went wrong."
+msgstr "Un problème est survenu."
+
+msgid "Turn on the selected Entertainment zone before starting sync."
+msgstr "Activez la zone Entertainment sélectionnée avant de démarrer la synchronisation."
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr "Synchroniser les lumières avec un écran Wayland"
 

@@ -1,4 +1,5 @@
 crates/lumaway-gui/src/main.rs
 crates/lumaway-gui/src/i18n.rs
+crates/lumaway-gui/src/user_messages.rs
 packaging/desktop/io.github.BunnySweety.LumaWay.desktop.in
 packaging/desktop/io.github.BunnySweety.LumaWay.metainfo.xml.in
