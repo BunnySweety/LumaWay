@@ -533,7 +533,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 
 | Phase | Statut | Notes |
 |-------|--------|-------|
-| 0 | En cours | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script amorcés |
+| 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
 | 1 | À faire | UX Hue Sync (§3) |
 | 2 | À faire | |
 | 3 | À faire | |

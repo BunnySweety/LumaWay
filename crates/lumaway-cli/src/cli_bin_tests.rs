@@ -15,6 +15,7 @@ use lumaway_hue::{
     DtlsTransport, EntertainmentArea, EntertainmentChannel, EntertainmentChannelPosition,
     HueStreamMessage,
 };
+use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -28,6 +29,11 @@ fn restore_env(key: &str, value: Option<std::ffi::OsString>) {
         Some(value) => std::env::set_var(key, value),
         None => std::env::remove_var(key),
     }
+}
+
+fn env_lock() -> MutexGuard<'static, ()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
 }
 
 impl DtlsTransport for RecordingTransport {
@@ -77,6 +83,7 @@ fn profile_keys_are_limited_to_non_secret_capture_settings() {
 
 #[test]
 fn available_profiles_returns_sorted_env_files_only() {
+    let _env = env_lock();
     let root = std::env::temp_dir().join(format!("lumaway-profile-test-{}", std::process::id()));
     let profiles_dir = root.join("lumaway/profiles");
     std::fs::create_dir_all(&profiles_dir).unwrap();
@@ -99,6 +106,7 @@ fn available_profiles_returns_sorted_env_files_only() {
 
 #[test]
 fn main_env_defaults_load_cli_and_profile_values_without_overrides() {
+    let _env = env_lock();
     let root = std::env::temp_dir().join(format!("lumaway-main-env-test-{}", std::process::id()));
     let config_dir = root.join("lumaway");
     std::fs::create_dir_all(&config_dir).unwrap();
@@ -136,6 +144,7 @@ fn main_env_defaults_load_cli_and_profile_values_without_overrides() {
 
 #[test]
 fn non_empty_env_trims_and_ignores_empty_values() {
+    let _env = env_lock();
     let old_bridge = std::env::var_os("LUMAWAY_BRIDGE");
     std::env::set_var("LUMAWAY_BRIDGE", " 192.0.2.10 ");
     assert_eq!(
