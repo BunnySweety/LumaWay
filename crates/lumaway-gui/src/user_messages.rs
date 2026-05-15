@@ -14,6 +14,7 @@ pub enum UserMessageCode {
     PortalStreamClosed,
     CaptureTimeout,
     CaptureTooDark,
+    SystemSleepResume,
     Unknown,
 }
 
@@ -32,6 +33,7 @@ impl UserMessageCode {
             Self::PortalStreamClosed => "portal.stream_closed",
             Self::CaptureTimeout => "capture.timeout",
             Self::CaptureTooDark => "capture.too_dark",
+            Self::SystemSleepResume => "system.sleep_resume",
             Self::Unknown => "unknown",
         }
     }
@@ -58,6 +60,9 @@ impl UserMessageCode {
             Self::PortalStreamClosed => i18n::tr("The screen capture stream stopped."),
             Self::CaptureTimeout => i18n::tr("No screen frames arrived from the selected source."),
             Self::CaptureTooDark => i18n::tr("Screen capture is too dark to sync reliably."),
+            Self::SystemSleepResume => {
+                i18n::tr("LumaWay stopped sync after the computer resumed from sleep.")
+            }
             Self::Unknown => i18n::tr("Something went wrong."),
         }
     }
@@ -96,6 +101,9 @@ impl UserMessageCode {
                 i18n::tr("Start sync again and reselect the screen in the portal dialog.")
             }
             Self::CaptureTooDark => i18n::tr("Open Settings and run Quality or Calibrate."),
+            Self::SystemSleepResume => {
+                i18n::tr("Start sync again and reselect the screen if the portal asks.")
+            }
             Self::Unknown => i18n::tr("Check the details below, then try again."),
         }
     }
@@ -134,6 +142,7 @@ impl UserMessageCode {
                 | Self::PortalUnavailable
                 | Self::PortalStreamClosed
                 | Self::CaptureTimeout
+                | Self::SystemSleepResume
         )
     }
 
@@ -215,6 +224,12 @@ pub fn classify_error(error: &str) -> UserMessageCode {
     if lower.contains("portal stream stopped") || lower.contains("screen capture stream stopped") {
         return UserMessageCode::PortalStreamClosed;
     }
+    if lower.contains("system sleep detected")
+        || lower.contains("computer resumed from sleep")
+        || lower.contains("sync stopped after resume")
+    {
+        return UserMessageCode::SystemSleepResume;
+    }
     if lower.contains("capture_too_dark")
         || lower.contains("dark frames")
         || lower.contains("returns black")
@@ -289,6 +304,10 @@ mod tests {
             classify_error("portal stream stopped: no screen frames arrived for 5 seconds"),
             UserMessageCode::PortalStreamClosed
         );
+        assert_eq!(
+            classify_error("system sleep detected: sync stopped after resume; start sync again"),
+            UserMessageCode::SystemSleepResume
+        );
     }
 
     #[test]
@@ -331,6 +350,8 @@ mod tests {
         assert!(UserMessageCode::HueBridgeLost.offers_settings_action());
         assert!(UserMessageCode::PortalStreamClosed.offers_retry_action());
         assert!(!UserMessageCode::PortalStreamClosed.offers_settings_action());
+        assert!(UserMessageCode::SystemSleepResume.offers_retry_action());
+        assert!(!UserMessageCode::SystemSleepResume.offers_settings_action());
         assert!(!UserMessageCode::Unknown.offers_retry_action());
         assert!(!UserMessageCode::Unknown.offers_settings_action());
     }

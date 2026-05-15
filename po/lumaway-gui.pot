@@ -395,6 +395,9 @@ msgstr ""
 msgid "The screen capture stream stopped."
 msgstr ""
 
+msgid "LumaWay stopped sync after the computer resumed from sleep."
+msgstr ""
+
 msgid "Open Settings and run Quality or Calibrate."
 msgstr ""
 
@@ -426,6 +429,9 @@ msgid "Start sync again and choose the screen or window to sync."
 msgstr ""
 
 msgid "Start sync again and reselect the screen in the portal dialog."
+msgstr ""
+
+msgid "Start sync again and reselect the screen if the portal asks."
 msgstr ""
 
 msgid "Check that the bridge is powered on and reachable, then start sync again."

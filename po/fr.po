@@ -417,6 +417,9 @@ msgstr "La connexion Hue Entertainment a échoué."
 msgid "The screen capture stream stopped."
 msgstr "Le flux de capture d'écran s'est arrêté."
 
+msgid "LumaWay stopped sync after the computer resumed from sleep."
+msgstr "LumaWay a arrêté la synchronisation après la sortie de veille de l'ordinateur."
+
 msgid "Open Settings and run Quality or Calibrate."
 msgstr "Ouvrez Réglages puis lancez Qualité ou Calibrer."
 
@@ -449,6 +452,9 @@ msgstr "Relancez la synchronisation et choisissez l'écran ou la fenêtre à syn
 
 msgid "Start sync again and reselect the screen in the portal dialog."
 msgstr "Relancez la synchronisation et resélectionnez l'écran dans la fenêtre du portail."
+
+msgid "Start sync again and reselect the screen if the portal asks."
+msgstr "Relancez la synchronisation et resélectionnez l'écran si le portail le demande."
 
 msgid "Check that the bridge is powered on and reachable, then start sync again."
 msgstr "Vérifiez que le pont est allumé et joignable, puis relancez la synchronisation."

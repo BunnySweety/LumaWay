@@ -1,6 +1,6 @@
 //! `sync` and `sync-bench`: portal capture, DTLS, and Hue streaming loop.
 
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime};
 
 use anyhow::{bail, Context, Result};
 use lumaway_core::{
@@ -26,6 +26,13 @@ use crate::{
 
 const PORTAL_RESTORE_TOKEN_KEY: &str = "LUMAWAY_PORTAL_RESTORE_TOKEN";
 const CAPTURE_STALE_TIMEOUT: Duration = Duration::from_secs(5);
+const SYSTEM_SLEEP_RESUME_GAP: Duration = Duration::from_secs(5);
+
+#[derive(Clone, Copy)]
+struct LoopClock {
+    wall: SystemTime,
+    monotonic: Instant,
+}
 
 async fn connect_dtls_with_retries(
     bridge: &str,
@@ -123,6 +130,7 @@ async fn sync_average_color_loop(
     let mut next_capture_at = started_at + capture_delay;
     let mut next_stream_at = started_at;
     let mut fresh_capture = true;
+    let mut last_clock_tick = loop_clock_now();
 
     while !deadline_reached(deadline) {
         if next_capture_at <= next_stream_at {
@@ -130,6 +138,7 @@ async fn sync_average_color_loop(
                 stats.interrupted = true;
                 break;
             }
+            stop_if_resumed_from_sleep(&mut last_clock_tick)?;
             if deadline_reached(deadline) {
                 break;
             }
@@ -178,6 +187,7 @@ async fn sync_average_color_loop(
             stats.interrupted = true;
             break;
         }
+        stop_if_resumed_from_sleep(&mut last_clock_tick)?;
         if deadline_reached(deadline) {
             break;
         }
@@ -657,6 +667,33 @@ fn capture_stream_stale(last_capture_at: Instant, now: Instant, stale_timeout: D
     now.duration_since(last_capture_at) >= stale_timeout
 }
 
+fn loop_clock_now() -> LoopClock {
+    LoopClock {
+        wall: SystemTime::now(),
+        monotonic: Instant::now(),
+    }
+}
+
+fn stop_if_resumed_from_sleep(last_tick: &mut LoopClock) -> Result<()> {
+    let now = loop_clock_now();
+    if system_sleep_resume_detected(*last_tick, now, SYSTEM_SLEEP_RESUME_GAP) {
+        bail!("system sleep detected: sync stopped after resume; start sync again");
+    }
+    *last_tick = now;
+    Ok(())
+}
+
+fn system_sleep_resume_detected(last: LoopClock, now: LoopClock, threshold: Duration) -> bool {
+    let Ok(wall_elapsed) = now.wall.duration_since(last.wall) else {
+        return false;
+    };
+    let monotonic_elapsed = now.monotonic.duration_since(last.monotonic);
+
+    wall_elapsed
+        .checked_sub(monotonic_elapsed)
+        .is_some_and(|gap| gap >= threshold)
+}
+
 fn send_sync_dtls_frame(transport: &mut impl DtlsTransport, message: &[u8]) -> Result<()> {
     send_dtls_frame(transport, message)
         .context("bridge lost during sync while sending Hue Entertainment frame")
@@ -679,8 +716,9 @@ fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{capture_stream_stale, normalize_portal_restore_token, send_sync_dtls_frame};
+    use super::{system_sleep_resume_detected, LoopClock};
     use lumaway_hue::{DtlsTransport, HueError, HueStreamMessage};
-    use std::time::{Duration, Instant};
+    use std::time::{Duration, Instant, SystemTime};
 
     struct FailingTransport;
 
@@ -716,6 +754,43 @@ mod tests {
         assert!(capture_stream_stale(
             started,
             started + Duration::from_secs(5),
+            Duration::from_secs(5)
+        ));
+    }
+
+    #[test]
+    fn detects_resume_from_system_sleep_gap() {
+        let started = LoopClock {
+            wall: SystemTime::UNIX_EPOCH,
+            monotonic: Instant::now(),
+        };
+
+        let normal_delay = LoopClock {
+            wall: SystemTime::UNIX_EPOCH + Duration::from_secs(10),
+            monotonic: started.monotonic + Duration::from_secs(9),
+        };
+        let sleep_resume = LoopClock {
+            wall: SystemTime::UNIX_EPOCH + Duration::from_secs(20),
+            monotonic: started.monotonic + Duration::from_secs(1),
+        };
+        let backwards_wall_clock = LoopClock {
+            wall: SystemTime::UNIX_EPOCH - Duration::from_secs(1),
+            monotonic: started.monotonic + Duration::from_secs(1),
+        };
+
+        assert!(!system_sleep_resume_detected(
+            started,
+            normal_delay,
+            Duration::from_secs(5)
+        ));
+        assert!(system_sleep_resume_detected(
+            started,
+            sleep_resume,
+            Duration::from_secs(5)
+        ));
+        assert!(!system_sleep_resume_detected(
+            started,
+            backwards_wall_clock,
             Duration::from_secs(5)
         ));
     }
