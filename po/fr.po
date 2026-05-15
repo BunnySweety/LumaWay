@@ -183,6 +183,24 @@ msgstr "Désactiver"
 msgid "Discover"
 msgstr "Découvrir"
 
+msgid "First setup"
+msgstr "Première configuration"
+
+msgid "Find your Hue bridge."
+msgstr "Trouvez votre pont Hue."
+
+msgid "Press the bridge button, then pair LumaWay."
+msgstr "Appuyez sur le bouton du pont, puis associez LumaWay."
+
+msgid "Select an Entertainment zone."
+msgstr "Sélectionnez une zone Entertainment."
+
+msgid "Turn the zone on, then test lights."
+msgstr "Activez la zone, puis testez les lumières."
+
+msgid "Ready. Press Start sync."
+msgstr "Prêt. Appuyez sur Démarrer la synchronisation."
+
 msgid "Duration (ms)"
 msgstr "Durée (ms)"
 
@@ -233,6 +251,21 @@ msgstr "Ouvrir LumaWay à la connexion"
 
 msgid "Pair"
 msgstr "Associer"
+
+msgid "Test lights"
+msgstr "Tester les lumières"
+
+msgid "Testing lights with red."
+msgstr "Test des lumières en rouge."
+
+msgid "Light test completed."
+msgstr "Test des lumières terminé."
+
+msgid "error: bridge, zone, and pairing keys are required before testing lights"
+msgstr "erreur : le pont, la zone et les clés d'association sont requis avant de tester les lumières"
+
+msgid "error: light test failed: {message}"
+msgstr "erreur : échec du test des lumières : {message}"
 
 msgid "Pairing required"
 msgstr "Association requise"

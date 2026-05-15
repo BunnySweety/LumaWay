@@ -95,10 +95,13 @@ struct Ui {
     autostart: gtk::CheckButton,
     connection_status: gtk::Label,
     bridge_display: gtk::Label,
+    setup_card: gtk::Box,
+    setup_status: gtk::Label,
     settings: gtk::Button,
     about: gtk::Button,
     discover: gtk::Button,
     auth: gtk::Button,
+    test_lights: gtk::Button,
     start: gtk::Button,
     sync_status: gtk::Label,
     error_actions: gtk::Box,
@@ -134,6 +137,8 @@ enum GuiEvent {
     AreaActivateUnavailable { message: String },
     AreaDeactivated { name: String, lights: usize },
     AreaDeactivateUnavailable { message: String },
+    TestLightsCompleted,
+    TestLightsUnavailable { message: String },
     ProfilesListed(Vec<String>),
     ProfileCalibrated { profile: String, output: String },
     CaptureQualityMeasured(String),
@@ -344,6 +349,7 @@ fn build_widgets(
     error_actions.append(&error_open_settings);
     let auth = gtk::Button::with_label(&i18n::tr("Pair"));
     let discover = gtk::Button::with_label(&i18n::tr("Discover"));
+    let test_lights = gtk::Button::with_label(&i18n::tr("Test lights"));
 
     let connection_status = gtk::Label::new(Some(&i18n::tr("Bridge not configured")));
     connection_status.set_xalign(0.0);
@@ -363,6 +369,26 @@ fn build_widgets(
     connection_header.append(&connection_copy);
     connection_header.append(&settings);
     connection_header.append(&about);
+
+    let setup_card = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    setup_card.add_css_class("view");
+    setup_card.add_css_class("compact-card");
+    setup_card.add_css_class("setup-card");
+    let setup_heading = gtk::Label::new(Some(i18n::tr("First setup").as_str()));
+    setup_heading.set_xalign(0.0);
+    setup_heading.add_css_class("heading");
+    let setup_status = gtk::Label::new(None);
+    setup_status.set_xalign(0.0);
+    setup_status.set_wrap(true);
+    setup_status.add_css_class("dim-label");
+    let setup_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    setup_actions.set_halign(gtk::Align::Start);
+    setup_actions.append(&discover);
+    setup_actions.append(&auth);
+    setup_actions.append(&test_lights);
+    setup_card.append(&setup_heading);
+    setup_card.append(&setup_status);
+    setup_card.append(&setup_actions);
 
     let area_box = gtk::Box::new(gtk::Orientation::Vertical, 12);
     area_box.add_css_class("view");
@@ -444,6 +470,7 @@ fn build_widgets(
     lower.set_margin_end(22);
     lower.set_margin_bottom(8);
     lower.append(&connection_header);
+    lower.append(&setup_card);
     lower.append(&area_box);
     lower.append(&mode_box);
     let autostart_holder = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -498,10 +525,13 @@ fn build_widgets(
         autostart,
         connection_status,
         bridge_display,
+        setup_card,
+        setup_status,
         settings,
         about,
         discover,
         auth,
+        test_lights,
         start,
         sync_status,
         error_actions,
@@ -1033,6 +1063,11 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         create_hue_keys(&auth_ui);
     });
 
+    let test_lights_ui = ui.clone();
+    ui.test_lights.connect_clicked(move |_| {
+        test_lights(&test_lights_ui);
+    });
+
     let area_ui = ui.clone();
     let area_entry = ui.area.clone();
     let area_options = ui.area_options.clone();
@@ -1534,6 +1569,7 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
         .set_selected(controls.color_profile.selected());
     ui.autostart.set_active(controls.autostart.is_active());
     update_health(ui);
+    update_zone_controls(ui, false);
 
     if let Err(error) = set_session_autostart(controls.session_autostart.is_active()) {
         append_log_msg_format(
@@ -1600,6 +1636,60 @@ fn create_hue_keys(ui: &Ui) {
             Err(error) => GuiEvent::Error(error.to_string()),
         };
         push_event(&queue, event);
+    });
+}
+
+fn test_lights(ui: &Ui) {
+    let bridge = ui.bridge.text().trim().to_string();
+    let area = current_area_ref(ui);
+    ui.area.set_text(&area);
+    let app_key = ui.app_key.text().trim().to_string();
+    let client_key = ui.client_key.text().trim().to_string();
+    if bridge.is_empty() || area.is_empty() || app_key.is_empty() || client_key.is_empty() {
+        append_log_msg(
+            &ui.logs,
+            "error: bridge, zone, and pairing keys are required before testing lights",
+        );
+        return;
+    }
+
+    append_log_msg(&ui.logs, "Testing lights with red.");
+    let queue = ui_event_queue(ui);
+    thread::spawn(move || {
+        let output = Command::new(resolve_lumaway_binary())
+            .arg("test-color")
+            .arg("--bridge")
+            .arg(&bridge)
+            .arg("--app-key")
+            .arg(&app_key)
+            .arg("--client-key")
+            .arg(&client_key)
+            .arg("--area")
+            .arg(&area)
+            .arg("--color")
+            .arg("red")
+            .arg("--duration-ms")
+            .arg("1200")
+            .arg("--fps")
+            .arg("25")
+            .output();
+        match output {
+            Ok(output) if output.status.success() => {
+                push_event(&queue, GuiEvent::TestLightsCompleted)
+            }
+            Ok(output) => push_event(
+                &queue,
+                GuiEvent::TestLightsUnavailable {
+                    message: String::from_utf8_lossy(&output.stderr).to_string(),
+                },
+            ),
+            Err(error) => push_event(
+                &queue,
+                GuiEvent::TestLightsUnavailable {
+                    message: error.to_string(),
+                },
+            ),
+        };
     });
 }
 
@@ -2352,6 +2442,16 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                 &[("message", message.trim())],
             );
         }
+        GuiEvent::TestLightsCompleted => {
+            append_log_msg(&ui.logs, "Light test completed.");
+        }
+        GuiEvent::TestLightsUnavailable { message } => {
+            append_log_msg_format(
+                &ui.logs,
+                "error: light test failed: {message}",
+                &[("message", message.trim())],
+            );
+        }
         GuiEvent::ProfilesListed(profiles) => {
             if profiles.is_empty() {
                 append_log_msg(&ui.logs, "No capture profiles found.");
@@ -2462,6 +2562,55 @@ fn update_zone_controls(ui: &Ui, running: bool) {
     let zone_ready = has_zone && ui.area_enabled.is_active();
     ui.intensity.set_sensitive(has_zone);
     ui.start.set_sensitive(running || zone_ready);
+    update_setup_guide(ui, running);
+}
+
+fn update_setup_guide(ui: &Ui, running: bool) {
+    let bridge_configured = !ui.bridge.text().trim().is_empty();
+    let paired = !ui.app_key.text().trim().is_empty() && !ui.client_key.text().trim().is_empty();
+    let has_zone = !current_area_ref(ui).trim().is_empty();
+    let zone_on = has_zone && ui.area_enabled.is_active();
+    let complete = setup_guide_complete(bridge_configured, paired, has_zone, zone_on);
+
+    ui.setup_card.set_visible(!complete);
+    ui.setup_status.set_text(&i18n::tr(setup_guide_status(
+        bridge_configured,
+        paired,
+        has_zone,
+        zone_on,
+    )));
+    ui.discover.set_sensitive(!running);
+    ui.auth.set_sensitive(!running && bridge_configured);
+    ui.test_lights
+        .set_sensitive(!running && bridge_configured && paired && has_zone);
+}
+
+fn setup_guide_complete(
+    bridge_configured: bool,
+    paired: bool,
+    has_zone: bool,
+    zone_on: bool,
+) -> bool {
+    bridge_configured && paired && has_zone && zone_on
+}
+
+fn setup_guide_status(
+    bridge_configured: bool,
+    paired: bool,
+    has_zone: bool,
+    zone_on: bool,
+) -> &'static str {
+    if !bridge_configured {
+        "Find your Hue bridge."
+    } else if !paired {
+        "Press the bridge button, then pair LumaWay."
+    } else if !has_zone {
+        "Select an Entertainment zone."
+    } else if !zone_on {
+        "Turn the zone on, then test lights."
+    } else {
+        "Ready. Press Start sync."
+    }
 }
 
 fn update_area_lights_subtitle(ui: &Ui) {
@@ -3146,8 +3295,8 @@ mod tests {
         parse_areas_output, parse_auth_output, parse_bridge_discovery_output,
         parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
         sanitize_color_profile, sanitize_profile_name, selected_area_index,
-        session_autostart_desktop_entry_for_exec, sync_status_from_log, IntensityLevel,
-        ABOUT_COMMENTS,
+        session_autostart_desktop_entry_for_exec, setup_guide_complete, setup_guide_status,
+        sync_status_from_log, IntensityLevel, ABOUT_COMMENTS,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3229,6 +3378,32 @@ mod tests {
         assert!(ABOUT_COMMENTS.contains("no telemetry"));
         assert!(ABOUT_COMMENTS.contains("Philips Hue"));
         assert!(ABOUT_COMMENTS.contains("not affiliated with Signify"));
+    }
+
+    #[test]
+    fn setup_guide_tracks_first_run_progress() {
+        assert_eq!(
+            setup_guide_status(false, false, false, false),
+            "Find your Hue bridge."
+        );
+        assert_eq!(
+            setup_guide_status(true, false, false, false),
+            "Press the bridge button, then pair LumaWay."
+        );
+        assert_eq!(
+            setup_guide_status(true, true, false, false),
+            "Select an Entertainment zone."
+        );
+        assert_eq!(
+            setup_guide_status(true, true, true, false),
+            "Turn the zone on, then test lights."
+        );
+        assert_eq!(
+            setup_guide_status(true, true, true, true),
+            "Ready. Press Start sync."
+        );
+        assert!(setup_guide_complete(true, true, true, true));
+        assert!(!setup_guide_complete(true, true, true, false));
     }
 
     #[test]

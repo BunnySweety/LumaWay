@@ -176,6 +176,24 @@ msgstr ""
 msgid "Discover"
 msgstr ""
 
+msgid "First setup"
+msgstr ""
+
+msgid "Find your Hue bridge."
+msgstr ""
+
+msgid "Press the bridge button, then pair LumaWay."
+msgstr ""
+
+msgid "Select an Entertainment zone."
+msgstr ""
+
+msgid "Turn the zone on, then test lights."
+msgstr ""
+
+msgid "Ready. Press Start sync."
+msgstr ""
+
 msgid "Duration (ms)"
 msgstr ""
 
@@ -225,6 +243,21 @@ msgid "Open LumaWay when you sign in"
 msgstr ""
 
 msgid "Pair"
+msgstr ""
+
+msgid "Test lights"
+msgstr ""
+
+msgid "Testing lights with red."
+msgstr ""
+
+msgid "Light test completed."
+msgstr ""
+
+msgid "error: bridge, zone, and pairing keys are required before testing lights"
+msgstr ""
+
+msgid "error: light test failed: {message}"
 msgstr ""
 
 msgid "Pairing required"
