@@ -17,6 +17,12 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
+msgid "About"
+msgstr ""
+
+msgid "Sync Philips Hue Entertainment lights from the Linux desktop. All processing stays local; no telemetry. Philips Hue is mentioned only to identify compatible hardware; LumaWay is not affiliated with Signify."
+msgstr ""
+
 msgid "Start sync"
 msgstr ""
 

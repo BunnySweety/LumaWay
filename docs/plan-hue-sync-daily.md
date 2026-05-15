@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.13 — reprise après veille)
+Dernière revue : 2026-05-16 (Phase 1 — dialogue À propos)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -636,7 +636,7 @@ Tous requis sauf mention « optionnel » :
 - [ ] Harness / test latence : réaction perceptible **&lt; 300 ms** sur plein écran (Phase 2.4, §5).
 - [ ] `install-desktop-app.sh` installe binaires + `.mo` + `.desktop` + AppStream `.metainfo.xml`.
 - [ ] Aucune clé API sur l’écran principal ; pairing guidé.
-- [ ] Dialogue **À propos** (version, confidentialité locale, pas de télémétrie).
+- [x] Dialogue **À propos** (version, confidentialité locale, pas de télémétrie).
 - [ ] Flatpak : optionnel v1.0 (peut suivre en v1.1 si install script suffit).
 - [ ] KDE Wayland : smoke test best-effort (non bloquant si GNOME OK).
 
@@ -655,7 +655,7 @@ Tous requis sauf mention « optionnel » :
 | **Conflit Entertainment** (autre app / zone) | Message : une seule zone active ; actions `Retry` / `Open Settings` selon le contexte | 1.9 |
 | **Aucune zone** configurée | Guide : créer une zone dans l’app **Hue** (lien ou étapes) | 1.6 |
 | **Instance unique** GUI | Une seule fenêtre / une seule sync ; second lancement active l’instance existante | 1.14 |
-| **À propos** | Version, MPL-2.0, données 100 % locales, pas de télémétrie, mention **Philips Hue** (usage nominatif) | 1 |
+| **À propos** | Livré : `AdwAboutDialog` depuis l’accueil avec version Cargo, licence MPL-2.0, dépôt/issues GitHub, données locales, pas de télémétrie, mention **Philips Hue** nominative + non-affiliation Signify | 1 |
 | **AppStream** | `io.github.BunnySweety.LumaWay.metainfo.xml` traduit en + fr, installé par le script, validable par `appstreamcli` si présent | 0 / 4 |
 | **Migration** `lumaway.env` | `LUMAWAY_CONFIG_VERSION` ; alias `LUMAWAY_PRESET` → `LUMAWAY_SYNC_MODE` | 0 |
 | **Subprocess `lumaway` terminé** (code ≠ 0, signal) | GUI : état Arrêté + message i18n, pas de spinner infini | 1.13 |
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1 À propos | Dialogue `AdwAboutDialog` ajouté : version, MPL-2.0, dépôt, confidentialité locale, zéro télémétrie, mention Philips Hue nominative |
 | 2026-05-16 | Phase 1.13 veille | Reprise après veille détectée par écart horloge murale / monotone > 5 s ; sync arrêtée avec message i18n et action `Retry` |
 | 2026-05-16 | Phase 1.13 pont perdu | Échec d’envoi DTLS pendant sync annoté “bridge lost during sync” et mappé GUI vers message i18n + actions `Retry` / `Open Settings` |
 | 2026-05-16 | Phase 1.13 Portal fermé | Timeout de flux Portal sans nouvelle frame > 5 s converti en erreur classifiée ; la sortie subprocess déclenche l’état arrêté et `Retry` |

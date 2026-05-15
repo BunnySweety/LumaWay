@@ -20,6 +20,7 @@ mod user_messages;
 const APP_ID: &str = "io.github.BunnySweety.LumaWay";
 const DEFAULT_SYNC_MODE: SyncMode = SyncMode::Video;
 const COLOR_PROFILES: [&str; 6] = ["soft", "vivid", "game", "boosted", "cinema", "desktop"];
+const ABOUT_COMMENTS: &str = "Sync Philips Hue Entertainment lights from the Linux desktop. All processing stays local; no telemetry. Philips Hue is mentioned only to identify compatible hardware; LumaWay is not affiliated with Signify.";
 /// Shown in `connection_status` when the Hue bridge is reachable (keep in sync with comparisons).
 const BRIDGE_STATUS_CONNECTED: &str = "Connected to bridge";
 /// Zone-card dim labels: offset to match DropDown / Switch / scale trough (GTK aligns widget tops, not optical centers).
@@ -95,6 +96,7 @@ struct Ui {
     connection_status: gtk::Label,
     bridge_display: gtk::Label,
     settings: gtk::Button,
+    about: gtk::Button,
     discover: gtk::Button,
     auth: gtk::Button,
     start: gtk::Button,
@@ -218,6 +220,8 @@ fn build_widgets(
     toolbar.set_title_widget(Some(&title));
     let settings = gtk::Button::with_label(&i18n::tr("Settings"));
     settings.add_css_class("settings-button");
+    let about = gtk::Button::with_label(&i18n::tr("About"));
+    about.add_css_class("settings-button");
 
     let saved_bridge = saved.get("LUMAWAY_BRIDGE").cloned().unwrap_or_default();
     let saved_bridge_id = saved.get("LUMAWAY_BRIDGE_ID").cloned().unwrap_or_default();
@@ -358,6 +362,7 @@ fn build_widgets(
     connection_header.append(&connection_icon);
     connection_header.append(&connection_copy);
     connection_header.append(&settings);
+    connection_header.append(&about);
 
     let area_box = gtk::Box::new(gtk::Orientation::Vertical, 12);
     area_box.add_css_class("view");
@@ -494,6 +499,7 @@ fn build_widgets(
         connection_status,
         bridge_display,
         settings,
+        about,
         discover,
         auth,
         start,
@@ -1012,6 +1018,11 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         open_settings_window(&settings_ui);
     });
 
+    let about_ui = ui.clone();
+    ui.about.connect_clicked(move |_| {
+        show_about_dialog(&about_ui);
+    });
+
     let discover_ui = ui.clone();
     ui.discover.connect_clicked(move |_| {
         discover_bridges(&discover_ui);
@@ -1120,6 +1131,24 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         stop_sync(&close_ui, &close_state);
         glib::Propagation::Proceed
     });
+}
+
+fn show_about_dialog(ui: &Ui) {
+    let dialog = adw::AboutDialog::builder()
+        .application_name("LumaWay")
+        .application_icon(APP_ID)
+        .developer_name("BunnySweety")
+        .version(env!("CARGO_PKG_VERSION"))
+        .comments(about_comments())
+        .license_type(gtk::License::Mpl20)
+        .website("https://github.com/BunnySweety/LumaWay")
+        .issue_url("https://github.com/BunnySweety/LumaWay/issues")
+        .build();
+    dialog.present(Some(&ui.window));
+}
+
+fn about_comments() -> String {
+    i18n::tr(ABOUT_COMMENTS)
 }
 
 fn open_settings_window(ui: &Ui) {
@@ -3098,6 +3127,7 @@ mod tests {
         parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
         sanitize_color_profile, sanitize_profile_name, selected_area_index,
         session_autostart_desktop_entry_for_exec, sync_status_from_log, IntensityLevel,
+        ABOUT_COMMENTS,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3170,6 +3200,15 @@ mod tests {
     fn bridge_id_display_text_placeholder_when_empty() {
         assert_eq!(bridge_id_display_text(""), "— (load zones after pairing)");
         assert_eq!(bridge_id_display_text("abc"), "abc");
+    }
+
+    #[test]
+    fn about_copy_states_privacy_license_and_hue_compatibility_scope() {
+        assert!(!env!("CARGO_PKG_VERSION").is_empty());
+        assert!(ABOUT_COMMENTS.contains("All processing stays local"));
+        assert!(ABOUT_COMMENTS.contains("no telemetry"));
+        assert!(ABOUT_COMMENTS.contains("Philips Hue"));
+        assert!(ABOUT_COMMENTS.contains("not affiliated with Signify"));
     }
 
     #[test]

@@ -48,6 +48,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - No entertainment area configured: guided flow to create zone in Hue app.
 - Single GUI instance: second launch focuses existing window.
 - GUI classified errors: Portal/capture/bridge failures expose contextual `Retry` and/or `Open Settings` recovery actions.
+- About dialog: version, MPL-2.0, local processing, no telemetry, project links, and nominative Philips Hue compatibility scope.
 - Portal flow: GUI shows the translated screen/window selection reminder; `lumaway sync` reuses and persists `LUMAWAY_PORTAL_RESTORE_TOKEN` when the portal provides one.
 - Portal stream closed: after more than 5 seconds without new frames, sync exits with a classified Portal-stream error and the GUI exposes `Retry`.
 - Bridge lost during sync: a mid-stream DTLS send failure is annotated as bridge loss, stops the sync loop, and maps to a translated GUI recovery message.
@@ -132,6 +133,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: sync cadence helpers, capture poll validation, and extended sync stats counters are covered with unit tests.
 - `cargo test`: mid-sync DTLS send failures are annotated as bridge loss and GUI classification maps them to the bridge-lost recovery message.
 - `cargo test`: sleep-resume gap detection and GUI classification map resumed sessions to the sleep recovery message.
+- `cargo test`: About dialog copy covers local processing, no telemetry, Philips Hue compatibility scope, and non-affiliation.
 - `cargo test`: relative 2D channel sample mapping, configurable edge margin, manual crop bounds, same-height vertical centering, and fallback placement are covered with unit tests.
 - `cargo test`: sampled dark-border detection, fully dark frame handling, crop aggregation, auto-crop edge cap validation, manual-plus-auto crop merging, and copyable crop args are covered with unit tests.
 
