@@ -114,6 +114,7 @@ struct AppState {
     echo_logs: bool,
     pending_restart: bool,
     stop_requested: bool,
+    last_sync_failure: Option<String>,
 }
 
 enum GuiEvent {
@@ -156,6 +157,7 @@ fn build_ui(app: &adw::Application) {
         echo_logs: env_flag("LUMAWAY_GUI_ECHO_LOGS"),
         pending_restart: false,
         stop_requested: false,
+        last_sync_failure: None,
     }));
 
     let saved = read_env_file().unwrap_or_default();
@@ -1842,6 +1844,7 @@ fn start_sync_with_log_reset(
         let mut state = state.borrow_mut();
         state.pending_restart = false;
         state.stop_requested = false;
+        state.last_sync_failure = None;
         state.child = Some(child);
     }
     set_running_state(ui, true);
@@ -1896,6 +1899,7 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
         let mut finished = false;
         let mut exit_status = None;
         let mut wait_error = None;
+        let mut last_sync_failure = None;
         let (events, auto_quit_after_sync, sync_running, restart_requested, stop_requested) = {
             let mut state = state.borrow_mut();
             let auto_quit_after_sync = state.auto_quit_after_sync;
@@ -1918,6 +1922,9 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                 if state.echo_logs {
                     println!("{line}");
                 }
+                if is_sync_failure_candidate(&line) {
+                    state.last_sync_failure = Some(line.clone());
+                }
                 append_log(&ui.logs, &line);
                 append_log(&ui.logs, "\n");
             }
@@ -1925,6 +1932,7 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
             let restart_requested = finished && state.pending_restart;
             let stop_requested = finished && state.stop_requested;
             if finished {
+                last_sync_failure = state.last_sync_failure.take();
                 state.child = None;
                 state.stop_requested = false;
                 if !restart_requested {
@@ -1956,7 +1964,11 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
             } else if !stop_requested
                 && exit_status.as_ref().is_some_and(|status| !status.success())
             {
-                report_unexpected_sync_stop(&ui, exit_status.as_ref(), None);
+                report_unexpected_sync_stop(
+                    &ui,
+                    exit_status.as_ref(),
+                    last_sync_failure.as_deref(),
+                );
             } else if auto_quit_after_sync {
                 ui.window.close();
             }
@@ -1966,14 +1978,45 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
     });
 }
 
-fn report_unexpected_sync_stop(ui: &Ui, status: Option<&ExitStatus>, wait_error: Option<&str>) {
-    set_connection_header(ui, "Sync stopped", "Press Start to try again", "warning");
-    if let Some(error) = wait_error {
+fn is_sync_failure_candidate(line: &str) -> bool {
+    let trimmed = line.trim();
+    if trimmed.is_empty() {
+        return false;
+    }
+    let lower = trimmed.to_lowercase();
+    user_messages::classify_error(trimmed) != user_messages::UserMessageCode::Unknown
+        || lower.starts_with("error")
+        || lower.contains(" error")
+        || lower.contains("failed")
+        || lower.contains("timed out")
+}
+
+fn report_unexpected_sync_stop(ui: &Ui, status: Option<&ExitStatus>, failure: Option<&str>) {
+    let code = failure
+        .map(user_messages::classify_error)
+        .unwrap_or(user_messages::UserMessageCode::Unknown);
+    if code == user_messages::UserMessageCode::HueAuthRejected {
+        set_connection_header(ui, "Pairing required", "Press Pair in Settings", "warning");
+    } else if code.is_portal_or_capture_error() {
+        set_connection_header(
+            ui,
+            "Screen capture stopped",
+            "Press Start to try again",
+            "warning",
+        );
+    } else if code.is_bridge_error() {
+        set_connection_header(ui, "Bridge not connected", "Check Settings", "warning");
+    } else {
+        set_connection_header(ui, "Sync stopped", "Press Start to try again", "warning");
+    }
+
+    if let Some(error) = failure {
         append_log_msg_format(
             &ui.logs,
             "Sync stopped unexpectedly: {error}",
             &[("error", error.trim())],
         );
+        append_user_error(&ui.logs, error);
     } else if let Some(status) = status {
         append_log_msg_format(
             &ui.logs,
@@ -2821,11 +2864,11 @@ mod tests {
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
         format_bridge_title, format_capture_quality_summary, initial_reactivity_percent,
-        initial_sync_mode, intensity_level_for_percent, lumaway_bin_override_rejection_reason,
-        parse_area_state_output, parse_areas_output, parse_auth_output,
-        parse_bridge_discovery_output, parse_bridge_info_output, parse_profile_list_output,
-        preset_for_sync_mode, sanitize_color_profile, sanitize_profile_name, selected_area_index,
-        IntensityLevel,
+        initial_sync_mode, intensity_level_for_percent, is_sync_failure_candidate,
+        lumaway_bin_override_rejection_reason, parse_area_state_output, parse_areas_output,
+        parse_auth_output, parse_bridge_discovery_output, parse_bridge_info_output,
+        parse_profile_list_output, preset_for_sync_mode, sanitize_color_profile,
+        sanitize_profile_name, selected_area_index, IntensityLevel,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3093,6 +3136,22 @@ mod tests {
             Some("Capture: CPU".to_string())
         );
         assert_eq!(capture_status_from_log("unrelated log line"), None);
+    }
+
+    #[test]
+    fn detects_sync_failure_candidates_from_engine_logs() {
+        assert!(is_sync_failure_candidate(
+            "WARN lumaway: DTLS connect attempt failed attempt=3 error=handshake failed"
+        ));
+        assert!(is_sync_failure_candidate(
+            "Error: portal returned no streams"
+        ));
+        assert!(is_sync_failure_candidate(
+            "Error: Hue request failed: connection timed out"
+        ));
+        assert!(!is_sync_failure_candidate(
+            "INFO lumaway: selected portal stream node_id=112"
+        ));
     }
 
     #[test]
