@@ -24,6 +24,9 @@ msgstr "Démarrer la synchronisation"
 msgid "Stop sync"
 msgstr "Arrêter la synchronisation"
 
+msgid "Stop sync before changing mode"
+msgstr "Arrêtez la synchronisation avant de changer de mode"
+
 msgid "Video"
 msgstr "Vidéo"
 

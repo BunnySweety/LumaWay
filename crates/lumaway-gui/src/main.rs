@@ -85,6 +85,7 @@ struct Ui {
     duration: gtk::SpinButton,
     intensity: gtk::Scale,
     reactivity: gtk::Scale,
+    mode_tiles: Rc<RefCell<Vec<ModeTile>>>,
     intensity_tiles: Rc<RefCell<Vec<IntensityTile>>>,
     reactivity_customized: Rc<Cell<bool>>,
     profile: gtk::Entry,
@@ -284,6 +285,7 @@ fn build_widgets(
     let reactivity_customized = Rc::new(Cell::new(saved.contains_key("LUMAWAY_REACTIVITY")));
     let reactivity = percent_scale(initial_reactivity_percent(saved, sync_mode.get()));
     reactivity.set_tooltip_text(Some(&i18n::tr("Higher values react faster")));
+    let mode_tiles = Rc::new(RefCell::new(Vec::new()));
     let intensity_tiles = Rc::new(RefCell::new(Vec::new()));
     let profile = gtk::Entry::builder()
         .text(
@@ -380,6 +382,7 @@ fn build_widgets(
         sync_mode.clone(),
         color_profile.clone(),
         reactivity.clone(),
+        mode_tiles.clone(),
         intensity_tiles.clone(),
         reactivity_customized.clone(),
     ));
@@ -459,6 +462,7 @@ fn build_widgets(
         duration,
         intensity,
         reactivity,
+        mode_tiles,
         intensity_tiles,
         reactivity_customized,
         profile,
@@ -736,6 +740,7 @@ struct ModeTile {
     mode: SyncMode,
     button: gtk::ToggleButton,
     caption: gtk::Label,
+    enabled: bool,
 }
 
 struct IntensityTile {
@@ -747,6 +752,7 @@ fn mode_row(
     selected_mode: Rc<Cell<SyncMode>>,
     color_profile: gtk::DropDown,
     reactivity: gtk::Scale,
+    mode_tiles: Rc<RefCell<Vec<ModeTile>>>,
     intensity_tiles: Rc<RefCell<Vec<IntensityTile>>>,
     reactivity_customized: Rc<Cell<bool>>,
 ) -> gtk::Box {
@@ -755,7 +761,6 @@ fn mode_row(
     row.set_margin_top(4);
     /* Freedesktop-style symbolic names (Adwaita, Breeze, etc.) — crisp at any DPI */
     const ICON_PX: i32 = 28;
-    let tiles = Rc::new(RefCell::new(Vec::<ModeTile>::new()));
     for (mode, icon_name, label, enabled) in [
         (SyncMode::Video, "video-display-symbolic", "Video", true),
         (SyncMode::Game, "input-gaming-symbolic", "Game", true),
@@ -793,7 +798,7 @@ fn mode_row(
         tile.append(&circle);
         tile.append(&caption);
         row.append(&tile);
-        let all_tiles = tiles.clone();
+        let all_tiles = mode_tiles.clone();
         let selected_mode = selected_mode.clone();
         let color_profile = color_profile.clone();
         let reactivity = reactivity.clone();
@@ -812,13 +817,14 @@ fn mode_row(
             let all_tiles = all_tiles.borrow();
             refresh_mode_tiles(selected_mode.get(), all_tiles.as_slice());
         });
-        tiles.borrow_mut().push(ModeTile {
+        mode_tiles.borrow_mut().push(ModeTile {
             mode,
             button: circle,
             caption,
+            enabled,
         });
     }
-    let all_tiles = tiles.borrow();
+    let all_tiles = mode_tiles.borrow();
     refresh_mode_tiles(selected_mode.get(), all_tiles.as_slice());
     row
 }
@@ -833,6 +839,21 @@ fn refresh_mode_tiles(selected_mode: SyncMode, tiles: &[ModeTile]) {
         } else {
             tile.button.remove_css_class("active-mode");
             tile.caption.remove_css_class("mode-tile-caption-active");
+        }
+    }
+}
+
+fn set_mode_tiles_sensitive(tiles: &[ModeTile], sensitive: bool) {
+    for tile in tiles {
+        tile.button.set_sensitive(tile.enabled && sensitive);
+        if !tile.enabled {
+            tile.button
+                .set_tooltip_text(Some(i18n::tr("Coming soon").as_str()));
+        } else if !sensitive {
+            tile.button
+                .set_tooltip_text(Some(i18n::tr("Stop sync before changing mode").as_str()));
+        } else {
+            tile.button.set_tooltip_text(None);
         }
     }
 }
@@ -2284,6 +2305,8 @@ fn set_running_state(ui: &Ui, running: bool) {
     ui.reactivity.set_sensitive(!running);
     ui.profile.set_sensitive(!running);
     ui.color_profile.set_sensitive(!running);
+    let mode_tiles = ui.mode_tiles.borrow();
+    set_mode_tiles_sensitive(mode_tiles.as_slice(), !running);
     let tiles = ui.intensity_tiles.borrow();
     set_intensity_tiles_sensitive(tiles.as_slice(), !running);
     ui.autostart.set_sensitive(!running);
