@@ -47,6 +47,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - Robustness P0 ([plan-hue-sync-daily.md](plan-hue-sync-daily.md) §15.3): resume after sleep; bridge lost during sync; Portal stream closed; DTLS failure recovery; entertainment area conflict message.
 - No entertainment area configured: guided flow to create zone in Hue app.
 - Single GUI instance: second launch focuses existing window.
+- GUI classified errors: Portal/capture/bridge failures expose contextual `Retry` and/or `Open Settings` recovery actions.
 - `tv-wayland` preset still works as alias after `video-wayland` is introduced.
 
 ## Success Criteria
@@ -81,6 +82,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo check -p lumaway-gui`: GTK/libadwaita application crate compiles.
 - `cargo test -p lumaway-gui`: GUI parsing for auth JSON and zone JSON is covered.
 - `cargo test -p lumaway-gui`: XDG session autostart desktop-entry rendering and Exec path quoting are covered.
+- `cargo test -p lumaway-gui`: classified GUI errors expose the expected `Retry` / `Open Settings` action policy.
 - `/home/bunny/.local/bin/lumaway-gui`: real GTK/libadwaita application opens in the GNOME Wayland session and remains running.
 - `gio launch ~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop`: desktop entry starts the GTK/libadwaita application in the GNOME Wayland session.
 - `/home/bunny/.local/bin/lumaway list-areas --bridge 192.168.1.108`: the real controller returned three zones, including `TV`; this validates the data path used by the GUI zone-loading action.

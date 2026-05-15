@@ -236,6 +236,9 @@ msgstr ""
 msgid "Probe capture backends and write the selected profile"
 msgstr ""
 
+msgid "Retry"
+msgstr ""
+
 msgid "Profile file in ~/.config/lumaway/profiles"
 msgstr ""
 

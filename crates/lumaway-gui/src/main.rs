@@ -98,6 +98,9 @@ struct Ui {
     discover: gtk::Button,
     auth: gtk::Button,
     start: gtk::Button,
+    error_actions: gtk::Box,
+    error_retry: gtk::Button,
+    error_open_settings: gtk::Button,
     logs: gtk::TextBuffer,
     event_queue: Arc<Mutex<VecDeque<GuiEvent>>>,
     bridge_id: Rc<RefCell<String>>,
@@ -320,6 +323,15 @@ fn build_widgets(
     start.add_css_class("suggested-action");
     start.add_css_class("primary-sync");
     start.set_halign(gtk::Align::Center);
+    let error_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    error_actions.add_css_class("error-actions");
+    error_actions.set_halign(gtk::Align::Center);
+    error_actions.set_visible(false);
+    let error_retry = gtk::Button::with_label(&i18n::tr("Retry"));
+    error_retry.add_css_class("suggested-action");
+    let error_open_settings = gtk::Button::with_label(&i18n::tr("Open Settings"));
+    error_actions.append(&error_retry);
+    error_actions.append(&error_open_settings);
     let auth = gtk::Button::with_label(&i18n::tr("Pair"));
     let discover = gtk::Button::with_label(&i18n::tr("Discover"));
 
@@ -408,6 +420,7 @@ fn build_widgets(
     sync_footer.set_margin_end(22);
     sync_footer.set_margin_bottom(22);
     sync_footer.append(&start);
+    sync_footer.append(&error_actions);
 
     let logs = gtk::TextBuffer::new(None);
     logs.set_text(&format!("{}\n", i18n::tr("Sync events will appear here.")));
@@ -477,6 +490,9 @@ fn build_widgets(
         discover,
         auth,
         start,
+        error_actions,
+        error_retry,
+        error_open_settings,
         logs,
         event_queue,
         bridge_id: Rc::new(RefCell::new(saved_bridge_id)),
@@ -607,6 +623,14 @@ fn install_css() {
         button.sync-control.primary-sync {
             background: linear-gradient(180deg, #5f8f52 0%, #3d6b38 100%);
             color: #f4fbf2;
+        }
+        .error-actions {
+            margin-top: 10px;
+        }
+        .error-actions button {
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-weight: 700;
         }
         button.secondary-sync {
             min-height: 48px;
@@ -1051,10 +1075,28 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         if sync_running(&start_state) {
             stop_sync(&start_ui, &start_state);
         } else if let Err(error) = start_sync(&start_ui, &start_state) {
-            append_user_error(&start_ui.logs, &error.to_string());
+            append_user_error(&start_ui, &error.to_string());
             apply_sync_idle_button_style(&start_ui);
             update_zone_controls(&start_ui, false);
         }
+    });
+
+    let retry_ui = ui.clone();
+    let retry_state = state.clone();
+    ui.error_retry.connect_clicked(move |_| {
+        if sync_running(&retry_state) {
+            return;
+        }
+        if let Err(error) = start_sync(&retry_ui, &retry_state) {
+            append_user_error(&retry_ui, &error.to_string());
+            apply_sync_idle_button_style(&retry_ui);
+            update_zone_controls(&retry_ui, false);
+        }
+    });
+
+    let error_settings_ui = ui.clone();
+    ui.error_open_settings.connect_clicked(move |_| {
+        open_settings_window(&error_settings_ui);
     });
 
     let close_ui = ui.clone();
@@ -1837,6 +1879,7 @@ fn start_sync_with_log_reset(
     let preset = preset_for_sync_mode(sync_mode);
     let color_profile = color_profile_for_sync_mode(sync_mode);
     write_current_env_file(ui)?;
+    hide_error_actions(ui);
     if clear_logs {
         ui.logs.set_text("");
     }
@@ -2018,7 +2061,7 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
             set_running_state(&ui, false);
             if restart_requested && ui.area_enabled.is_active() {
                 if let Err(error) = start_sync_with_log_reset(&ui, &state, false) {
-                    append_user_error(&ui.logs, &error.to_string());
+                    append_user_error(&ui, &error.to_string());
                     state.borrow_mut().pending_restart = false;
                 }
             } else if let Some(error) = wait_error.as_deref() {
@@ -2078,7 +2121,7 @@ fn report_unexpected_sync_stop(ui: &Ui, status: Option<&ExitStatus>, failure: Op
             "Sync stopped unexpectedly: {error}",
             &[("error", error.trim())],
         );
-        append_user_error(&ui.logs, error);
+        append_user_error(ui, error);
     } else if let Some(status) = status {
         append_log_msg_format(
             &ui.logs,
@@ -2279,7 +2322,7 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
             let code = user_messages::classify_error(error);
             if code == user_messages::UserMessageCode::HueAuthRejected {
                 set_connection_header(ui, "Pairing required", "Press Pair in Settings", "warning");
-                append_user_error(&ui.logs, error);
+                append_user_error(ui, error);
             } else if code.is_portal_or_capture_error() {
                 set_connection_header(
                     ui,
@@ -2287,13 +2330,13 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                     "Press Start to try again",
                     "warning",
                 );
-                append_user_error(&ui.logs, error);
+                append_user_error(ui, error);
             } else if code.is_bridge_error() || ui_can_load_areas(ui) {
                 set_connection_header(ui, "Bridge not connected", "Check Settings", "warning");
-                append_user_error(&ui.logs, error);
+                append_user_error(ui, error);
             } else {
                 update_health(ui);
-                append_user_error(&ui.logs, error);
+                append_user_error(ui, error);
             }
         }
     }
@@ -2660,8 +2703,27 @@ fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&st
     append_log(buffer, &format!("{}\n", i18n::tr_format(message, values)));
 }
 
-fn append_user_error(buffer: &gtk::TextBuffer, error: &str) {
-    append_log(buffer, &user_messages::format_user_error(error));
+fn append_user_error(ui: &Ui, error: &str) {
+    append_log(&ui.logs, &user_messages::format_user_error(error));
+    show_error_actions(ui, user_messages::classify_error(error));
+}
+
+fn show_error_actions(ui: &Ui, code: user_messages::UserMessageCode) {
+    if code == user_messages::UserMessageCode::Unknown {
+        ui.error_actions.set_visible(false);
+        return;
+    }
+
+    let retry_visible = code.offers_retry_action();
+    let settings_visible = code.offers_settings_action();
+    ui.error_retry.set_visible(retry_visible);
+    ui.error_open_settings.set_visible(settings_visible);
+    ui.error_actions
+        .set_visible(retry_visible || settings_visible);
+}
+
+fn hide_error_actions(ui: &Ui) {
+    ui.error_actions.set_visible(false);
 }
 
 fn config_path() -> PathBuf {

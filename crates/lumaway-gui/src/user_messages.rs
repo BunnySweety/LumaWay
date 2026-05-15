@@ -107,6 +107,31 @@ impl UserMessageCode {
                 | Self::CaptureTooDark
         )
     }
+
+    pub fn offers_retry_action(self) -> bool {
+        matches!(
+            self,
+            Self::ZoneOff
+                | Self::HueBridgeUnavailable
+                | Self::HueDtlsFailed
+                | Self::HueAreaConflict
+                | Self::PortalCancelled
+                | Self::PortalUnavailable
+                | Self::CaptureTimeout
+        )
+    }
+
+    pub fn offers_settings_action(self) -> bool {
+        matches!(
+            self,
+            Self::MissingSyncConfig
+                | Self::HueAuthRejected
+                | Self::HueBridgeUnavailable
+                | Self::HueAreaConflict
+                | Self::PortalUnavailable
+                | Self::CaptureTooDark
+        )
+    }
 }
 
 pub fn classify_error(error: &str) -> UserMessageCode {
@@ -259,5 +284,17 @@ mod tests {
             classify_error("unexpected parser error"),
             UserMessageCode::Unknown
         );
+    }
+
+    #[test]
+    fn offers_contextual_recovery_actions() {
+        assert!(UserMessageCode::PortalCancelled.offers_retry_action());
+        assert!(!UserMessageCode::PortalCancelled.offers_settings_action());
+        assert!(UserMessageCode::HueAuthRejected.offers_settings_action());
+        assert!(!UserMessageCode::HueAuthRejected.offers_retry_action());
+        assert!(UserMessageCode::HueBridgeUnavailable.offers_retry_action());
+        assert!(UserMessageCode::HueBridgeUnavailable.offers_settings_action());
+        assert!(!UserMessageCode::Unknown.offers_retry_action());
+        assert!(!UserMessageCode::Unknown.offers_settings_action());
     }
 }

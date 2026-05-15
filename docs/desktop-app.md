@@ -82,6 +82,7 @@ gio launch ~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop
 ```
 
 The Portal selector should appear in the graphical session. After selection, logs stay visible in the application window.
+When a classified bridge, Portal, or capture error occurs, the main window shows the translated explanation plus a contextual `Retry` and/or `Open Settings` action below Start.
 
 ## Optional local overrides
 

@@ -243,6 +243,9 @@ msgstr "Appuyez sur le bouton physique du pont, puis patientez. Les nouvelles cl
 msgid "Probe capture backends and write the selected profile"
 msgstr "Tester les backends de capture et écrire le profil sélectionné"
 
+msgid "Retry"
+msgstr "Réessayer"
+
 msgid "Profile file in ~/.config/lumaway/profiles"
 msgstr "Fichier de profil dans ~/.config/lumaway/profiles"
 
