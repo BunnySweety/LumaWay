@@ -368,6 +368,9 @@ msgstr ""
 msgid "Check the details below, then try again."
 msgstr ""
 
+msgid "Choose the screen or window to sync"
+msgstr ""
+
 msgid "Details: {details}"
 msgstr ""
 
@@ -410,6 +413,9 @@ msgstr ""
 msgid "Screen selection was cancelled."
 msgstr ""
 
+msgid "Screen selected"
+msgstr ""
+
 msgid "Start sync again and choose the screen or window to sync."
 msgstr ""
 
@@ -435,4 +441,7 @@ msgid "Synchronize lights with a Wayland screen"
 msgstr ""
 
 msgid "Sync Philips Hue Entertainment lights from the Linux desktop"
+msgstr ""
+
+msgid "Syncing"
 msgstr ""

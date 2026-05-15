@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use anyhow::{bail, Context, Result};
 use lumaway_core::{
     ColorSmoother, ColorSmoothingConfig, CoreError, GStreamerTestCapture, PortalScreenCast,
+    PortalSelection,
 };
 use lumaway_hue::{
     resolve_dtls_psk_identity, ChannelColor, DtlsHueTransport, DtlsTransport, HueBridgeConfig,
@@ -22,6 +23,8 @@ use crate::{
     ColorTuning, NullTransport, SampleCrop, SamplingMode, SleepOutcome, SyncPreset,
     SyncPresetConfig, SyncStats,
 };
+
+const PORTAL_RESTORE_TOKEN_KEY: &str = "LUMAWAY_PORTAL_RESTORE_TOKEN";
 
 async fn connect_dtls_with_retries(
     bridge: &str,
@@ -446,10 +449,15 @@ pub async fn run_sync(
         info!("DTLS PSK identity forced via environment (LUMAWAY_DTLS_IDENTITY / LUMAWAY_DTLS_USE_APP_KEY; see resolve_dtls_psk_identity)");
     }
 
-    let mut selections = PortalScreenCast::select().await?;
+    let portal_restore_token = portal_restore_token_from_env();
+    let mut selections =
+        PortalScreenCast::select_persistent(portal_restore_token.as_deref()).await?;
     let selection = selections
         .pop()
         .ok_or_else(|| anyhow::anyhow!("portal returned no streams"))?;
+    if let Err(error) = persist_portal_restore_token(&selection) {
+        warn!(%error, "could not save Portal restore token");
+    }
     info!(
         node_id = selection.stream.pipewire_node_id,
         size = ?selection.stream.size,
@@ -621,5 +629,45 @@ pub async fn run_sync(
         (Err(error), _, _) => Err(error),
         (Ok(_), Err(error), _) => Err(error.into()),
         (Ok(_), Ok(()), Err(error)) => Err(error.into()),
+    }
+}
+
+fn portal_restore_token_from_env() -> Option<String> {
+    normalize_portal_restore_token(std::env::var(PORTAL_RESTORE_TOKEN_KEY).ok().as_deref())
+}
+
+fn normalize_portal_restore_token(token: Option<&str>) -> Option<String> {
+    token
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .map(str::to_string)
+}
+
+fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
+    let Some(token) = normalize_portal_restore_token(selection.restore_token.as_deref()) else {
+        return Ok(());
+    };
+
+    lumaway_core::upsert_env_file(
+        &lumaway_core::lumaway_main_env_path(),
+        &[(PORTAL_RESTORE_TOKEN_KEY, token.as_str())],
+    )
+    .context("failed to update lumaway.env with Portal restore token")?;
+    info!("Portal restore token saved in lumaway.env");
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_portal_restore_token;
+
+    #[test]
+    fn normalizes_portal_restore_token() {
+        assert_eq!(
+            normalize_portal_restore_token(Some(" token ")).as_deref(),
+            Some("token")
+        );
+        assert_eq!(normalize_portal_restore_token(Some("   ")), None);
+        assert_eq!(normalize_portal_restore_token(None), None);
     }
 }

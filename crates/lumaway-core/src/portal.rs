@@ -17,6 +17,7 @@ pub struct PortalStreamInfo {
 pub struct PortalSelection {
     pub stream: PortalStreamInfo,
     pub pipewire_fd: OwnedFd,
+    pub restore_token: Option<String>,
 }
 
 pub struct PortalScreenCast;
@@ -31,6 +32,17 @@ impl PortalScreenCast {
     }
 
     pub async fn select() -> Result<Vec<PortalSelection>> {
+        Self::select_with_options(None, PersistMode::DoNot).await
+    }
+
+    pub async fn select_persistent(restore_token: Option<&str>) -> Result<Vec<PortalSelection>> {
+        Self::select_with_options(restore_token, PersistMode::ExplicitlyRevoked).await
+    }
+
+    async fn select_with_options(
+        restore_token: Option<&str>,
+        persist_mode: PersistMode,
+    ) -> Result<Vec<PortalSelection>> {
         let proxy = Screencast::new()
             .await
             .map_err(|err| CoreError::Portal(err.to_string()))?;
@@ -38,6 +50,7 @@ impl PortalScreenCast {
             .create_session()
             .await
             .map_err(|err| CoreError::Portal(err.to_string()))?;
+        let restore_token = normalize_restore_token(restore_token);
 
         proxy
             .select_sources(
@@ -45,8 +58,8 @@ impl PortalScreenCast {
                 CursorMode::Metadata,
                 SourceType::Monitor | SourceType::Window,
                 false,
-                None,
-                PersistMode::DoNot,
+                restore_token.as_deref(),
+                persist_mode,
             )
             .await
             .map_err(|err| CoreError::Portal(err.to_string()))?;
@@ -57,6 +70,7 @@ impl PortalScreenCast {
             .map_err(|err| CoreError::Portal(err.to_string()))?
             .response()
             .map_err(|err| CoreError::Portal(err.to_string()))?;
+        let response_restore_token = normalize_restore_token(response.restore_token());
 
         let fd = proxy
             .open_pipe_wire_remote(&session)
@@ -80,9 +94,32 @@ impl PortalScreenCast {
                     .map(|pipewire_fd| PortalSelection {
                         stream,
                         pipewire_fd,
+                        restore_token: response_restore_token.clone(),
                     })
                     .map_err(|err| CoreError::Portal(err.to_string()))
             })
             .collect()
+    }
+}
+
+fn normalize_restore_token(token: Option<&str>) -> Option<String> {
+    token
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .map(str::to_string)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_restore_token;
+
+    #[test]
+    fn normalizes_restore_token() {
+        assert_eq!(
+            normalize_restore_token(Some(" token ")).as_deref(),
+            Some("token")
+        );
+        assert_eq!(normalize_restore_token(Some("   ")), None);
+        assert_eq!(normalize_restore_token(None), None);
     }
 }

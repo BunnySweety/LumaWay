@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.9 — actions d’erreur)
+Dernière revue : 2026-05-16 (Phase 1.10 — flux Portal)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -276,7 +276,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.7 | Icône barre système | StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter (confirmation si sync) **quand le bureau le supporte**. Sur GNOME vanilla sans extension tray, fallback requis : fenêtre qui conserve Start/Stop + notification minimale pour erreurs critiques si le portail/serveur de notifications est disponible. |
 | 1.8 | Démarrage de session | Fait : option Réglages traduite pour ouvrir LumaWay à la connexion via `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`; option séparée « Start sync when app opens » conservée pour lancer la sync à l’ouverture. |
 | 1.9 | Échecs explicites | Fait : erreurs Portal / capture / pont classifiées via gettext et complétées par actions contextuelles `Retry` et/ou `Open Settings` sur l’accueil. |
-| 1.10 | Flux Portal | Rappel traduit « Choose the screen or window to sync » ; mémoriser le choix si le portail expose un identifiant / `restore_token` (sinon rappel à chaque session). |
+| 1.10 | Flux Portal | Fait : statut traduit « Choose the screen or window to sync » pendant l’ouverture du sélecteur ; `lumaway sync` réutilise et persiste `LUMAWAY_PORTAL_RESTORE_TOKEN` si le portail renvoie un `restore_token`, sinon le rappel reste affiché à chaque session. |
 | 1.11 | **Bouton unique sync** | Fait : bouton unique Start sync / Stop sync ; Réglages, pairing, découverte, zone, luminosité, intensité et champs avancés bloqués pendant sync. |
 | 1.12 | **Langue (optionnel v1.0)** | Sélecteur langue dans Réglages ou `LUMAWAY_LANG` ; sinon locale OS uniquement. |
 | 1.13 | **Robustesse quotidienne** | P0 partiel livré : **sortie inattendue du subprocess `lumaway`** → UI + message i18n + Start disponible ; le dernier log d’erreur classe pont / Portal / capture / DTLS via `user_messages` ; restent veille, flux Portal fermé à chaud et reprise DTLS continue (§15 P0). |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -669,7 +669,7 @@ Tous requis sauf mention « optionnel » :
 | **Limite ~10 lampes** / zone inadaptée | Avertissement si une lampe ou zone « qualité » faible | 2 |
 | **CI `msgfmt --check`** | Workflow GitHub | 0 / 4 |
 | **Réinitialiser la configuration** | Effacer / réinitialiser `lumaway.env` (+ profils optionnel) avec confirmation | 1 |
-| **Mémorisation Portal** | `restore_token` ou équivalent | 1.10 |
+| **Mémorisation Portal** | `restore_token` sauvegardé dans `LUMAWAY_PORTAL_RESTORE_TOKEN` quand exposé par le portail ; sinon rappel à chaque session | 1.10 |
 | **Changement mode à chaud** | Sans Stop | post-v1.0 |
 | **Secret Service** pour clés | [open-questions.md](open-questions.md) | reporté §13 |
 
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.10 Portal | Statut traduit pendant le sélecteur Portal ; `restore_token` persistant via `LUMAWAY_PORTAL_RESTORE_TOKEN` quand disponible |
 | 2026-05-16 | Phase 1.9 erreurs | Actions contextuelles `Retry` et/ou `Open Settings` affichées sous Start pour les erreurs GUI classifiées |
 | 2026-05-16 | Phase 1.8 autostart | Option Réglages pour créer/supprimer l’entrée XDG autostart ; option sync à l’ouverture gardée séparée |
 | 2026-05-15 | Phase 1.16 switch zone | Tooltip traduit : le switch contrôle l’allumage zone Hue, Start/Stop contrôle la sync écran |

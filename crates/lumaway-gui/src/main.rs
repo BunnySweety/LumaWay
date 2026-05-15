@@ -98,6 +98,7 @@ struct Ui {
     discover: gtk::Button,
     auth: gtk::Button,
     start: gtk::Button,
+    sync_status: gtk::Label,
     error_actions: gtk::Box,
     error_retry: gtk::Button,
     error_open_settings: gtk::Button,
@@ -323,6 +324,11 @@ fn build_widgets(
     start.add_css_class("suggested-action");
     start.add_css_class("primary-sync");
     start.set_halign(gtk::Align::Center);
+    let sync_status = gtk::Label::new(None);
+    sync_status.add_css_class("sync-status");
+    sync_status.set_halign(gtk::Align::Center);
+    sync_status.set_wrap(true);
+    sync_status.set_visible(false);
     let error_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     error_actions.add_css_class("error-actions");
     error_actions.set_halign(gtk::Align::Center);
@@ -420,6 +426,7 @@ fn build_widgets(
     sync_footer.set_margin_end(22);
     sync_footer.set_margin_bottom(22);
     sync_footer.append(&start);
+    sync_footer.append(&sync_status);
     sync_footer.append(&error_actions);
 
     let logs = gtk::TextBuffer::new(None);
@@ -490,6 +497,7 @@ fn build_widgets(
         discover,
         auth,
         start,
+        sync_status,
         error_actions,
         error_retry,
         error_open_settings,
@@ -623,6 +631,11 @@ fn install_css() {
         button.sync-control.primary-sync {
             background: linear-gradient(180deg, #5f8f52 0%, #3d6b38 100%);
             color: #f4fbf2;
+        }
+        .sync-status {
+            margin-top: 10px;
+            color: rgba(226, 239, 248, 0.84);
+            font-weight: 600;
         }
         .error-actions {
             margin-top: 10px;
@@ -1075,6 +1088,7 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         if sync_running(&start_state) {
             stop_sync(&start_ui, &start_state);
         } else if let Err(error) = start_sync(&start_ui, &start_state) {
+            clear_sync_status(&start_ui);
             append_user_error(&start_ui, &error.to_string());
             apply_sync_idle_button_style(&start_ui);
             update_zone_controls(&start_ui, false);
@@ -1088,6 +1102,7 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
             return;
         }
         if let Err(error) = start_sync(&retry_ui, &retry_state) {
+            clear_sync_status(&retry_ui);
             append_user_error(&retry_ui, &error.to_string());
             apply_sync_idle_button_style(&retry_ui);
             update_zone_controls(&retry_ui, false);
@@ -1883,7 +1898,9 @@ fn start_sync_with_log_reset(
     if clear_logs {
         ui.logs.set_text("");
     }
+    set_sync_status(ui, "Choose the screen or window to sync");
     append_log_msg(&ui.logs, "Starting sync…");
+    append_log_msg(&ui.logs, "Choose the screen or window to sync");
     append_log_msg_format(
         &ui.logs,
         "Mode {mode} ({preset}).",
@@ -2029,6 +2046,9 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                 }
                 if is_sync_failure_candidate(&line) {
                     state.last_sync_failure = Some(line.clone());
+                }
+                if let Some(status) = sync_status_from_log(&line) {
+                    set_sync_status(&ui, status);
                 }
                 append_log(&ui.logs, &line);
                 append_log(&ui.logs, "\n");
@@ -2361,6 +2381,7 @@ fn set_running_state(ui: &Ui, running: bool) {
         apply_sync_running_button_style(ui);
     } else {
         apply_sync_idle_button_style(ui);
+        clear_sync_status(ui);
     }
     ui.auth.set_sensitive(!running);
     ui.discover.set_sensitive(!running);
@@ -2706,6 +2727,25 @@ fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&st
 fn append_user_error(ui: &Ui, error: &str) {
     append_log(&ui.logs, &user_messages::format_user_error(error));
     show_error_actions(ui, user_messages::classify_error(error));
+}
+
+fn set_sync_status(ui: &Ui, message: &str) {
+    ui.sync_status.set_text(&i18n::tr(message));
+    ui.sync_status.set_visible(true);
+}
+
+fn clear_sync_status(ui: &Ui) {
+    ui.sync_status.set_visible(false);
+}
+
+fn sync_status_from_log(line: &str) -> Option<&'static str> {
+    if line.contains("selected portal stream") {
+        return Some("Screen selected");
+    }
+    if line.contains("capture backend selected") {
+        return Some("Syncing");
+    }
+    None
 }
 
 fn show_error_actions(ui: &Ui, code: user_messages::UserMessageCode) {
@@ -3057,7 +3097,7 @@ mod tests {
         parse_areas_output, parse_auth_output, parse_bridge_discovery_output,
         parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
         sanitize_color_profile, sanitize_profile_name, selected_area_index,
-        session_autostart_desktop_entry_for_exec, IntensityLevel,
+        session_autostart_desktop_entry_for_exec, sync_status_from_log, IntensityLevel,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3068,25 +3108,6 @@ mod tests {
             .iter()
             .map(|(key, value)| ((*key).to_string(), (*value).to_string()))
             .collect()
-    }
-
-    fn capture_status_from_log(line: &str) -> Option<String> {
-        if line.contains("selected portal stream") {
-            return Some("Capture: display selected".to_string());
-        }
-        if line.contains("effective_capture_backend=Gl")
-            || line.contains("capture_backend=gl")
-            || line.contains("capture_backend=Gl")
-        {
-            return Some("Capture: GL".to_string());
-        }
-        if line.contains("effective_capture_backend=Cpu")
-            || line.contains("capture_backend=cpu")
-            || line.contains("capture_backend=Cpu")
-        {
-            return Some("Capture: CPU".to_string());
-        }
-        None
     }
 
     #[test]
@@ -3309,22 +3330,18 @@ mod tests {
     #[test]
     fn derives_capture_status_from_engine_logs() {
         assert_eq!(
-            capture_status_from_log(
+            sync_status_from_log(
                 "INFO lumaway: selected portal stream node_id=112 size=Some((2560, 1440))"
             ),
-            Some("Capture: display selected".to_string())
+            Some("Screen selected")
         );
         assert_eq!(
-            capture_status_from_log(
+            sync_status_from_log(
                 "INFO lumaway: capture backend selected capture_backend=Auto effective_capture_backend=Gl"
             ),
-            Some("Capture: GL".to_string())
+            Some("Syncing")
         );
-        assert_eq!(
-            capture_status_from_log("sync_stats capture_backend=cpu interrupted=false frames=125"),
-            Some("Capture: CPU".to_string())
-        );
-        assert_eq!(capture_status_from_log("unrelated log line"), None);
+        assert_eq!(sync_status_from_log("unrelated log line"), None);
     }
 
     #[test]
