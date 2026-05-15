@@ -4,6 +4,7 @@ use crate::i18n;
 pub enum UserMessageCode {
     ZoneOff,
     MissingSyncConfig,
+    HueLinkButtonNotPressed,
     HueAuthRejected,
     HueBridgeUnavailable,
     HueBridgeLost,
@@ -23,6 +24,7 @@ impl UserMessageCode {
         match self {
             Self::ZoneOff => "gui.zone_off",
             Self::MissingSyncConfig => "gui.missing_sync_config",
+            Self::HueLinkButtonNotPressed => "hue.link_button_not_pressed",
             Self::HueAuthRejected => "hue.auth_rejected",
             Self::HueBridgeUnavailable => "hue.bridge_unavailable",
             Self::HueBridgeLost => "hue.bridge_lost",
@@ -46,6 +48,9 @@ impl UserMessageCode {
             Self::MissingSyncConfig => i18n::tr(
                 "Bridge address, zone, and pairing keys are required before sync can start.",
             ),
+            Self::HueLinkButtonNotPressed => {
+                i18n::tr("The Hue bridge button was not pressed before pairing.")
+            }
             Self::HueAuthRejected => i18n::tr("The Hue bridge rejected the saved pairing key."),
             Self::HueBridgeUnavailable => i18n::tr("The Hue bridge is unreachable."),
             Self::HueBridgeLost => i18n::tr("The Hue bridge connection was lost during sync."),
@@ -72,6 +77,9 @@ impl UserMessageCode {
             Self::ZoneOff => i18n::tr("Enable the zone switch, then start sync again."),
             Self::MissingSyncConfig => {
                 i18n::tr("Open Settings, pair the bridge, and select an Entertainment zone.")
+            }
+            Self::HueLinkButtonNotPressed => {
+                i18n::tr("Press the physical button on the bridge, then press Pair again.")
             }
             Self::HueAuthRejected => {
                 i18n::tr("Press the bridge button, then use Pair in Settings to create new keys.")
@@ -112,6 +120,7 @@ impl UserMessageCode {
         matches!(
             self,
             Self::HueAuthRejected
+                | Self::HueLinkButtonNotPressed
                 | Self::HueBridgeUnavailable
                 | Self::HueBridgeLost
                 | Self::HueDtlsFailed
@@ -150,6 +159,7 @@ impl UserMessageCode {
         matches!(
             self,
             Self::MissingSyncConfig
+                | Self::HueLinkButtonNotPressed
                 | Self::HueAuthRejected
                 | Self::HueBridgeUnavailable
                 | Self::HueBridgeLost
@@ -172,6 +182,12 @@ pub fn classify_error(error: &str) -> UserMessageCode {
         || lower.contains("bridge address and application key are required")
     {
         return UserMessageCode::MissingSyncConfig;
+    }
+    if lower.contains("link button not pressed")
+        || lower.contains("bridge button was not pressed")
+        || lower.contains("press the bridge button")
+    {
+        return UserMessageCode::HueLinkButtonNotPressed;
     }
     if lower.contains("hue bridge authentication failed")
         || lower.contains("saved hue application key was rejected")
@@ -277,6 +293,10 @@ mod tests {
     #[test]
     fn classifies_hue_authentication_errors() {
         assert_eq!(
+            classify_error("Hue bridge rejected the request: link button not pressed"),
+            UserMessageCode::HueLinkButtonNotPressed
+        );
+        assert_eq!(
             classify_error("Error: Hue bridge authentication failed"),
             UserMessageCode::HueAuthRejected
         );
@@ -342,6 +362,8 @@ mod tests {
     fn offers_contextual_recovery_actions() {
         assert!(UserMessageCode::PortalCancelled.offers_retry_action());
         assert!(!UserMessageCode::PortalCancelled.offers_settings_action());
+        assert!(!UserMessageCode::HueLinkButtonNotPressed.offers_retry_action());
+        assert!(UserMessageCode::HueLinkButtonNotPressed.offers_settings_action());
         assert!(UserMessageCode::HueAuthRejected.offers_settings_action());
         assert!(!UserMessageCode::HueAuthRejected.offers_retry_action());
         assert!(UserMessageCode::HueBridgeUnavailable.offers_retry_action());

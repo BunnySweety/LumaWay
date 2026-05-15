@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.6 — guide première configuration)
+Dernière revue : 2026-05-16 (Phase 1.6 — pairing sans bouton pont)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -145,7 +145,7 @@ Test manuel avec un **utilisateur non développeur** (checklist) :
 - [ ] Premier lancement : assistant jusqu’à sync allumée en **< 15 min** sans terminal.
 - [ ] Aucun champ `app-key` / `client-key` / `profile` sur l’écran principal.
 - [ ] Après **Stop**, passer Vidéo → Jeu puis redémarrer la sync : réactivité nettement plus forte **sans** ouvrir Réglages (cohérent tâche 1.15 — pas de changement de mode à chaud en v1.0).
-- [ ] Message clair si le bouton pont n’a pas été pressé avant Associer.
+- [x] Message clair si le bouton pont n’a pas été pressé avant Associer.
 - [ ] Message clair si le sélecteur Portal est annulé ou ne renvoie pas d’image.
 - [ ] Arrêt : lumières Entertainment désactivées, statut « Arrêté ».
 - [ ] Tray : démarrer/arrêter sans rouvrir la fenêtre **si** le bureau expose StatusNotifier/AppIndicator ; sinon fenêtre Start/Stop accessible + notification minimale d’erreur critique si disponible.
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.6 bouton pont | Erreur Hue “link button not pressed” classifiée avec message i18n et action Pair explicite |
 | 2026-05-16 | Phase 1.6 guide | Carte “First setup” sur l’accueil : Discover, Pair, Test lights (`test-color red`), progression jusqu’à Start sync |
 | 2026-05-16 | Phase 1.6 aucune zone | Retour `list-areas` vide transformé en état guidé : zone désactivée, en-tête clair, étapes app Hue puis rechargement |
 | 2026-05-16 | Phase 1 À propos | Dialogue `AdwAboutDialog` ajouté : version, MPL-2.0, dépôt, confidentialité locale, zéro télémétrie, mention Philips Hue nominative |

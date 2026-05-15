@@ -2489,7 +2489,11 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
         GuiEvent::Error(error) => {
             let error = error.trim();
             let code = user_messages::classify_error(error);
-            if code == user_messages::UserMessageCode::HueAuthRejected {
+            if matches!(
+                code,
+                user_messages::UserMessageCode::HueAuthRejected
+                    | user_messages::UserMessageCode::HueLinkButtonNotPressed
+            ) {
                 set_connection_header(ui, "Pairing required", "Press Pair in Settings", "warning");
                 append_user_error(ui, error);
             } else if code.is_portal_or_capture_error() {

@@ -432,6 +432,9 @@ msgstr "— (chargez les zones après l'association)"
 msgid "Bridge address, zone, and pairing keys are required before sync can start."
 msgstr "L'adresse du pont, la zone et les clés d'association sont requises avant de démarrer la synchronisation."
 
+msgid "The Hue bridge button was not pressed before pairing."
+msgstr "Le bouton du pont Hue n'a pas été pressé avant l'association."
+
 msgid "Check that the bridge is powered on and reachable on the network."
 msgstr "Vérifiez que le pont est allumé et joignable sur le réseau."
 
@@ -476,6 +479,9 @@ msgstr "Ouvrez Réglages puis lancez Qualité ou Calibrer."
 
 msgid "Open Settings, pair the bridge, and select an Entertainment zone."
 msgstr "Ouvrez Réglages, associez le pont et sélectionnez une zone Entertainment."
+
+msgid "Press the physical button on the bridge, then press Pair again."
+msgstr "Appuyez sur le bouton physique du pont, puis appuyez à nouveau sur Associer."
 
 msgid "Press Start to try again"
 msgstr "Appuyez sur Démarrer pour réessayer"

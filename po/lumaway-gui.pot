@@ -410,6 +410,9 @@ msgstr ""
 msgid "Bridge address, zone, and pairing keys are required before sync can start."
 msgstr ""
 
+msgid "The Hue bridge button was not pressed before pairing."
+msgstr ""
+
 msgid "Check that the bridge is powered on and reachable on the network."
 msgstr ""
 
@@ -453,6 +456,9 @@ msgid "Open Settings and run Quality or Calibrate."
 msgstr ""
 
 msgid "Open Settings, pair the bridge, and select an Entertainment zone."
+msgstr ""
+
+msgid "Press the physical button on the bridge, then press Pair again."
 msgstr ""
 
 msgid "Press Start to try again"
