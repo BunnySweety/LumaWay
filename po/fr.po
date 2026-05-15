@@ -39,6 +39,21 @@ msgstr "Musique"
 msgid "Coming soon"
 msgstr "Bientôt"
 
+msgid "Intensity"
+msgstr "Intensité"
+
+msgid "Subtle"
+msgstr "Doux"
+
+msgid "Moderate"
+msgstr "Modéré"
+
+msgid "High"
+msgstr "Fort"
+
+msgid "Max"
+msgstr "Max"
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr "Synchroniser les lumières avec un écran Wayland"
 

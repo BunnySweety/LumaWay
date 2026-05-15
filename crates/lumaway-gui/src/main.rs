@@ -23,6 +23,40 @@ const COLOR_PROFILES: [&str; 6] = ["soft", "vivid", "game", "boosted", "cinema",
 const BRIDGE_STATUS_CONNECTED: &str = "Connected to bridge";
 /// Zone-card dim labels: offset to match DropDown / Switch / scale trough (GTK aligns widget tops, not optical centers).
 const ZONE_CARD_FIELD_LABEL_MARGIN_TOP: i32 = 8;
+const INTENSITY_LEVELS: [IntensityLevel; 4] = [
+    IntensityLevel::Subtle,
+    IntensityLevel::Moderate,
+    IntensityLevel::High,
+    IntensityLevel::Max,
+];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum IntensityLevel {
+    Subtle,
+    Moderate,
+    High,
+    Max,
+}
+
+impl IntensityLevel {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Subtle => "Subtle",
+            Self::Moderate => "Moderate",
+            Self::High => "High",
+            Self::Max => "Max",
+        }
+    }
+
+    fn reactivity_percent(self) -> f64 {
+        match self {
+            Self::Subtle => 20.0,
+            Self::Moderate => 35.0,
+            Self::High => 65.0,
+            Self::Max => 90.0,
+        }
+    }
+}
 
 fn main() -> glib::ExitCode {
     if let Err(error) = migrate_lumaway_env_v1(&lumaway_main_env_path()) {
@@ -50,6 +84,8 @@ struct Ui {
     duration: gtk::SpinButton,
     intensity: gtk::Scale,
     reactivity: gtk::Scale,
+    intensity_tiles: Rc<RefCell<Vec<IntensityTile>>>,
+    reactivity_customized: Rc<Cell<bool>>,
     profile: gtk::Entry,
     color_profile: gtk::DropDown,
     sync_mode: Rc<Cell<SyncMode>>,
@@ -224,8 +260,11 @@ fn build_widgets(
     intensity.set_tooltip_text(Some("100 keeps captured brightness"));
     /* Value under the trough keeps the handle at the top of the widget; valign Start on the row aligns label with the track. */
     intensity.set_value_pos(gtk::PositionType::Bottom);
-    let reactivity = percent_scale(initial_percent(saved, "LUMAWAY_REACTIVITY", 35.0));
+    let sync_mode = Rc::new(Cell::new(initial_sync_mode(saved)));
+    let reactivity_customized = Rc::new(Cell::new(saved.contains_key("LUMAWAY_REACTIVITY")));
+    let reactivity = percent_scale(initial_reactivity_percent(saved, sync_mode.get()));
     reactivity.set_tooltip_text(Some("Higher values react faster"));
+    let intensity_tiles = Rc::new(RefCell::new(Vec::new()));
     let profile = gtk::Entry::builder()
         .text(
             saved
@@ -243,7 +282,6 @@ fn build_widgets(
             .map(String::as_str)
             .unwrap_or("vivid"),
     );
-    let sync_mode = Rc::new(Cell::new(initial_sync_mode(saved)));
     select_color_profile(&color_profile, color_profile_for_sync_mode(sync_mode.get()));
     let autostart = gtk::CheckButton::builder()
         .label("Start sync when app opens")
@@ -316,14 +354,24 @@ fn build_widgets(
 
     let mode_box = section("Mode");
     mode_box.add_css_class("compact-card");
-    mode_box.append(&mode_row(sync_mode.clone(), color_profile.clone()));
+    mode_box.append(&mode_row(
+        sync_mode.clone(),
+        color_profile.clone(),
+        reactivity.clone(),
+        intensity_tiles.clone(),
+        reactivity_customized.clone(),
+    ));
     let preset_tier = gtk::Box::new(gtk::Orientation::Vertical, 10);
     preset_tier.add_css_class("mode-presets-tier");
-    let preset_heading = gtk::Label::new(Some("Reactivity"));
+    let preset_heading = gtk::Label::new(Some(i18n::tr("Intensity").as_str()));
     preset_heading.set_xalign(0.0);
     preset_heading.add_css_class("mode-section-subtitle");
     preset_tier.append(&preset_heading);
-    preset_tier.append(&preset_row());
+    preset_tier.append(&preset_row(
+        reactivity.clone(),
+        intensity_tiles.clone(),
+        reactivity_customized.clone(),
+    ));
     mode_box.append(&preset_tier);
 
     let sync_footer = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -389,6 +437,8 @@ fn build_widgets(
         duration,
         intensity,
         reactivity,
+        intensity_tiles,
+        reactivity_customized,
         profile,
         color_profile,
         sync_mode,
@@ -655,7 +705,18 @@ struct ModeTile {
     caption: gtk::Label,
 }
 
-fn mode_row(selected_mode: Rc<Cell<SyncMode>>, color_profile: gtk::DropDown) -> gtk::Box {
+struct IntensityTile {
+    level: IntensityLevel,
+    button: gtk::ToggleButton,
+}
+
+fn mode_row(
+    selected_mode: Rc<Cell<SyncMode>>,
+    color_profile: gtk::DropDown,
+    reactivity: gtk::Scale,
+    intensity_tiles: Rc<RefCell<Vec<IntensityTile>>>,
+    reactivity_customized: Rc<Cell<bool>>,
+) -> gtk::Box {
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
     row.set_homogeneous(true);
     row.set_margin_top(4);
@@ -702,9 +763,19 @@ fn mode_row(selected_mode: Rc<Cell<SyncMode>>, color_profile: gtk::DropDown) -> 
         let all_tiles = tiles.clone();
         let selected_mode = selected_mode.clone();
         let color_profile = color_profile.clone();
+        let reactivity = reactivity.clone();
+        let intensity_tiles = intensity_tiles.clone();
+        let reactivity_customized = reactivity_customized.clone();
         circle.connect_clicked(move |_| {
             selected_mode.set(mode);
             select_color_profile(&color_profile, color_profile_for_sync_mode(mode));
+            if !reactivity_customized.get() {
+                apply_intensity_level(
+                    &reactivity,
+                    &intensity_tiles,
+                    default_intensity_for_sync_mode(mode),
+                );
+            }
             let all_tiles = all_tiles.borrow();
             refresh_mode_tiles(selected_mode.get(), all_tiles.as_slice());
         });
@@ -733,23 +804,60 @@ fn refresh_mode_tiles(selected_mode: SyncMode, tiles: &[ModeTile]) {
     }
 }
 
-fn preset_row() -> gtk::Box {
+fn preset_row(
+    reactivity: gtk::Scale,
+    intensity_tiles: Rc<RefCell<Vec<IntensityTile>>>,
+    reactivity_customized: Rc<Cell<bool>>,
+) -> gtk::Box {
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     row.set_homogeneous(true);
-    for (label, active) in [
-        ("Subtle", false),
-        ("Moderate", true),
-        ("High", false),
-        ("Intense", false),
-    ] {
-        let button = gtk::Button::with_label(label);
+    for level in INTENSITY_LEVELS {
+        let button = gtk::ToggleButton::with_label(i18n::tr(level.label()).as_str());
         button.add_css_class("preset-button");
-        if active {
-            button.add_css_class("active-preset");
-        }
+        let level_reactivity = reactivity.clone();
+        let level_tiles = intensity_tiles.clone();
+        let level_customized = reactivity_customized.clone();
+        button.connect_clicked(move |_| {
+            level_customized.set(true);
+            apply_intensity_level(&level_reactivity, &level_tiles, level);
+        });
         row.append(&button);
+        intensity_tiles
+            .borrow_mut()
+            .push(IntensityTile { level, button });
     }
+    let tiles = intensity_tiles.borrow();
+    refresh_intensity_tiles(reactivity.value(), tiles.as_slice());
     row
+}
+
+fn apply_intensity_level(
+    reactivity: &gtk::Scale,
+    tiles: &Rc<RefCell<Vec<IntensityTile>>>,
+    level: IntensityLevel,
+) {
+    reactivity.set_value(level.reactivity_percent());
+    let tiles = tiles.borrow();
+    refresh_intensity_tiles(reactivity.value(), tiles.as_slice());
+}
+
+fn refresh_intensity_tiles(reactivity_percent: f64, tiles: &[IntensityTile]) {
+    let active_level = intensity_level_for_percent(reactivity_percent);
+    for tile in tiles {
+        let active = tile.level == active_level;
+        tile.button.set_active(active);
+        if active {
+            tile.button.add_css_class("active-preset");
+        } else {
+            tile.button.remove_css_class("active-preset");
+        }
+    }
+}
+
+fn set_intensity_tiles_sensitive(tiles: &[IntensityTile], sensitive: bool) {
+    for tile in tiles {
+        tile.button.set_sensitive(sensitive);
+    }
 }
 
 fn percent_scale(value: f64) -> gtk::Scale {
@@ -872,6 +980,13 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
         {
             activate_area(&intensity_ui);
         }
+    });
+
+    let reactivity_ui = ui.clone();
+    ui.reactivity.connect_value_changed(move |_| {
+        let tiles = reactivity_ui.intensity_tiles.borrow();
+        refresh_intensity_tiles(reactivity_ui.reactivity.value(), tiles.as_slice());
+        let _ = write_current_env_file(&reactivity_ui);
     });
 
     let start_ui = ui.clone();
@@ -1225,6 +1340,9 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
     ui.duration.set_value(controls.duration.value());
     ui.intensity.set_value(controls.intensity.value());
     ui.reactivity.set_value(controls.reactivity.value());
+    ui.reactivity_customized.set(true);
+    let tiles = ui.intensity_tiles.borrow();
+    refresh_intensity_tiles(ui.reactivity.value(), tiles.as_slice());
     ui.profile.set_text(controls.profile.text().trim());
     ui.color_profile
         .set_selected(controls.color_profile.selected());
@@ -2014,6 +2132,8 @@ fn set_running_state(ui: &Ui, running: bool) {
     ui.client_key.set_sensitive(!running);
     ui.duration.set_sensitive(!running);
     ui.reactivity.set_sensitive(!running);
+    let tiles = ui.intensity_tiles.borrow();
+    set_intensity_tiles_sensitive(tiles.as_slice(), !running);
     ui.autostart.set_sensitive(!running);
     update_zone_controls(ui, running);
 }
@@ -2516,6 +2636,35 @@ fn color_profile_for_sync_mode(mode: SyncMode) -> &'static str {
     }
 }
 
+fn default_intensity_for_sync_mode(mode: SyncMode) -> IntensityLevel {
+    match screen_sync_mode(mode) {
+        SyncMode::Game => IntensityLevel::High,
+        SyncMode::Video | SyncMode::Desktop | SyncMode::Music => IntensityLevel::Moderate,
+    }
+}
+
+fn initial_reactivity_percent(saved: &HashMap<String, String>, mode: SyncMode) -> f64 {
+    initial_percent(
+        saved,
+        "LUMAWAY_REACTIVITY",
+        default_intensity_for_sync_mode(mode).reactivity_percent(),
+    )
+}
+
+fn intensity_level_for_percent(percent: f64) -> IntensityLevel {
+    let percent = percent.clamp(0.0, 100.0);
+    let mut selected = IntensityLevel::Subtle;
+    let mut selected_distance = f64::MAX;
+    for level in INTENSITY_LEVELS {
+        let distance = (level.reactivity_percent() - percent).abs();
+        if distance < selected_distance {
+            selected = level;
+            selected_distance = distance;
+        }
+    }
+    selected
+}
+
 fn initial_duration_ms(saved: &HashMap<String, String>) -> i32 {
     std::env::var("LUMAWAY_GUI_DURATION_MS")
         .ok()
@@ -2564,12 +2713,13 @@ fn home_dir() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        bridge_id_display_text, color_profile_for_sync_mode, format_bridge_title,
-        format_capture_quality_summary, initial_sync_mode, is_hue_authentication_error,
+        bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
+        format_bridge_title, format_capture_quality_summary, initial_reactivity_percent,
+        initial_sync_mode, intensity_level_for_percent, is_hue_authentication_error,
         lumaway_bin_override_rejection_reason, parse_area_state_output, parse_areas_output,
         parse_auth_output, parse_bridge_discovery_output, parse_bridge_info_output,
         parse_profile_list_output, preset_for_sync_mode, sanitize_color_profile,
-        sanitize_profile_name, selected_area_index,
+        sanitize_profile_name, selected_area_index, IntensityLevel,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -2794,6 +2944,39 @@ mod tests {
         assert_eq!(color_profile_for_sync_mode(SyncMode::Game), "game");
         assert_eq!(color_profile_for_sync_mode(SyncMode::Desktop), "desktop");
         assert_eq!(color_profile_for_sync_mode(SyncMode::Music), "vivid");
+    }
+
+    #[test]
+    fn intensity_levels_match_reactivity_contract() {
+        assert_eq!(IntensityLevel::Subtle.reactivity_percent(), 20.0);
+        assert_eq!(IntensityLevel::Moderate.reactivity_percent(), 35.0);
+        assert_eq!(IntensityLevel::High.reactivity_percent(), 65.0);
+        assert_eq!(IntensityLevel::Max.reactivity_percent(), 90.0);
+
+        assert_eq!(intensity_level_for_percent(18.0), IntensityLevel::Subtle);
+        assert_eq!(intensity_level_for_percent(36.0), IntensityLevel::Moderate);
+        assert_eq!(intensity_level_for_percent(63.0), IntensityLevel::High);
+        assert_eq!(intensity_level_for_percent(92.0), IntensityLevel::Max);
+    }
+
+    #[test]
+    fn game_mode_defaults_to_high_intensity_without_saved_reactivity() {
+        assert_eq!(
+            default_intensity_for_sync_mode(SyncMode::Game),
+            IntensityLevel::High
+        );
+        assert_eq!(
+            initial_reactivity_percent(&saved(&[]), SyncMode::Game),
+            65.0
+        );
+        assert_eq!(
+            initial_reactivity_percent(&saved(&[]), SyncMode::Video),
+            35.0
+        );
+        assert_eq!(
+            initial_reactivity_percent(&saved(&[("LUMAWAY_REACTIVITY", "0.20")]), SyncMode::Game,),
+            20.0
+        );
     }
 
     #[test]

@@ -38,6 +38,21 @@ msgstr ""
 msgid "Coming soon"
 msgstr ""
 
+msgid "Intensity"
+msgstr ""
+
+msgid "Subtle"
+msgstr ""
+
+msgid "Moderate"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Max"
+msgstr ""
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr ""
 
