@@ -83,7 +83,17 @@ fn is_lan_dtls_target(ip: IpAddr) -> bool {
 }
 
 fn is_lan_ipv6(ip: Ipv6Addr) -> bool {
-    !ip.is_loopback() && (ip.is_unique_local() || ip.is_unicast_link_local())
+    !ip.is_loopback() && (is_unique_local_ipv6(ip) || is_unicast_link_local_ipv6(ip))
+}
+
+fn is_unique_local_ipv6(ip: Ipv6Addr) -> bool {
+    let octets = ip.octets();
+    (octets[0] & 0xfe) == 0xfc
+}
+
+fn is_unicast_link_local_ipv6(ip: Ipv6Addr) -> bool {
+    let octets = ip.octets();
+    octets[0] == 0xfe && (octets[1] & 0xc0) == 0x80
 }
 
 pub trait DtlsTransport {
@@ -302,7 +312,7 @@ fn write_psk_identity(
 
 fn decode_hex(value: &str) -> Result<Vec<u8>> {
     let value = value.trim();
-    if !value.len().is_multiple_of(2) {
+    if value.len() % 2 != 0 {
         return Err(HueError::InvalidHexSecret(
             "hex string must have an even length".into(),
         ));

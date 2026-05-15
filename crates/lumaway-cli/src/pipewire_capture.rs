@@ -263,6 +263,7 @@ impl BackendProbeResult {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn probe_capture_backend(
     node_id: u32,
     pipewire_fd: OwnedFd,

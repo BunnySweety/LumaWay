@@ -147,11 +147,7 @@ fn pin_filename(safe_key: String, kind: BridgeTlsPinKind) -> String {
 }
 
 fn sanitize_ip(bridge_ip: &str) -> String {
-    bridge_ip
-        .trim()
-        .replace(':', "-")
-        .replace('/', "_")
-        .replace('\\', "_")
+    bridge_ip.trim().replace(':', "-").replace(['/', '\\'], "_")
 }
 
 fn sanitize_id(bridge_id: &str) -> String {
@@ -480,7 +476,7 @@ mod tests {
             let _ = fs::create_dir_all(parent);
         }
         fs::write(&path, b"short").unwrap();
-        assert!(load_pin(&[path.clone()]).is_err());
+        assert!(load_pin(std::slice::from_ref(&path)).is_err());
         let _ = fs::remove_file(&path);
     }
 

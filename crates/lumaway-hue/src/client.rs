@@ -361,11 +361,11 @@ impl HueClient {
             .request("GET", "/resource/entertainment_configuration", None)
             .await?;
 
-        Ok(response
+        response
             .data
             .into_iter()
             .map(EntertainmentArea::try_from)
-            .collect::<Result<Vec<_>>>()?)
+            .collect::<Result<Vec<_>>>()
     }
 
     /// Comme [`Self::entertainment_areas`], mais compte les lumières Hue réellement liées à chaque zone.

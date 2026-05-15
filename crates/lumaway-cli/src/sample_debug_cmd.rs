@@ -13,6 +13,7 @@ use crate::{
     ColorTuning, SampleCrop, SamplingMode, SyncPreset, SyncPresetConfig,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run_sample_debug(
     portal: bool,
     bridge: String,

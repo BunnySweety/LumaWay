@@ -984,16 +984,18 @@ fn open_settings_window(ui: &Ui) {
     save.connect_clicked(move |_| {
         apply_settings_values(
             &save_ui,
-            &save_bridge,
-            &save_area,
-            &save_app_key,
-            &save_client_key,
-            &save_duration,
-            &save_intensity,
-            &save_reactivity,
-            &save_profile,
-            &save_color_profile,
-            &save_autostart,
+            SettingsControls {
+                bridge: &save_bridge,
+                area: &save_area,
+                app_key: &save_app_key,
+                client_key: &save_client_key,
+                duration: &save_duration,
+                intensity: &save_intensity,
+                reactivity: &save_reactivity,
+                profile: &save_profile,
+                color_profile: &save_color_profile,
+                autostart: &save_autostart,
+            },
         );
         if ui_can_load_areas(&save_ui) {
             load_areas(&save_ui);
@@ -1014,16 +1016,18 @@ fn open_settings_window(ui: &Ui) {
     detect.connect_clicked(move |_| {
         apply_settings_values(
             &detect_ui,
-            &detect_bridge,
-            &detect_area,
-            &detect_app_key,
-            &detect_client_key,
-            &detect_duration,
-            &detect_intensity,
-            &detect_reactivity,
-            &detect_profile,
-            &detect_color_profile,
-            &detect_autostart,
+            SettingsControls {
+                bridge: &detect_bridge,
+                area: &detect_area,
+                app_key: &detect_app_key,
+                client_key: &detect_client_key,
+                duration: &detect_duration,
+                intensity: &detect_intensity,
+                reactivity: &detect_reactivity,
+                profile: &detect_profile,
+                color_profile: &detect_color_profile,
+                autostart: &detect_autostart,
+            },
         );
         discover_bridges(&detect_ui);
     });
@@ -1042,16 +1046,18 @@ fn open_settings_window(ui: &Ui) {
     pair.connect_clicked(move |_| {
         apply_settings_values(
             &pair_ui,
-            &pair_bridge,
-            &pair_area,
-            &pair_app_key,
-            &pair_client_key,
-            &pair_duration,
-            &pair_intensity,
-            &pair_reactivity,
-            &pair_profile,
-            &pair_color_profile,
-            &pair_autostart,
+            SettingsControls {
+                bridge: &pair_bridge,
+                area: &pair_area,
+                app_key: &pair_app_key,
+                client_key: &pair_client_key,
+                duration: &pair_duration,
+                intensity: &pair_intensity,
+                reactivity: &pair_reactivity,
+                profile: &pair_profile,
+                color_profile: &pair_color_profile,
+                autostart: &pair_autostart,
+            },
         );
         create_hue_keys(&pair_ui);
     });
@@ -1075,16 +1081,18 @@ fn open_settings_window(ui: &Ui) {
     quality.connect_clicked(move |_| {
         apply_settings_values(
             &quality_ui,
-            &quality_bridge,
-            &quality_area,
-            &quality_app_key,
-            &quality_client_key,
-            &quality_duration,
-            &quality_intensity,
-            &quality_reactivity,
-            &quality_profile,
-            &quality_color_profile,
-            &quality_autostart,
+            SettingsControls {
+                bridge: &quality_bridge,
+                area: &quality_area,
+                app_key: &quality_app_key,
+                client_key: &quality_client_key,
+                duration: &quality_duration,
+                intensity: &quality_intensity,
+                reactivity: &quality_reactivity,
+                profile: &quality_profile,
+                color_profile: &quality_color_profile,
+                autostart: &quality_autostart,
+            },
         );
         measure_capture_quality(&quality_ui);
     });
@@ -1103,16 +1111,18 @@ fn open_settings_window(ui: &Ui) {
     calibrate.connect_clicked(move |_| {
         apply_settings_values(
             &calibrate_ui,
-            &calibrate_bridge,
-            &calibrate_area,
-            &calibrate_app_key,
-            &calibrate_client_key,
-            &calibrate_duration,
-            &calibrate_intensity,
-            &calibrate_reactivity,
-            &calibrate_profile,
-            &calibrate_color_profile,
-            &calibrate_autostart,
+            SettingsControls {
+                bridge: &calibrate_bridge,
+                area: &calibrate_area,
+                app_key: &calibrate_app_key,
+                client_key: &calibrate_client_key,
+                duration: &calibrate_duration,
+                intensity: &calibrate_intensity,
+                reactivity: &calibrate_reactivity,
+                profile: &calibrate_profile,
+                color_profile: &calibrate_color_profile,
+                autostart: &calibrate_autostart,
+            },
         );
         calibrate_capture_profile(&calibrate_ui);
     });
@@ -1143,44 +1153,34 @@ fn refresh_bridge_id_displays(ui: &Ui) {
     }
 }
 
-fn apply_settings_values(
-    ui: &Ui,
-    bridge: &gtk::Entry,
-    area: &gtk::Entry,
-    app_key: &gtk::PasswordEntry,
-    client_key: &gtk::PasswordEntry,
-    duration: &gtk::SpinButton,
-    intensity: &gtk::Scale,
-    reactivity: &gtk::Scale,
-    profile: &gtk::Entry,
-    color_profile: &gtk::DropDown,
-    autostart: &gtk::CheckButton,
-) {
-    ui.bridge.set_text(bridge.text().trim());
-    ui.area.set_text(area.text().trim());
-    ui.app_key.set_text(app_key.text().as_str());
-    ui.client_key.set_text(client_key.text().as_str());
-    ui.duration.set_value(duration.value());
-    ui.intensity.set_value(intensity.value());
-    ui.reactivity.set_value(reactivity.value());
-    ui.profile.set_text(profile.text().trim());
-    ui.color_profile.set_selected(color_profile.selected());
-    ui.autostart.set_active(autostart.is_active());
+struct SettingsControls<'a> {
+    bridge: &'a gtk::Entry,
+    area: &'a gtk::Entry,
+    app_key: &'a gtk::PasswordEntry,
+    client_key: &'a gtk::PasswordEntry,
+    duration: &'a gtk::SpinButton,
+    intensity: &'a gtk::Scale,
+    reactivity: &'a gtk::Scale,
+    profile: &'a gtk::Entry,
+    color_profile: &'a gtk::DropDown,
+    autostart: &'a gtk::CheckButton,
+}
+
+fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
+    ui.bridge.set_text(controls.bridge.text().trim());
+    ui.area.set_text(controls.area.text().trim());
+    ui.app_key.set_text(controls.app_key.text().as_str());
+    ui.client_key.set_text(controls.client_key.text().as_str());
+    ui.duration.set_value(controls.duration.value());
+    ui.intensity.set_value(controls.intensity.value());
+    ui.reactivity.set_value(controls.reactivity.value());
+    ui.profile.set_text(controls.profile.text().trim());
+    ui.color_profile
+        .set_selected(controls.color_profile.selected());
+    ui.autostart.set_active(controls.autostart.is_active());
     update_health(ui);
 
-    let _ = write_env_file(
-        ui.bridge.text().trim(),
-        ui.bridge_id.borrow().as_str(),
-        ui.area.text().trim(),
-        ui.app_key.text().as_str(),
-        ui.client_key.text().as_str(),
-        ui.duration.value_as_int(),
-        percent_to_fraction(ui.intensity.value()),
-        percent_to_fraction(ui.reactivity.value()),
-        ui.profile.text().trim(),
-        selected_string(&ui.color_profile).as_str(),
-        ui.autostart.is_active(),
-    );
+    let _ = write_env_file(env_file_values_from_ui(ui, ui.area.text().trim()));
     append_log(&ui.logs, "Settings saved.\n");
 }
 
@@ -1632,19 +1632,7 @@ fn start_sync_with_log_reset(
 fn write_current_env_file(ui: &Ui) -> anyhow::Result<()> {
     let area = current_area_ref(ui);
     ui.area.set_text(&area);
-    write_env_file(
-        ui.bridge.text().trim(),
-        ui.bridge_id.borrow().as_str(),
-        &area,
-        ui.app_key.text().as_str(),
-        ui.client_key.text().as_str(),
-        ui.duration.value_as_int(),
-        percent_to_fraction(ui.intensity.value()),
-        percent_to_fraction(ui.reactivity.value()),
-        ui.profile.text().trim(),
-        selected_string(&ui.color_profile).as_str(),
-        ui.autostart.is_active(),
-    )
+    write_env_file(env_file_values_from_ui(ui, &area))
 }
 
 fn sync_running(state: &Rc<RefCell<AppState>>) -> bool {
@@ -2311,28 +2299,46 @@ fn read_env_file() -> anyhow::Result<HashMap<String, String>> {
     Ok(values)
 }
 
-fn write_env_file(
-    bridge: &str,
-    bridge_id: &str,
-    area: &str,
-    app_key: &str,
-    client_key: &str,
+struct EnvFileValues {
+    bridge: String,
+    bridge_id: String,
+    area: String,
+    app_key: String,
+    client_key: String,
     duration_ms: i32,
     brightness: f64,
     smoothing: f64,
-    profile: &str,
-    color_profile: &str,
+    profile: String,
+    color_profile: String,
     autostart: bool,
-) -> anyhow::Result<()> {
+}
+
+fn env_file_values_from_ui(ui: &Ui, area: &str) -> EnvFileValues {
+    EnvFileValues {
+        bridge: ui.bridge.text().trim().to_string(),
+        bridge_id: ui.bridge_id.borrow().trim().to_string(),
+        area: area.trim().to_string(),
+        app_key: ui.app_key.text().to_string(),
+        client_key: ui.client_key.text().to_string(),
+        duration_ms: ui.duration.value_as_int(),
+        brightness: percent_to_fraction(ui.intensity.value()),
+        smoothing: percent_to_fraction(ui.reactivity.value()),
+        profile: ui.profile.text().trim().to_string(),
+        color_profile: selected_string(&ui.color_profile),
+        autostart: ui.autostart.is_active(),
+    }
+}
+
+fn write_env_file(values: EnvFileValues) -> anyhow::Result<()> {
     let path = config_path();
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    let profile = sanitize_profile_name(profile);
-    let bridge_id_line = if bridge_id.trim().is_empty() {
+    let profile = sanitize_profile_name(&values.profile);
+    let bridge_id_line = if values.bridge_id.trim().is_empty() {
         String::new()
     } else {
-        format!("LUMAWAY_BRIDGE_ID={}\n", bridge_id.trim())
+        format!("LUMAWAY_BRIDGE_ID={}\n", values.bridge_id.trim())
     };
     let text = format!(
         "{config_version_key}={config_version}\n{sync_mode_key}={sync_mode}\nLUMAWAY_BRIDGE={bridge}\n{bridge_id_line}LUMAWAY_AREA={area}\nLUMAWAY_APP_KEY={app_key}\nLUMAWAY_CLIENT_KEY={client_key}\nLUMAWAY_PROFILE={profile}\nLUMAWAY_DURATION_MS={duration_ms}\nLUMAWAY_BRIGHTNESS={brightness}\nLUMAWAY_REACTIVITY={reactivity}\nLUMAWAY_COLOR_PROFILE={color_profile}\nLUMAWAY_AUTOSTART_SYNC={autostart}\nRUST_LOG=lumaway=info\n",
@@ -2340,10 +2346,15 @@ fn write_env_file(
         config_version = CURRENT_CONFIG_VERSION,
         sync_mode_key = SYNC_MODE_KEY,
         sync_mode = DEFAULT_SYNC_MODE.as_env_value(),
-        brightness = format_fraction(brightness),
-        reactivity = format_fraction(smoothing),
-        color_profile = sanitize_color_profile(color_profile),
-        autostart = if autostart { "true" } else { "false" },
+        bridge = values.bridge,
+        area = values.area,
+        app_key = values.app_key,
+        client_key = values.client_key,
+        duration_ms = values.duration_ms,
+        brightness = format_fraction(values.brightness),
+        reactivity = format_fraction(values.smoothing),
+        color_profile = sanitize_color_profile(&values.color_profile),
+        autostart = if values.autostart { "true" } else { "false" },
     );
     fs::write(&path, text)?;
     #[cfg(unix)]

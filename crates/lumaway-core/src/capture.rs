@@ -781,14 +781,16 @@ fn average_rgb_horizontal_bands_sampled(
         let start_sx = band * sample_width / bands;
         let end_sx = (band + 1) * sample_width / bands;
         averages.push(average_rgb_sampled_band(
-            bytes,
-            width,
-            height,
+            SampledFrame {
+                bytes,
+                width,
+                height,
+                sample_width,
+                sample_height,
+                layout,
+            },
             start_sx,
             end_sx,
-            sample_width,
-            sample_height,
-            layout,
         )?);
     }
 
@@ -1211,19 +1213,24 @@ fn validate_frame_len(
     Ok(())
 }
 
-fn average_rgb_sampled_band(
-    bytes: &[u8],
+struct SampledFrame<'a> {
+    bytes: &'a [u8],
     width: usize,
     height: usize,
-    start_sx: usize,
-    end_sx: usize,
     sample_width: usize,
     sample_height: usize,
     layout: PixelLayout,
+}
+
+fn average_rgb_sampled_band(
+    frame: SampledFrame<'_>,
+    start_sx: usize,
+    end_sx: usize,
 ) -> Result<RgbAverage> {
-    if start_sx >= end_sx || end_sx > sample_width {
+    if start_sx >= end_sx || end_sx > frame.sample_width {
         return Err(CoreError::GStreamer(format!(
-            "invalid sampled RGB band: start_sx={start_sx}, end_sx={end_sx}, sample_width={sample_width}"
+            "invalid sampled RGB band: start_sx={start_sx}, end_sx={end_sx}, sample_width={}",
+            frame.sample_width
         )));
     }
 
@@ -1232,14 +1239,14 @@ fn average_rgb_sampled_band(
     let mut blue = 0u64;
     let mut pixels = 0u64;
 
-    for sy in 0..sample_height {
-        let y = sy * height / sample_height;
+    for sy in 0..frame.sample_height {
+        let y = sy * frame.height / frame.sample_height;
         for sx in start_sx..end_sx {
-            let x = sx * width / sample_width;
-            let offset = (y * width + x) * layout.bytes_per_pixel;
-            red += u64::from(bytes[offset + layout.red_offset]);
-            green += u64::from(bytes[offset + layout.green_offset]);
-            blue += u64::from(bytes[offset + layout.blue_offset]);
+            let x = sx * frame.width / frame.sample_width;
+            let offset = (y * frame.width + x) * frame.layout.bytes_per_pixel;
+            red += u64::from(frame.bytes[offset + frame.layout.red_offset]);
+            green += u64::from(frame.bytes[offset + frame.layout.green_offset]);
+            blue += u64::from(frame.bytes[offset + frame.layout.blue_offset]);
             pixels += 1;
         }
     }

@@ -48,6 +48,7 @@ async fn connect_dtls_with_retries(
     Err(last_error.expect("DTLS retry loop should record an error"))
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn sync_average_color_loop(
     capture: &GStreamerTestCapture,
     transport: &mut impl DtlsTransport,
@@ -103,7 +104,7 @@ async fn sync_average_color_loop(
 
     let color_started = Instant::now();
     let averages = smoother.smooth(averages);
-    for (channel, average) in channels.iter_mut().zip(averages.into_iter()) {
+    for (channel, average) in channels.iter_mut().zip(averages) {
         channel.color = hue_color_from_average(average, brightness, color_tuning);
     }
     stats.color.record(color_started.elapsed());
@@ -141,7 +142,7 @@ async fn sync_average_color_loop(
 
                     let color_started = Instant::now();
                     let averages = smoother.smooth(averages);
-                    for (channel, average) in channels.iter_mut().zip(averages.into_iter()) {
+                    for (channel, average) in channels.iter_mut().zip(averages) {
                         channel.color = hue_color_from_average(average, brightness, color_tuning);
                     }
                     stats.color.record(color_started.elapsed());
@@ -194,6 +195,7 @@ async fn sync_average_color_loop(
     Ok(stats)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run_sync_bench(
     duration_ms: u64,
     capture_fps: u8,
@@ -325,6 +327,7 @@ pub async fn run_sync_bench(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run_sync(
     bridge: String,
     app_key: String,
