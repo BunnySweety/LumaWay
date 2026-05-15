@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.BunnySweety.LumaWay</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MPL-2.0</project_license>
+  <name>LumaWay</name>
+  <summary>Sync Philips Hue Entertainment lights from the Linux desktop</summary>
+  <summary xml:lang="fr">Synchronise les lumières Philips Hue Entertainment depuis le bureau Linux</summary>
+  <description>
+    <p>
+      LumaWay is a native Linux Wayland desktop application for local Philips Hue Entertainment light synchronization.
+    </p>
+    <p xml:lang="fr">
+      LumaWay est une application native Linux Wayland pour synchroniser localement les lumières Philips Hue Entertainment.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.BunnySweety.LumaWay.desktop</launchable>
+  <provides>
+    <binary>lumaway-gui</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+  </categories>
+  <url type="homepage">https://github.com/BunnySweety/LumaWay</url>
+</component>

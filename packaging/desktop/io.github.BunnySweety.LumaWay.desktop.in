@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=LumaWay
+Comment=Synchronize lights with a Wayland screen
+Comment[fr]=Synchroniser les lumières avec un écran Wayland
+Exec=@HOME@/.local/bin/lumaway-gui
+Terminal=false
+Categories=AudioVideo;
+StartupNotify=false
+NoDisplay=false

@@ -1,0 +1,20 @@
+[package]
+name = "lumaway-gui"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "lumaway-gui"
+path = "src/main.rs"
+
+[dependencies]
+adw.workspace = true
+anyhow.workspace = true
+gettext-rs.workspace = true
+gtk.workspace = true
+lumaway-core.workspace = true
+serde_json.workspace = true

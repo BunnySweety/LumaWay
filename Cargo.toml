@@ -1,0 +1,37 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/lumaway-cli",
+    "crates/lumaway-core",
+    "crates/lumaway-gui",
+    "crates/lumaway-hue",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MPL-2.0"
+repository = "https://github.com/BunnySweety/LumaWay"
+homepage = "https://github.com/BunnySweety/LumaWay"
+rust-version = "1.76"
+
+[workspace.dependencies]
+anyhow = "1.0"
+adw = { package = "libadwaita", version = "0.9.1", features = ["gtk_v4_22", "v1_9"] }
+ashpd = { version = "0.12", default-features = true }
+clap = { version = "4.5", features = ["derive", "env"] }
+gtk = { package = "gtk4", version = "0.11.3", features = ["v4_18"] }
+gstreamer = "0.25"
+gstreamer-app = "0.25"
+gettext-rs = { version = "0.7", features = ["gettext-system"] }
+openssl = "0.10"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+rustls = { version = "0.23.40", default-features = false, features = ["std", "ring", "tls12"] }
+rustls-webpki = { version = "0.103.13", default-features = false, features = ["alloc", "ring"] }
+thiserror = "1.0"
+tokio = { version = "1.37", features = ["macros", "rt-multi-thread", "signal", "time"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+lumaway-core = { path = "crates/lumaway-core" }
