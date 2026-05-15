@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-15 (Phase 1.15 — changement de mode après Stop)
+Dernière revue : 2026-05-15 (Phase 1.16 — switch zone clarifié)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -282,7 +282,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.13 | **Robustesse quotidienne** | P0 partiel livré : **sortie inattendue du subprocess `lumaway`** → UI + message i18n + Start disponible ; le dernier log d’erreur classe pont / Portal / capture / DTLS via `user_messages` ; restent veille, flux Portal fermé à chaud et reprise DTLS continue (§15 P0). |
 | 1.14 | **Instance unique GUI** | Fait : `application_id` GTK unique ; une activation secondaire présente la fenêtre existante au lieu de reconstruire une seconde fenêtre/sync. |
 | 1.15 | **Changement de mode** | Fait : en v1.0, changement de mode **après Stop** ; tuiles Mode désactivées pendant sync avec tooltip traduit ; bascule à chaud = post-v1.0. |
-| 1.16 | **Interrupteur zone** | Documenter dans l’UI : le switch **zone on/off** (`area_enabled`) contrôle la zone Hue via l’API pont, **distinct** de Start/Stop sync ; libellé/tooltip traduits. |
+| 1.16 | **Interrupteur zone** | Fait : tooltip traduit ; le switch **zone on/off** (`area_enabled`) contrôle la zone Hue via l’API pont, **distinct** de Start/Stop sync. |
 
 **Critère de fin** : checklist §3.4, §3.5 et critères release §15.2 sur **GNOME Wayland** ; Start/Stop ≤ 2 actions depuis la fenêtre, et depuis le tray quand disponible ; notification limitée aux erreurs critiques si disponible ; pas de terminal après installation.
 
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-15 | Phase 1.16 switch zone | Tooltip traduit : le switch contrôle l’allumage zone Hue, Start/Stop contrôle la sync écran |
 | 2026-05-15 | Phase 1.15 modes | Tuiles Mode désactivées pendant sync ; tooltip traduit indiquant Stop avant changement de mode |
 | 2026-05-15 | Phase 1.14 instance unique | Activation secondaire GTK présente la fenêtre existante ; pas de seconde fenêtre ni seconde sync créée |
 | 2026-05-15 | Phase 1.13 subprocess | Sortie inattendue de `lumaway sync` distinguée des arrêts/restarts demandés ; dernier log d’erreur mappé via `user_messages` pour état pont/Portal/capture/DTLS |

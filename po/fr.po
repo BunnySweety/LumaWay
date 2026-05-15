@@ -300,6 +300,9 @@ msgstr "La synchronisation s'est arrêtée de manière inattendue : {error}"
 msgid "Turn the selected zone on or off"
 msgstr "Activer ou désactiver la zone sélectionnée"
 
+msgid "Turn the Hue zone on or off. Start sync controls screen syncing."
+msgstr "Active ou désactive la zone Hue. Démarrer la synchronisation contrôle la synchronisation écran."
+
 msgid "Zone"
 msgstr "Zone"
 

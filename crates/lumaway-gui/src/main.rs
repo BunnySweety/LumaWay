@@ -247,7 +247,9 @@ fn build_widgets(
         .active(!saved_area.is_empty())
         .valign(gtk::Align::Center)
         .build();
-    area_enabled.set_tooltip_text(Some(&i18n::tr("Turn the selected zone on or off")));
+    area_enabled.set_tooltip_text(Some(&i18n::tr(
+        "Turn the Hue zone on or off. Start sync controls screen syncing.",
+    )));
     let area_options = Rc::new(RefCell::new(initial_area_options));
     let suppress_area_toggle = Rc::new(Cell::new(false));
     let app_key = gtk::PasswordEntry::builder()
