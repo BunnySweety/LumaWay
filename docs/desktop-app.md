@@ -84,6 +84,7 @@ gio launch ~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop
 The Portal selector should appear in the graphical session. After selection, logs stay visible in the application window.
 When a classified bridge, Portal, or capture error occurs, the main window shows the translated explanation plus a contextual `Retry` and/or `Open Settings` action below Start.
 While the Portal selector is open, the main window shows `Choose the screen or window to sync`. If the desktop portal returns a `restore_token`, `lumaway sync` stores it in `LUMAWAY_PORTAL_RESTORE_TOKEN` and reuses it on the next sync; desktops that do not expose one keep showing the selector reminder each session.
+If the selected Portal stream stops delivering frames for more than 5 seconds, `lumaway sync` exits with a classified Portal-stream error; the GUI returns to Start and exposes `Retry`.
 
 ## Optional local overrides
 

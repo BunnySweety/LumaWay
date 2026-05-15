@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.10 — flux Portal)
+Dernière revue : 2026-05-16 (Phase 1.13 — flux Portal fermé)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -279,7 +279,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.10 | Flux Portal | Fait : statut traduit « Choose the screen or window to sync » pendant l’ouverture du sélecteur ; `lumaway sync` réutilise et persiste `LUMAWAY_PORTAL_RESTORE_TOKEN` si le portail renvoie un `restore_token`, sinon le rappel reste affiché à chaque session. |
 | 1.11 | **Bouton unique sync** | Fait : bouton unique Start sync / Stop sync ; Réglages, pairing, découverte, zone, luminosité, intensité et champs avancés bloqués pendant sync. |
 | 1.12 | **Langue (optionnel v1.0)** | Sélecteur langue dans Réglages ou `LUMAWAY_LANG` ; sinon locale OS uniquement. |
-| 1.13 | **Robustesse quotidienne** | P0 partiel livré : **sortie inattendue du subprocess `lumaway`** → UI + message i18n + Start disponible ; le dernier log d’erreur classe pont / Portal / capture / DTLS via `user_messages` ; restent veille, flux Portal fermé à chaud et reprise DTLS continue (§15 P0). |
+| 1.13 | **Robustesse quotidienne** | P0 partiel livré : **sortie inattendue du subprocess `lumaway`** → UI + message i18n + Start disponible ; le dernier log d’erreur classe pont / Portal / capture / DTLS via `user_messages` ; flux Portal sans nouvelle frame > 5 s → erreur classifiée + arrêt/désactivation Entertainment ; restent veille explicite, pont perdu pendant sync et reprise DTLS continue (§15 P0). |
 | 1.14 | **Instance unique GUI** | Fait : `application_id` GTK unique ; une activation secondaire présente la fenêtre existante au lieu de reconstruire une seconde fenêtre/sync. |
 | 1.15 | **Changement de mode** | Fait : en v1.0, changement de mode **après Stop** ; tuiles Mode désactivées pendant sync avec tooltip traduit ; bascule à chaud = post-v1.0. |
 | 1.16 | **Interrupteur zone** | Fait : tooltip traduit ; le switch **zone on/off** (`area_enabled`) contrôle la zone Hue via l’API pont, **distinct** de Start/Stop sync. |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue, classification pont/Portal/DTLS et flux Portal fermé détecté ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -649,7 +649,7 @@ Tous requis sauf mention « optionnel » :
 |--------|----------|-------|
 | Reprise après **veille** / session Portal expirée | v1.0 : Stop propre + message i18n ; l’utilisateur relance la sync ; reconnexion auto = post-v1.0 | 1.13 |
 | **Pont injoignable** ou perdu pendant sync | Statut + notification ou tray ; pas de boucle silencieuse | 1.13 |
-| **Flux Portal fermé** pendant sync | Arrêt propre + désactivation Entertainment | 1.13 |
+| **Flux Portal fermé** pendant sync | Livré partiel : absence de frames > 5 s → arrêt propre + désactivation Entertainment + message i18n ; validation manuelle encore requise | 1.13 |
 | **Échec DTLS** / handshake | **3 tentatives au total** puis message i18n ; doc comportement complet en Phase 4 ([open-questions.md](open-questions.md)) | 1.13 + 4 |
 | **Fallback GNOME sans tray** | Fenêtre Start/Stop toujours accessible ; notification minimale pour erreurs critiques si disponible | 1.7 / 1.13 |
 | **Conflit Entertainment** (autre app / zone) | Message : une seule zone active ; actions `Retry` / `Open Settings` selon le contexte | 1.9 |
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.13 Portal fermé | Timeout de flux Portal sans nouvelle frame > 5 s converti en erreur classifiée ; la sortie subprocess déclenche l’état arrêté et `Retry` |
 | 2026-05-16 | Phase 1.10 Portal | Statut traduit pendant le sélecteur Portal ; `restore_token` persistant via `LUMAWAY_PORTAL_RESTORE_TOKEN` quand disponible |
 | 2026-05-16 | Phase 1.9 erreurs | Actions contextuelles `Retry` et/ou `Open Settings` affichées sous Start pour les erreurs GUI classifiées |
 | 2026-05-16 | Phase 1.8 autostart | Option Réglages pour créer/supprimer l’entrée XDG autostart ; option sync à l’ouverture gardée séparée |

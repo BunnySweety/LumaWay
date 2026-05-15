@@ -25,6 +25,7 @@ use crate::{
 };
 
 const PORTAL_RESTORE_TOKEN_KEY: &str = "LUMAWAY_PORTAL_RESTORE_TOKEN";
+const CAPTURE_STALE_TIMEOUT: Duration = Duration::from_secs(5);
 
 async fn connect_dtls_with_retries(
     bridge: &str,
@@ -92,6 +93,7 @@ async fn sync_average_color_loop(
     let averages = capture_averages(capture, &points, &regions, sampling, Duration::from_secs(5))?;
     stats.capture.record(capture_started.elapsed());
     stats.capture_frames += 1;
+    let mut last_capture_at = Instant::now();
 
     let max_raw = averages
         .iter()
@@ -141,6 +143,7 @@ async fn sync_average_color_loop(
                 Ok(averages) => {
                     stats.capture.record(capture_started.elapsed());
                     stats.capture_frames += 1;
+                    last_capture_at = Instant::now();
                     fresh_capture = true;
 
                     let color_started = Instant::now();
@@ -153,6 +156,13 @@ async fn sync_average_color_loop(
                 Err(CoreError::CaptureTimeout) => {
                     stats.capture.record(capture_started.elapsed());
                     stats.empty_capture_polls += 1;
+                    if capture_stream_stale(last_capture_at, Instant::now(), CAPTURE_STALE_TIMEOUT)
+                    {
+                        bail!(
+                            "portal stream stopped: no screen frames arrived for {} seconds",
+                            CAPTURE_STALE_TIMEOUT.as_secs()
+                        );
+                    }
                 }
                 Err(error) => return Err(error.into()),
             }
@@ -643,6 +653,10 @@ fn normalize_portal_restore_token(token: Option<&str>) -> Option<String> {
         .map(str::to_string)
 }
 
+fn capture_stream_stale(last_capture_at: Instant, now: Instant, stale_timeout: Duration) -> bool {
+    now.duration_since(last_capture_at) >= stale_timeout
+}
+
 fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
     let Some(token) = normalize_portal_restore_token(selection.restore_token.as_deref()) else {
         return Ok(());
@@ -659,7 +673,8 @@ fn persist_portal_restore_token(selection: &PortalSelection) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::normalize_portal_restore_token;
+    use super::{capture_stream_stale, normalize_portal_restore_token};
+    use std::time::{Duration, Instant};
 
     #[test]
     fn normalizes_portal_restore_token() {
@@ -669,5 +684,21 @@ mod tests {
         );
         assert_eq!(normalize_portal_restore_token(Some("   ")), None);
         assert_eq!(normalize_portal_restore_token(None), None);
+    }
+
+    #[test]
+    fn detects_stale_capture_stream() {
+        let started = Instant::now();
+
+        assert!(!capture_stream_stale(
+            started,
+            started + Duration::from_secs(4),
+            Duration::from_secs(5)
+        ));
+        assert!(capture_stream_stale(
+            started,
+            started + Duration::from_secs(5),
+            Duration::from_secs(5)
+        ));
     }
 }

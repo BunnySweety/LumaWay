@@ -10,6 +10,7 @@ pub enum UserMessageCode {
     HueAreaConflict,
     PortalCancelled,
     PortalUnavailable,
+    PortalStreamClosed,
     CaptureTimeout,
     CaptureTooDark,
     Unknown,
@@ -26,6 +27,7 @@ impl UserMessageCode {
             Self::HueAreaConflict => "hue.area_conflict",
             Self::PortalCancelled => "portal.cancelled",
             Self::PortalUnavailable => "portal.unavailable",
+            Self::PortalStreamClosed => "portal.stream_closed",
             Self::CaptureTimeout => "capture.timeout",
             Self::CaptureTooDark => "capture.too_dark",
             Self::Unknown => "unknown",
@@ -50,6 +52,7 @@ impl UserMessageCode {
             Self::PortalUnavailable => {
                 i18n::tr("Screen capture is not available through the desktop portal.")
             }
+            Self::PortalStreamClosed => i18n::tr("The screen capture stream stopped."),
             Self::CaptureTimeout => i18n::tr("No screen frames arrived from the selected source."),
             Self::CaptureTooDark => i18n::tr("Screen capture is too dark to sync reliably."),
             Self::Unknown => i18n::tr("Something went wrong."),
@@ -80,6 +83,9 @@ impl UserMessageCode {
             Self::PortalUnavailable => i18n::tr(
                 "Check that xdg-desktop-portal and the desktop portal backend are running.",
             ),
+            Self::PortalStreamClosed => {
+                i18n::tr("Start sync again and choose the screen or window to sync.")
+            }
             Self::CaptureTimeout => {
                 i18n::tr("Start sync again and reselect the screen in the portal dialog.")
             }
@@ -103,6 +109,7 @@ impl UserMessageCode {
             self,
             Self::PortalCancelled
                 | Self::PortalUnavailable
+                | Self::PortalStreamClosed
                 | Self::CaptureTimeout
                 | Self::CaptureTooDark
         )
@@ -117,6 +124,7 @@ impl UserMessageCode {
                 | Self::HueAreaConflict
                 | Self::PortalCancelled
                 | Self::PortalUnavailable
+                | Self::PortalStreamClosed
                 | Self::CaptureTimeout
         )
     }
@@ -190,6 +198,9 @@ pub fn classify_error(error: &str) -> UserMessageCode {
     if lower.contains("capture timed out waiting for a frame") {
         return UserMessageCode::CaptureTimeout;
     }
+    if lower.contains("portal stream stopped") || lower.contains("screen capture stream stopped") {
+        return UserMessageCode::PortalStreamClosed;
+    }
     if lower.contains("capture_too_dark")
         || lower.contains("dark frames")
         || lower.contains("returns black")
@@ -260,6 +271,10 @@ mod tests {
             classify_error("capture timed out waiting for a frame"),
             UserMessageCode::CaptureTimeout
         );
+        assert_eq!(
+            classify_error("portal stream stopped: no screen frames arrived for 5 seconds"),
+            UserMessageCode::PortalStreamClosed
+        );
     }
 
     #[test]
@@ -294,6 +309,8 @@ mod tests {
         assert!(!UserMessageCode::HueAuthRejected.offers_retry_action());
         assert!(UserMessageCode::HueBridgeUnavailable.offers_retry_action());
         assert!(UserMessageCode::HueBridgeUnavailable.offers_settings_action());
+        assert!(UserMessageCode::PortalStreamClosed.offers_retry_action());
+        assert!(!UserMessageCode::PortalStreamClosed.offers_settings_action());
         assert!(!UserMessageCode::Unknown.offers_retry_action());
         assert!(!UserMessageCode::Unknown.offers_settings_action());
     }

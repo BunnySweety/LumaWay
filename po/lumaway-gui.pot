@@ -389,6 +389,9 @@ msgstr ""
 msgid "The Hue Entertainment connection failed."
 msgstr ""
 
+msgid "The screen capture stream stopped."
+msgstr ""
+
 msgid "Open Settings and run Quality or Calibrate."
 msgstr ""
 

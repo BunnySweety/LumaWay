@@ -411,6 +411,9 @@ msgstr "Le pont Hue a refusé la clé d'association enregistrée."
 msgid "The Hue Entertainment connection failed."
 msgstr "La connexion Hue Entertainment a échoué."
 
+msgid "The screen capture stream stopped."
+msgstr "Le flux de capture d'écran s'est arrêté."
+
 msgid "Open Settings and run Quality or Calibrate."
 msgstr "Ouvrez Réglages puis lancez Qualité ou Calibrer."
 

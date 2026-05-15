@@ -49,6 +49,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - Single GUI instance: second launch focuses existing window.
 - GUI classified errors: Portal/capture/bridge failures expose contextual `Retry` and/or `Open Settings` recovery actions.
 - Portal flow: GUI shows the translated screen/window selection reminder; `lumaway sync` reuses and persists `LUMAWAY_PORTAL_RESTORE_TOKEN` when the portal provides one.
+- Portal stream closed: after more than 5 seconds without new frames, sync exits with a classified Portal-stream error and the GUI exposes `Retry`.
 - `tv-wayland` preset still works as alias after `video-wayland` is introduced.
 
 ## Success Criteria
@@ -85,6 +86,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test -p lumaway-gui`: XDG session autostart desktop-entry rendering and Exec path quoting are covered.
 - `cargo test -p lumaway-gui`: classified GUI errors expose the expected `Retry` / `Open Settings` action policy.
 - `cargo test --workspace`: Portal restore-token normalization and GUI Portal status derivation are covered.
+- `cargo test --workspace`: stale Portal capture stream detection and GUI classification are covered.
 - `/home/bunny/.local/bin/lumaway-gui`: real GTK/libadwaita application opens in the GNOME Wayland session and remains running.
 - `gio launch ~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop`: desktop entry starts the GTK/libadwaita application in the GNOME Wayland session.
 - `/home/bunny/.local/bin/lumaway list-areas --bridge 192.168.1.108`: the real controller returned three zones, including `TV`; this validates the data path used by the GUI zone-loading action.
