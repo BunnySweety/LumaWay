@@ -189,9 +189,9 @@ fn build_widgets(
     toolbar.add_css_class("flat");
     // Loose avoids symmetric start/end expansion (Strict + size group) that over-spreads CSD buttons.
     toolbar.set_centering_policy(adw::CenteringPolicy::Loose);
-    let title = adw::WindowTitle::new("LumaWay", "Light sync");
+    let title = adw::WindowTitle::new("LumaWay", &i18n::tr("Light sync"));
     toolbar.set_title_widget(Some(&title));
-    let settings = gtk::Button::with_label("Settings");
+    let settings = gtk::Button::with_label(&i18n::tr("Settings"));
     settings.add_css_class("settings-button");
 
     let saved_bridge = saved.get("LUMAWAY_BRIDGE").cloned().unwrap_or_default();
@@ -199,21 +199,21 @@ fn build_widgets(
     let saved_area = saved.get("LUMAWAY_AREA").cloned().unwrap_or_default();
     let bridge = gtk::Entry::builder()
         .text(&saved_bridge)
-        .placeholder_text("Bridge IP address")
+        .placeholder_text(i18n::tr("Bridge IP address"))
         .hexpand(true)
         .build();
     let area = gtk::Entry::builder()
         .text(&saved_area)
-        .placeholder_text("Pick an entertainment zone")
+        .placeholder_text(i18n::tr("Pick an entertainment zone"))
         .hexpand(true)
         .build();
     let area_model = gtk::StringList::new(&[]);
     let mut initial_area_options = Vec::new();
     if !saved_area.is_empty() {
-        area_model.append("Saved zone");
+        area_model.append(&i18n::tr("Saved zone"));
         initial_area_options.push(AreaOption {
             id: saved_area.clone(),
-            name: "Saved zone".to_string(),
+            name: i18n::tr("Saved zone"),
             lights: None,
         });
     }
@@ -221,12 +221,12 @@ fn build_widgets(
         .model(&area_model)
         .hexpand(true)
         .build();
-    area_select.set_tooltip_text(Some("Zones loaded from the bridge"));
+    area_select.set_tooltip_text(Some(&i18n::tr("Zones loaded from the bridge")));
     let area_enabled = gtk::Switch::builder()
         .active(!saved_area.is_empty())
         .valign(gtk::Align::Center)
         .build();
-    area_enabled.set_tooltip_text(Some("Turn the selected zone on or off"));
+    area_enabled.set_tooltip_text(Some(&i18n::tr("Turn the selected zone on or off")));
     let area_options = Rc::new(RefCell::new(initial_area_options));
     let suppress_area_toggle = Rc::new(Cell::new(false));
     let app_key = gtk::PasswordEntry::builder()
@@ -236,7 +236,7 @@ fn build_widgets(
                 .map(String::as_str)
                 .unwrap_or(""),
         )
-        .placeholder_text("Filled in automatically")
+        .placeholder_text(i18n::tr("Filled in automatically"))
         .show_peek_icon(true)
         .hexpand(true)
         .build();
@@ -247,7 +247,7 @@ fn build_widgets(
                 .map(String::as_str)
                 .unwrap_or(""),
         )
-        .placeholder_text("Filled in automatically")
+        .placeholder_text(i18n::tr("Filled in automatically"))
         .show_peek_icon(true)
         .hexpand(true)
         .build();
@@ -255,15 +255,15 @@ fn build_widgets(
     duration.set_value(initial_duration_ms(saved) as f64);
     duration.set_numeric(true);
     duration.set_width_chars(10);
-    duration.set_tooltip_text(Some("0 runs sync until you press Stop"));
+    duration.set_tooltip_text(Some(&i18n::tr("0 runs sync until you press Stop")));
     let intensity = percent_scale(initial_percent(saved, "LUMAWAY_BRIGHTNESS", 100.0));
-    intensity.set_tooltip_text(Some("100 keeps captured brightness"));
+    intensity.set_tooltip_text(Some(&i18n::tr("100 keeps captured brightness")));
     /* Value under the trough keeps the handle at the top of the widget; valign Start on the row aligns label with the track. */
     intensity.set_value_pos(gtk::PositionType::Bottom);
     let sync_mode = Rc::new(Cell::new(initial_sync_mode(saved)));
     let reactivity_customized = Rc::new(Cell::new(saved.contains_key("LUMAWAY_REACTIVITY")));
     let reactivity = percent_scale(initial_reactivity_percent(saved, sync_mode.get()));
-    reactivity.set_tooltip_text(Some("Higher values react faster"));
+    reactivity.set_tooltip_text(Some(&i18n::tr("Higher values react faster")));
     let intensity_tiles = Rc::new(RefCell::new(Vec::new()));
     let profile = gtk::Entry::builder()
         .text(
@@ -272,10 +272,12 @@ fn build_widgets(
                 .map(String::as_str)
                 .unwrap_or(""),
         )
-        .placeholder_text("default")
+        .placeholder_text(i18n::tr("default"))
         .hexpand(true)
         .build();
-    profile.set_tooltip_text(Some("Profile file in ~/.config/lumaway/profiles"));
+    profile.set_tooltip_text(Some(&i18n::tr(
+        "Profile file in ~/.config/lumaway/profiles",
+    )));
     let color_profile = color_profile_dropdown(
         saved
             .get("LUMAWAY_COLOR_PROFILE")
@@ -284,23 +286,23 @@ fn build_widgets(
     );
     select_color_profile(&color_profile, color_profile_for_sync_mode(sync_mode.get()));
     let autostart = gtk::CheckButton::builder()
-        .label("Start sync when app opens")
+        .label(i18n::tr("Start sync when app opens"))
         .active(saved_flag(saved, "LUMAWAY_AUTOSTART_SYNC"))
         .build();
-    autostart.set_tooltip_text(Some("Starts sync when the app launches"));
+    autostart.set_tooltip_text(Some(&i18n::tr("Starts sync when the app launches")));
 
-    let start = gtk::Button::with_label("Start sync");
+    let start = gtk::Button::with_label(&i18n::tr("Start sync"));
     start.add_css_class("sync-control");
     start.add_css_class("suggested-action");
     start.add_css_class("primary-sync");
     start.set_halign(gtk::Align::Center);
-    let auth = gtk::Button::with_label("Pair");
-    let discover = gtk::Button::with_label("Discover");
+    let auth = gtk::Button::with_label(&i18n::tr("Pair"));
+    let discover = gtk::Button::with_label(&i18n::tr("Discover"));
 
-    let connection_status = gtk::Label::new(Some("Bridge not configured"));
+    let connection_status = gtk::Label::new(Some(&i18n::tr("Bridge not configured")));
     connection_status.set_xalign(0.0);
     connection_status.add_css_class("connection-state");
-    let bridge_display = gtk::Label::new(Some("Open Settings"));
+    let bridge_display = gtk::Label::new(Some(&i18n::tr("Open Settings")));
     bridge_display.set_xalign(0.0);
     bridge_display.add_css_class("connection-title");
     let connection_copy = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -383,7 +385,7 @@ fn build_widgets(
     sync_footer.append(&start);
 
     let logs = gtk::TextBuffer::new(None);
-    logs.set_text("Sync events will appear here.\n");
+    logs.set_text(&format!("{}\n", i18n::tr("Sync events will appear here.")));
 
     let lower = gtk::Box::new(gtk::Orientation::Vertical, 10);
     lower.add_css_class("main-panel");
@@ -457,7 +459,8 @@ fn build_widgets(
 }
 
 fn field_label(text: &str) -> gtk::Label {
-    let label = gtk::Label::new(Some(text));
+    let translated = i18n::tr(text);
+    let label = gtk::Label::new(Some(&translated));
     label.set_xalign(1.0);
     label.add_css_class("dim-label");
     label
@@ -692,7 +695,8 @@ fn install_css() {
 fn section(title: &str) -> gtk::Box {
     let container = gtk::Box::new(gtk::Orientation::Vertical, 10);
     container.add_css_class("view");
-    let label = gtk::Label::new(Some(title));
+    let translated = i18n::tr(title);
+    let label = gtk::Label::new(Some(&translated));
     label.set_xalign(0.0);
     label.add_css_class("heading");
     container.append(&label);
@@ -873,7 +877,7 @@ fn color_profile_dropdown(active: &str) -> gtk::DropDown {
     let model = gtk::StringList::new(&COLOR_PROFILES);
     let dropdown = gtk::DropDown::builder().model(&model).build();
     select_color_profile(&dropdown, active);
-    dropdown.set_tooltip_text(Some("Color grading profile"));
+    dropdown.set_tooltip_text(Some(&i18n::tr("Color grading profile")));
     dropdown
 }
 
@@ -1011,7 +1015,7 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
 
 fn open_settings_window(ui: &Ui) {
     let window = gtk::Window::builder()
-        .title("Settings")
+        .title(i18n::tr("Settings"))
         .default_width(440)
         .default_height(680)
         .transient_for(&ui.window)
@@ -1021,23 +1025,23 @@ fn open_settings_window(ui: &Ui) {
 
     let bridge = gtk::Entry::builder()
         .text(ui.bridge.text().as_str())
-        .placeholder_text("Bridge IP address")
+        .placeholder_text(i18n::tr("Bridge IP address"))
         .hexpand(true)
         .build();
     let area = gtk::Entry::builder()
         .text(ui.area.text().as_str())
-        .placeholder_text("Zone ID or name")
+        .placeholder_text(i18n::tr("Zone ID or name"))
         .hexpand(true)
         .build();
     let app_key = gtk::PasswordEntry::builder()
         .text(ui.app_key.text().as_str())
-        .placeholder_text("Application key")
+        .placeholder_text(i18n::tr("Application key"))
         .show_peek_icon(true)
         .hexpand(true)
         .build();
     let client_key = gtk::PasswordEntry::builder()
         .text(ui.client_key.text().as_str())
-        .placeholder_text("Streaming key")
+        .placeholder_text(i18n::tr("Streaming key"))
         .show_peek_icon(true)
         .hexpand(true)
         .build();
@@ -1048,13 +1052,15 @@ fn open_settings_window(ui: &Ui) {
     let reactivity = percent_scale(ui.reactivity.value());
     let profile = gtk::Entry::builder()
         .text(ui.profile.text().as_str())
-        .placeholder_text("default")
+        .placeholder_text(i18n::tr("default"))
         .hexpand(true)
         .build();
-    profile.set_tooltip_text(Some("Profile file in ~/.config/lumaway/profiles"));
+    profile.set_tooltip_text(Some(&i18n::tr(
+        "Profile file in ~/.config/lumaway/profiles",
+    )));
     let color_profile = color_profile_dropdown(&selected_string(&ui.color_profile));
     let autostart = gtk::CheckButton::builder()
-        .label("Start sync when app opens")
+        .label(i18n::tr("Start sync when app opens"))
         .active(ui.autostart.is_active())
         .build();
 
@@ -1085,17 +1091,21 @@ fn open_settings_window(ui: &Ui) {
 
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     actions.set_halign(gtk::Align::End);
-    let detect = gtk::Button::with_label("Discover");
-    let pair = gtk::Button::with_label("Pair");
-    let profiles = gtk::Button::with_label("Profiles");
-    profiles.set_tooltip_text(Some("List profiles from ~/.config/lumaway/profiles"));
-    let quality = gtk::Button::with_label("Quality");
-    quality.set_tooltip_text(Some("Measure capture quality for the configured zone"));
-    let calibrate = gtk::Button::with_label("Calibrate");
-    calibrate.set_tooltip_text(Some(
+    let detect = gtk::Button::with_label(&i18n::tr("Discover"));
+    let pair = gtk::Button::with_label(&i18n::tr("Pair"));
+    let profiles = gtk::Button::with_label(&i18n::tr("Profiles"));
+    profiles.set_tooltip_text(Some(&i18n::tr(
+        "List profiles from ~/.config/lumaway/profiles",
+    )));
+    let quality = gtk::Button::with_label(&i18n::tr("Quality"));
+    quality.set_tooltip_text(Some(&i18n::tr(
+        "Measure capture quality for the configured zone",
+    )));
+    let calibrate = gtk::Button::with_label(&i18n::tr("Calibrate"));
+    calibrate.set_tooltip_text(Some(&i18n::tr(
         "Probe capture backends and write the selected profile",
-    ));
-    let save = gtk::Button::with_label("Save");
+    )));
+    let save = gtk::Button::with_label(&i18n::tr("Save"));
     save.add_css_class("suggested-action");
     actions.append(&detect);
     actions.append(&pair);
@@ -1306,7 +1316,7 @@ fn open_settings_window(ui: &Ui) {
 fn bridge_id_display_text(bridge_id: &str) -> String {
     let bridge_id = bridge_id.trim();
     if bridge_id.is_empty() {
-        "— (load zones after pairing)".to_string()
+        i18n::tr("— (load zones after pairing)")
     } else {
         bridge_id.to_string()
     }
@@ -1350,7 +1360,7 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
     update_health(ui);
 
     let _ = write_env_file(env_file_values_from_ui(ui, ui.area.text().trim()));
-    append_log(&ui.logs, "Settings saved.\n");
+    append_log_msg(&ui.logs, "Settings saved.");
 }
 
 fn discover_bridges(ui: &Ui) {
@@ -1374,22 +1384,19 @@ fn discover_bridges(ui: &Ui) {
 fn create_hue_keys(ui: &Ui) {
     let bridge = ui.bridge.text().trim().to_string();
     if bridge.is_empty() {
-        append_log(
-            &ui.logs,
-            "error: bridge address is required before pairing\n",
-        );
+        append_log_msg(&ui.logs, "error: bridge address is required before pairing");
         return;
     }
 
     if ui.app_key.text().is_empty() && ui.client_key.text().is_empty() {
-        append_log(
+        append_log_msg(
             &ui.logs,
-            "Press the physical button on the bridge, then wait.\n",
+            "Press the physical button on the bridge, then wait.",
         );
     } else {
-        append_log(
+        append_log_msg(
             &ui.logs,
-            "Press the physical button on the bridge, then wait. New pairing keys will replace the saved keys.\n",
+            "Press the physical button on the bridge, then wait. New pairing keys will replace the saved keys.",
         );
     }
     let queue = ui_event_queue(ui);
@@ -1416,13 +1423,14 @@ fn create_hue_keys(ui: &Ui) {
 fn calibrate_capture_profile(ui: &Ui) {
     let profile = sanitize_profile_name(ui.profile.text().as_str());
     if profile.is_empty() {
-        append_log(&ui.logs, "error: capture profile name is required\n");
+        append_log_msg(&ui.logs, "error: capture profile name is required");
         return;
     }
 
-    append_log(
+    append_log_msg_format(
         &ui.logs,
-        &format!("Calibrating capture profile `{profile}`. Select the display in Portal.\n"),
+        "Calibrating capture profile `{profile}`. Select the display in Portal.",
+        &[("profile", &profile)],
     );
     let queue = ui_event_queue(ui);
     thread::spawn(move || {
@@ -1449,7 +1457,7 @@ fn calibrate_capture_profile(ui: &Ui) {
 }
 
 fn list_capture_profiles(ui: &Ui) {
-    append_log(&ui.logs, "Listing capture profiles.\n");
+    append_log_msg(&ui.logs, "Listing capture profiles.");
     let queue = ui_event_queue(ui);
     thread::spawn(move || {
         let output = Command::new(resolve_lumaway_binary())
@@ -1469,16 +1477,16 @@ fn list_capture_profiles(ui: &Ui) {
 
 fn measure_capture_quality(ui: &Ui) {
     if ui.area.text().trim().is_empty() {
-        append_log(
+        append_log_msg(
             &ui.logs,
-            "error: zone is required before measuring capture quality\n",
+            "error: zone is required before measuring capture quality",
         );
         return;
     }
 
-    append_log(
+    append_log_msg(
         &ui.logs,
-        "Measuring capture quality. Select the display in Portal.\n",
+        "Measuring capture quality. Select the display in Portal.",
     );
     let sync_mode = screen_sync_mode(ui.sync_mode.get());
     let preset = preset_for_sync_mode(sync_mode);
@@ -1510,9 +1518,9 @@ fn load_areas(ui: &Ui) {
     let bridge = ui.bridge.text().trim().to_string();
     let app_key = ui.app_key.text().to_string();
     if bridge.is_empty() || app_key.is_empty() {
-        append_log(
+        append_log_msg(
             &ui.logs,
-            "error: bridge address and application key are required before loading zones\n",
+            "error: bridge address and application key are required before loading zones",
         );
         return;
     }
@@ -1596,24 +1604,22 @@ fn set_area_active(ui: &Ui, active: bool, brightness: Option<f64>) {
     ui.area.set_text(&area);
     let app_key = ui.app_key.text().trim().to_string();
     if bridge.is_empty() || area.is_empty() || app_key.is_empty() {
-        append_log(
+        append_log_msg(
             &ui.logs,
-            "error: zone, bridge address, or application key missing\n",
+            "error: zone, bridge address, or application key missing",
         );
         return;
     }
 
-    append_log(
-        &ui.logs,
-        &format!(
-            "{} zone={} level={}\n",
-            if active { "Activate" } else { "Deactivate" },
-            area,
-            brightness
-                .map(|value| format!("{value:.0}%"))
-                .unwrap_or_else(|| "n/a".to_string())
-        ),
-    );
+    let action = if active {
+        i18n::tr("Activate")
+    } else {
+        i18n::tr("Deactivate")
+    };
+    let level = brightness
+        .map(|value| format!("{value:.0}%"))
+        .unwrap_or_else(|| i18n::tr("n/a"));
+    append_log(&ui.logs, &format!("{action} zone={area} level={level}\n"));
     let queue = ui_event_queue(ui);
     thread::spawn(move || {
         let mut command = Command::new(resolve_lumaway_binary());
@@ -1737,14 +1743,16 @@ fn start_sync_with_log_reset(
     if clear_logs {
         ui.logs.set_text("");
     }
-    append_log(&ui.logs, "Starting sync…\n");
-    append_log(
+    append_log_msg(&ui.logs, "Starting sync…");
+    append_log_msg_format(
         &ui.logs,
-        &format!("Mode {} ({preset}).\n", sync_mode.as_env_value()),
+        "Mode {mode} ({preset}).",
+        &[("mode", sync_mode.as_env_value()), ("preset", preset)],
     );
-    append_log(
+    append_log_msg_format(
         &ui.logs,
-        &format!("Duration {} ms (0 = until Stop).\n", duration_ms),
+        "Duration {duration_ms} ms (0 = until Stop).",
+        &[("duration_ms", &duration_ms.to_string())],
     );
 
     let mut command = Command::new(resolve_lumaway_binary());
@@ -1828,7 +1836,7 @@ fn schedule_sync_restart(ui: &Ui, state: &Rc<RefCell<AppState>>) {
         }
     };
     if should_stop {
-        append_log(&ui.logs, "Applying new brightness…\n");
+        append_log_msg(&ui.logs, "Applying new brightness…");
         stop_sync(ui, state);
     }
 }
@@ -1840,7 +1848,7 @@ fn stop_sync(ui: &Ui, state: &Rc<RefCell<AppState>>) {
             .arg("-INT")
             .arg(child.id().to_string())
             .status();
-        append_log(&ui.logs, "Stopping sync…\n");
+        append_log_msg(&ui.logs, "Stopping sync…");
     }
 }
 
@@ -1909,7 +1917,7 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
         GuiEvent::BridgesDiscovered(bridges) => match bridges.as_slice() {
             [] => {
                 set_connection_header(ui, "Bridge not found", "Open Settings", "warning");
-                append_log(&ui.logs, "No bridge found automatically.\n");
+                append_log_msg(&ui.logs, "No bridge found automatically.");
             }
             [bridge] => {
                 ui.bridge.set_text(&bridge.ip);
@@ -1919,9 +1927,10 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                     let _ = persist_bridge_id_env(&bridge.id);
                 }
                 set_connection_header(ui, "Bridge found", "Checking…", "warning");
-                append_log(
+                append_log_msg_format(
                     &ui.logs,
-                    &format!("Bridge detected automatically: {}\n", bridge.ip),
+                    "Bridge detected automatically: {ip}",
+                    &[("ip", &bridge.ip)],
                 );
                 if ui_can_load_areas(ui) {
                     load_areas(ui);
@@ -1936,13 +1945,11 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                     let _ = persist_bridge_id_env(&first.id);
                 }
                 set_connection_header(ui, "Bridge found", "Checking…", "warning");
-                append_log(
+                let bridge_count = bridges.len().to_string();
+                append_log_msg_format(
                     &ui.logs,
-                    &format!(
-                        "{} bridges detected. First selected: {}\n",
-                        bridges.len(),
-                        first.ip
-                    ),
+                    "{count} bridges detected. First selected: {ip}",
+                    &[("count", &bridge_count), ("ip", &first.ip)],
                 );
                 if ui_can_load_areas(ui) {
                     load_areas(ui);
@@ -1957,13 +1964,14 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
             ui.client_key.set_text(&client_key);
             update_health(ui);
             match write_current_env_file(ui) {
-                Ok(()) => append_log(
+                Ok(()) => append_log_msg(
                     &ui.logs,
-                    "Pairing succeeded and keys were saved. Loading zones…\n",
+                    "Pairing succeeded and keys were saved. Loading zones…",
                 ),
-                Err(error) => append_log(
+                Err(error) => append_log_msg_format(
                     &ui.logs,
-                    &format!("Pairing succeeded, but settings could not be saved: {error}\n"),
+                    "Pairing succeeded, but settings could not be saved: {error}",
+                    &[("error", &error.to_string())],
                 ),
             }
             load_areas(ui);
@@ -1973,13 +1981,15 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                 *ui.bridge_id.borrow_mut() = id.clone();
                 refresh_bridge_id_displays(ui);
                 match persist_bridge_id_env(&id) {
-                    Ok(()) => append_log(
+                    Ok(()) => append_log_msg_format(
                         &ui.logs,
-                        &format!("Bridge id saved (LUMAWAY_BRIDGE_ID={id})\n"),
+                        "Bridge id saved (LUMAWAY_BRIDGE_ID={id})",
+                        &[("id", &id)],
                     ),
-                    Err(error) => append_log(
+                    Err(error) => append_log_msg_format(
                         &ui.logs,
-                        &format!("warning: could not save bridge id: {error}\n"),
+                        "warning: could not save bridge id: {error}",
+                        &[("error", &error.to_string())],
                     ),
                 }
             }
@@ -1989,13 +1999,14 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                 &format_bridge_title(&name, ui.bridge_id.borrow().as_str()),
                 "connected",
             );
-            append_log(&ui.logs, &format!("Bridge name: {name}\n"));
+            append_log_msg_format(&ui.logs, "Bridge name: {name}", &[("name", &name)]);
         }
         GuiEvent::BridgeInfoUnavailable { message } => {
             set_connection_header(ui, "Bridge not connected", "Check Settings", "warning");
-            append_log(
+            append_log_msg_format(
                 &ui.logs,
-                &format!("Could not read bridge name: {}\n", message.trim()),
+                "Could not read bridge name: {message}",
+                &[("message", message.trim())],
             );
         }
         GuiEvent::AreasLoaded(areas) => {
@@ -2012,48 +2023,50 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                 ui.area_enabled.set_active(!areas[index].id.is_empty());
                 ui.suppress_area_toggle.set(false);
             }
-            if ui.connection_status.text().as_str() != BRIDGE_STATUS_CONNECTED {
+            let connected_status = i18n::tr(BRIDGE_STATUS_CONNECTED);
+            if ui.connection_status.text().as_str() != connected_status {
                 set_connection_header(ui, BRIDGE_STATUS_CONNECTED, "Bridge connected", "connected");
             }
             update_zone_controls(ui, sync_running);
             update_area_lights_subtitle(ui);
-            append_log(&ui.logs, &format!("{} zones loaded.\n", areas.len()));
+            let zone_count = areas.len().to_string();
+            append_log_msg_format(&ui.logs, "{count} zones loaded.", &[("count", &zone_count)]);
         }
         GuiEvent::AreaActivated { name, lights } => {
-            append_log(
+            let light_count = lights.to_string();
+            append_log_msg_format(
                 &ui.logs,
-                &format!(
-                    "Zone on: {name} ({lights} light{}). Press Start to run sync.\n",
-                    if lights != 1 { "s" } else { "" }
-                ),
+                "Zone on: {name} ({count} lights). Press Start to run sync.",
+                &[("name", &name), ("count", &light_count)],
             );
         }
         GuiEvent::AreaActivateUnavailable { message } => {
-            append_log(
+            append_log_msg_format(
                 &ui.logs,
-                &format!("error: could not activate zone: {}\n", message.trim()),
+                "error: could not activate zone: {message}",
+                &[("message", message.trim())],
             );
         }
         GuiEvent::AreaDeactivated { name, lights } => {
-            append_log(
+            let light_count = lights.to_string();
+            append_log_msg_format(
                 &ui.logs,
-                &format!(
-                    "Zone off: {name} ({lights} light{}).\n",
-                    if lights != 1 { "s" } else { "" }
-                ),
+                "Zone off: {name} ({count} lights).",
+                &[("name", &name), ("count", &light_count)],
             );
         }
         GuiEvent::AreaDeactivateUnavailable { message } => {
-            append_log(
+            append_log_msg_format(
                 &ui.logs,
-                &format!("error: could not deactivate zone: {}\n", message.trim()),
+                "error: could not deactivate zone: {message}",
+                &[("message", message.trim())],
             );
         }
         GuiEvent::ProfilesListed(profiles) => {
             if profiles.is_empty() {
-                append_log(&ui.logs, "No capture profiles found.\n");
+                append_log_msg(&ui.logs, "No capture profiles found.");
             } else {
-                append_log(&ui.logs, "Capture profiles:\n");
+                append_log_msg(&ui.logs, "Capture profiles:");
                 for profile in profiles {
                     append_log(&ui.logs, &format!("- {profile}\n"));
                 }
@@ -2062,9 +2075,10 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
         GuiEvent::ProfileCalibrated { profile, output } => {
             ui.profile.set_text(&profile);
             let _ = write_current_env_file(ui);
-            append_log(
+            append_log_msg_format(
                 &ui.logs,
-                &format!("Capture profile `{profile}` calibrated and saved.\n"),
+                "Capture profile `{profile}` calibrated and saved.",
+                &[("profile", &profile)],
             );
             for line in output.lines().filter(|line| !line.trim().is_empty()) {
                 append_log(&ui.logs, line);
@@ -2073,11 +2087,11 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
         }
         GuiEvent::CaptureQualityMeasured(output) => {
             if output.trim().is_empty() {
-                append_log(&ui.logs, "Capture quality completed without output.\n");
+                append_log_msg(&ui.logs, "Capture quality completed without output.");
             } else if let Some(summary) = format_capture_quality_summary(&output) {
                 append_log(&ui.logs, &summary);
             } else {
-                append_log(&ui.logs, "Capture quality:\n");
+                append_log_msg(&ui.logs, "Capture quality:");
                 append_log(&ui.logs, output.trim());
                 append_log(&ui.logs, "\n");
             }
@@ -2086,10 +2100,7 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
             let error = error.trim();
             if is_hue_authentication_error(error) {
                 set_connection_header(ui, "Pairing required", "Press Pair in Settings", "warning");
-                append_log(
-                    &ui.logs,
-                    "error: saved Hue application key was rejected. Press the bridge button, then press Pair in Settings.\n",
-                );
+                append_log_msg(&ui.logs, "error: saved Hue application key was rejected. Press the bridge button, then press Pair in Settings.");
             } else if ui_can_load_areas(ui) {
                 set_connection_header(ui, "Bridge not connected", "Check Settings", "warning");
                 append_log(&ui.logs, &format!("error: {error}\n"));
@@ -2102,14 +2113,14 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
 }
 
 fn apply_sync_idle_button_style(ui: &Ui) {
-    ui.start.set_label("Start sync");
+    ui.start.set_label(&i18n::tr("Start sync"));
     ui.start.remove_css_class("destructive-action");
     ui.start.add_css_class("suggested-action");
     ui.start.add_css_class("primary-sync");
 }
 
 fn apply_sync_running_button_style(ui: &Ui) {
-    ui.start.set_label("Stop syncing");
+    ui.start.set_label(&i18n::tr("Stop syncing"));
     ui.start.remove_css_class("suggested-action");
     ui.start.remove_css_class("primary-sync");
     ui.start.add_css_class("destructive-action");
@@ -2153,9 +2164,9 @@ fn update_area_lights_subtitle(ui: &Ui) {
         .get(selected)
         .and_then(|opt| opt.lights)
         .map(|n| match n {
-            0 => "No lights in this zone".to_string(),
-            1 => "1 light syncing".to_string(),
-            n => format!("{n} lights syncing"),
+            0 => i18n::tr("No lights in this zone"),
+            1 => i18n::tr("1 light syncing"),
+            n => i18n::tr_format("{count} lights syncing", &[("count", &n.to_string())]),
         })
         .unwrap_or_default();
     ui.area_lights_subtitle.set_text(&caption);
@@ -2185,8 +2196,8 @@ fn format_bridge_title(name: &str, bridge_id: &str) -> String {
 }
 
 fn set_connection_header(ui: &Ui, state: &str, title: &str, tone: &str) {
-    ui.connection_status.set_text(state);
-    ui.bridge_display.set_text(title);
+    ui.connection_status.set_text(&i18n::tr(state));
+    ui.bridge_display.set_text(&i18n::tr(title));
     for class in ["connected", "warning"] {
         ui.connection_status.remove_css_class(class);
     }
@@ -2449,6 +2460,14 @@ fn is_hue_authentication_error(error: &str) -> bool {
 fn append_log(buffer: &gtk::TextBuffer, text: &str) {
     let mut iter = buffer.end_iter();
     buffer.insert(&mut iter, text);
+}
+
+fn append_log_msg(buffer: &gtk::TextBuffer, message: &str) {
+    append_log(buffer, &format!("{}\n", i18n::tr(message)));
+}
+
+fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&str, &str)]) {
+    append_log(buffer, &format!("{}\n", i18n::tr_format(message, values)));
 }
 
 fn config_path() -> PathBuf {

@@ -53,6 +53,297 @@ msgstr ""
 msgid "Max"
 msgstr ""
 
+msgid "0 runs sync until you press Stop"
+msgstr ""
+
+msgid "100 keeps captured brightness"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Application key"
+msgstr ""
+
+msgid "Applying new brightness…"
+msgstr ""
+
+msgid "Bridge IP address"
+msgstr ""
+
+msgid "Bridge address"
+msgstr ""
+
+msgid "Bridge connected"
+msgstr ""
+
+msgid "Bridge configured"
+msgstr ""
+
+msgid "Bridge detected automatically: {ip}"
+msgstr ""
+
+msgid "Bridge found"
+msgstr ""
+
+msgid "Bridge hardware id"
+msgstr ""
+
+msgid "Bridge id saved (LUMAWAY_BRIDGE_ID={id})"
+msgstr ""
+
+msgid "Bridge name: {name}"
+msgstr ""
+
+msgid "Bridge not configured"
+msgstr ""
+
+msgid "Bridge not connected"
+msgstr ""
+
+msgid "Bridge not found"
+msgstr ""
+
+msgid "Brightness"
+msgstr ""
+
+msgid "Calibrate"
+msgstr ""
+
+msgid "Calibrating capture profile `{profile}`. Select the display in Portal."
+msgstr ""
+
+msgid "Capture profile"
+msgstr ""
+
+msgid "Capture profile `{profile}` calibrated and saved."
+msgstr ""
+
+msgid "Capture profiles:"
+msgstr ""
+
+msgid "Capture quality completed without output."
+msgstr ""
+
+msgid "Capture quality:"
+msgstr ""
+
+msgid "Check Settings"
+msgstr ""
+
+msgid "Checking…"
+msgstr ""
+
+msgid "Color grading profile"
+msgstr ""
+
+msgid "Color profile"
+msgstr ""
+
+msgid "Connection"
+msgstr ""
+
+msgid "Connected to bridge"
+msgstr ""
+
+msgid "Could not read bridge name: {message}"
+msgstr ""
+
+msgid "Deactivate"
+msgstr ""
+
+msgid "Discover"
+msgstr ""
+
+msgid "Duration (ms)"
+msgstr ""
+
+msgid "Duration {duration_ms} ms (0 = until Stop)."
+msgstr ""
+
+msgid "Filled in automatically"
+msgstr ""
+
+msgid "Higher values react faster"
+msgstr ""
+
+msgid "List profiles from ~/.config/lumaway/profiles"
+msgstr ""
+
+msgid "Listing capture profiles."
+msgstr ""
+
+msgid "Log"
+msgstr ""
+
+msgid "Measure capture quality for the configured zone"
+msgstr ""
+
+msgid "Measuring capture quality. Select the display in Portal."
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Mode {mode} ({preset})."
+msgstr ""
+
+msgid "No bridge found automatically."
+msgstr ""
+
+msgid "No capture profiles found."
+msgstr ""
+
+msgid "No lights in this zone"
+msgstr ""
+
+msgid "Open Settings"
+msgstr ""
+
+msgid "Pair"
+msgstr ""
+
+msgid "Pairing required"
+msgstr ""
+
+msgid "Pairing succeeded and keys were saved. Loading zones…"
+msgstr ""
+
+msgid "Pairing succeeded, but settings could not be saved: {error}"
+msgstr ""
+
+msgid "Pick an entertainment zone"
+msgstr ""
+
+msgid "Please wait…"
+msgstr ""
+
+msgid "Press Pair in Settings"
+msgstr ""
+
+msgid "Press the physical button on the bridge, then wait."
+msgstr ""
+
+msgid "Press the physical button on the bridge, then wait. New pairing keys will replace the saved keys."
+msgstr ""
+
+msgid "Probe capture backends and write the selected profile"
+msgstr ""
+
+msgid "Profile file in ~/.config/lumaway/profiles"
+msgstr ""
+
+msgid "Profiles"
+msgstr ""
+
+msgid "Quality"
+msgstr ""
+
+msgid "Reactivity"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Saved zone"
+msgstr ""
+
+msgid "Searching bridge"
+msgstr ""
+
+msgid "Settings saved."
+msgstr ""
+
+msgid "Start sync when app opens"
+msgstr ""
+
+msgid "Starting sync…"
+msgstr ""
+
+msgid "Starts sync when the app launches"
+msgstr ""
+
+msgid "Stop syncing"
+msgstr ""
+
+msgid "Stopping sync…"
+msgstr ""
+
+msgid "Streaming key"
+msgstr ""
+
+msgid "Sync"
+msgstr ""
+
+msgid "Sync events will appear here."
+msgstr ""
+
+msgid "Turn the selected zone on or off"
+msgstr ""
+
+msgid "Zone"
+msgstr ""
+
+msgid "Zone ID"
+msgstr ""
+
+msgid "Zone ID or name"
+msgstr ""
+
+msgid "Zone off: {name} ({count} lights)."
+msgstr ""
+
+msgid "Zone on: {name} ({count} lights). Press Start to run sync."
+msgstr ""
+
+msgid "Zones loaded from the bridge"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "error: bridge address and application key are required before loading zones"
+msgstr ""
+
+msgid "error: bridge address is required before pairing"
+msgstr ""
+
+msgid "error: capture profile name is required"
+msgstr ""
+
+msgid "error: could not activate zone: {message}"
+msgstr ""
+
+msgid "error: could not deactivate zone: {message}"
+msgstr ""
+
+msgid "error: saved Hue application key was rejected. Press the bridge button, then press Pair in Settings."
+msgstr ""
+
+msgid "error: zone is required before measuring capture quality"
+msgstr ""
+
+msgid "error: zone, bridge address, or application key missing"
+msgstr ""
+
+msgid "n/a"
+msgstr ""
+
+msgid "warning: could not save bridge id: {error}"
+msgstr ""
+
+msgid "{count} bridges detected. First selected: {ip}"
+msgstr ""
+
+msgid "{count} lights syncing"
+msgstr ""
+
+msgid "{count} zones loaded."
+msgstr ""
+
+msgid "— (load zones after pairing)"
+msgstr ""
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr ""
 

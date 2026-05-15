@@ -54,6 +54,297 @@ msgstr "Fort"
 msgid "Max"
 msgstr "Max"
 
+msgid "0 runs sync until you press Stop"
+msgstr "0 lance la synchronisation jusqu'à l'arrêt manuel"
+
+msgid "100 keeps captured brightness"
+msgstr "100 conserve la luminosité capturée"
+
+msgid "Activate"
+msgstr "Activer"
+
+msgid "Application key"
+msgstr "Clé d'application"
+
+msgid "Applying new brightness…"
+msgstr "Application de la nouvelle luminosité…"
+
+msgid "Bridge IP address"
+msgstr "Adresse IP du pont"
+
+msgid "Bridge address"
+msgstr "Adresse du pont"
+
+msgid "Bridge connected"
+msgstr "Pont connecté"
+
+msgid "Bridge configured"
+msgstr "Pont configuré"
+
+msgid "Bridge detected automatically: {ip}"
+msgstr "Pont détecté automatiquement : {ip}"
+
+msgid "Bridge found"
+msgstr "Pont trouvé"
+
+msgid "Bridge hardware id"
+msgstr "Identifiant matériel du pont"
+
+msgid "Bridge id saved (LUMAWAY_BRIDGE_ID={id})"
+msgstr "Identifiant du pont enregistré (LUMAWAY_BRIDGE_ID={id})"
+
+msgid "Bridge name: {name}"
+msgstr "Nom du pont : {name}"
+
+msgid "Bridge not configured"
+msgstr "Pont non configuré"
+
+msgid "Bridge not connected"
+msgstr "Pont non connecté"
+
+msgid "Bridge not found"
+msgstr "Pont introuvable"
+
+msgid "Brightness"
+msgstr "Luminosité"
+
+msgid "Calibrate"
+msgstr "Calibrer"
+
+msgid "Calibrating capture profile `{profile}`. Select the display in Portal."
+msgstr "Calibration du profil de capture `{profile}`. Sélectionnez l'écran dans le portail."
+
+msgid "Capture profile"
+msgstr "Profil de capture"
+
+msgid "Capture profile `{profile}` calibrated and saved."
+msgstr "Profil de capture `{profile}` calibré et enregistré."
+
+msgid "Capture profiles:"
+msgstr "Profils de capture :"
+
+msgid "Capture quality completed without output."
+msgstr "Mesure de qualité terminée sans sortie."
+
+msgid "Capture quality:"
+msgstr "Qualité de capture :"
+
+msgid "Check Settings"
+msgstr "Vérifiez les réglages"
+
+msgid "Checking…"
+msgstr "Vérification…"
+
+msgid "Color grading profile"
+msgstr "Profil de rendu couleur"
+
+msgid "Color profile"
+msgstr "Profil couleur"
+
+msgid "Connection"
+msgstr "Connexion"
+
+msgid "Connected to bridge"
+msgstr "Connecté au pont"
+
+msgid "Could not read bridge name: {message}"
+msgstr "Impossible de lire le nom du pont : {message}"
+
+msgid "Deactivate"
+msgstr "Désactiver"
+
+msgid "Discover"
+msgstr "Découvrir"
+
+msgid "Duration (ms)"
+msgstr "Durée (ms)"
+
+msgid "Duration {duration_ms} ms (0 = until Stop)."
+msgstr "Durée {duration_ms} ms (0 = jusqu'à l'arrêt)."
+
+msgid "Filled in automatically"
+msgstr "Rempli automatiquement"
+
+msgid "Higher values react faster"
+msgstr "Les valeurs plus hautes réagissent plus vite"
+
+msgid "List profiles from ~/.config/lumaway/profiles"
+msgstr "Lister les profils de ~/.config/lumaway/profiles"
+
+msgid "Listing capture profiles."
+msgstr "Liste des profils de capture."
+
+msgid "Log"
+msgstr "Journal"
+
+msgid "Measure capture quality for the configured zone"
+msgstr "Mesurer la qualité de capture pour la zone configurée"
+
+msgid "Measuring capture quality. Select the display in Portal."
+msgstr "Mesure de la qualité de capture. Sélectionnez l'écran dans le portail."
+
+msgid "Mode"
+msgstr "Mode"
+
+msgid "Mode {mode} ({preset})."
+msgstr "Mode {mode} ({preset})."
+
+msgid "No bridge found automatically."
+msgstr "Aucun pont détecté automatiquement."
+
+msgid "No capture profiles found."
+msgstr "Aucun profil de capture trouvé."
+
+msgid "No lights in this zone"
+msgstr "Aucune lumière dans cette zone"
+
+msgid "Open Settings"
+msgstr "Ouvrir les réglages"
+
+msgid "Pair"
+msgstr "Associer"
+
+msgid "Pairing required"
+msgstr "Association requise"
+
+msgid "Pairing succeeded and keys were saved. Loading zones…"
+msgstr "Association réussie et clés enregistrées. Chargement des zones…"
+
+msgid "Pairing succeeded, but settings could not be saved: {error}"
+msgstr "Association réussie, mais les réglages n'ont pas pu être enregistrés : {error}"
+
+msgid "Pick an entertainment zone"
+msgstr "Choisir une zone Entertainment"
+
+msgid "Please wait…"
+msgstr "Veuillez patienter…"
+
+msgid "Press Pair in Settings"
+msgstr "Appuyez sur Associer dans les réglages"
+
+msgid "Press the physical button on the bridge, then wait."
+msgstr "Appuyez sur le bouton physique du pont, puis patientez."
+
+msgid "Press the physical button on the bridge, then wait. New pairing keys will replace the saved keys."
+msgstr "Appuyez sur le bouton physique du pont, puis patientez. Les nouvelles clés remplaceront les clés enregistrées."
+
+msgid "Probe capture backends and write the selected profile"
+msgstr "Tester les backends de capture et écrire le profil sélectionné"
+
+msgid "Profile file in ~/.config/lumaway/profiles"
+msgstr "Fichier de profil dans ~/.config/lumaway/profiles"
+
+msgid "Profiles"
+msgstr "Profils"
+
+msgid "Quality"
+msgstr "Qualité"
+
+msgid "Reactivity"
+msgstr "Réactivité"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Saved zone"
+msgstr "Zone enregistrée"
+
+msgid "Searching bridge"
+msgstr "Recherche du pont"
+
+msgid "Settings saved."
+msgstr "Réglages enregistrés."
+
+msgid "Start sync when app opens"
+msgstr "Démarrer la synchronisation à l'ouverture"
+
+msgid "Starting sync…"
+msgstr "Démarrage de la synchronisation…"
+
+msgid "Starts sync when the app launches"
+msgstr "Démarre la synchronisation au lancement de l'application"
+
+msgid "Stop syncing"
+msgstr "Arrêter la synchronisation"
+
+msgid "Stopping sync…"
+msgstr "Arrêt de la synchronisation…"
+
+msgid "Streaming key"
+msgstr "Clé de streaming"
+
+msgid "Sync"
+msgstr "Synchronisation"
+
+msgid "Sync events will appear here."
+msgstr "Les événements de synchronisation apparaîtront ici."
+
+msgid "Turn the selected zone on or off"
+msgstr "Activer ou désactiver la zone sélectionnée"
+
+msgid "Zone"
+msgstr "Zone"
+
+msgid "Zone ID"
+msgstr "ID de zone"
+
+msgid "Zone ID or name"
+msgstr "ID ou nom de zone"
+
+msgid "Zone off: {name} ({count} lights)."
+msgstr "Zone éteinte : {name} ({count} lumières)."
+
+msgid "Zone on: {name} ({count} lights). Press Start to run sync."
+msgstr "Zone allumée : {name} ({count} lumières). Appuyez sur Démarrer pour lancer la synchronisation."
+
+msgid "Zones loaded from the bridge"
+msgstr "Zones chargées depuis le pont"
+
+msgid "default"
+msgstr "défaut"
+
+msgid "error: bridge address and application key are required before loading zones"
+msgstr "erreur : l'adresse du pont et la clé d'application sont requises avant de charger les zones"
+
+msgid "error: bridge address is required before pairing"
+msgstr "erreur : l'adresse du pont est requise avant l'association"
+
+msgid "error: capture profile name is required"
+msgstr "erreur : le nom du profil de capture est requis"
+
+msgid "error: could not activate zone: {message}"
+msgstr "erreur : impossible d'activer la zone : {message}"
+
+msgid "error: could not deactivate zone: {message}"
+msgstr "erreur : impossible de désactiver la zone : {message}"
+
+msgid "error: saved Hue application key was rejected. Press the bridge button, then press Pair in Settings."
+msgstr "erreur : la clé d'application Hue enregistrée a été refusée. Appuyez sur le bouton du pont, puis sur Associer dans les réglages."
+
+msgid "error: zone is required before measuring capture quality"
+msgstr "erreur : une zone est requise avant de mesurer la qualité de capture"
+
+msgid "error: zone, bridge address, or application key missing"
+msgstr "erreur : zone, adresse du pont ou clé d'application manquante"
+
+msgid "n/a"
+msgstr "n/d"
+
+msgid "warning: could not save bridge id: {error}"
+msgstr "avertissement : impossible d'enregistrer l'identifiant du pont : {error}"
+
+msgid "{count} bridges detected. First selected: {ip}"
+msgstr "{count} ponts détectés. Premier sélectionné : {ip}"
+
+msgid "{count} lights syncing"
+msgstr "{count} lumières synchronisées"
+
+msgid "{count} zones loaded."
+msgstr "{count} zones chargées."
+
+msgid "— (load zones after pairing)"
+msgstr "— (chargez les zones après l'association)"
+
 msgid "Synchronize lights with a Wayland screen"
 msgstr "Synchroniser les lumières avec un écran Wayland"
 
