@@ -1,8 +1,8 @@
 use adw::prelude::*;
 use gtk::glib;
 use lumaway_core::{
-    lumaway_main_env_path, migrate_lumaway_env_v1, SyncMode, CONFIG_VERSION_KEY,
-    CURRENT_CONFIG_VERSION, SYNC_MODE_KEY,
+    lumaway_main_env_path, migrate_lumaway_env_v1, sync_mode::resolve_sync_mode, SyncMode,
+    CONFIG_VERSION_KEY, CURRENT_CONFIG_VERSION, LEGACY_PRESET_KEY, SYNC_MODE_KEY,
 };
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, VecDeque};
@@ -18,7 +18,7 @@ mod i18n;
 
 const APP_ID: &str = "io.github.BunnySweety.LumaWay";
 const DEFAULT_SYNC_MODE: SyncMode = SyncMode::Video;
-const DEFAULT_PRESET: &str = "video-wayland";
+const COLOR_PROFILES: [&str; 6] = ["soft", "vivid", "game", "boosted", "cinema", "desktop"];
 /// Shown in `connection_status` when the Hue bridge is reachable (keep in sync with comparisons).
 const BRIDGE_STATUS_CONNECTED: &str = "Connected to bridge";
 /// Zone-card dim labels: offset to match DropDown / Switch / scale trough (GTK aligns widget tops, not optical centers).
@@ -52,6 +52,7 @@ struct Ui {
     reactivity: gtk::Scale,
     profile: gtk::Entry,
     color_profile: gtk::DropDown,
+    sync_mode: Rc<Cell<SyncMode>>,
     autostart: gtk::CheckButton,
     connection_status: gtk::Label,
     bridge_display: gtk::Label,
@@ -242,6 +243,8 @@ fn build_widgets(
             .map(String::as_str)
             .unwrap_or("vivid"),
     );
+    let sync_mode = Rc::new(Cell::new(initial_sync_mode(saved)));
+    select_color_profile(&color_profile, color_profile_for_sync_mode(sync_mode.get()));
     let autostart = gtk::CheckButton::builder()
         .label("Start sync when app opens")
         .active(saved_flag(saved, "LUMAWAY_AUTOSTART_SYNC"))
@@ -313,7 +316,7 @@ fn build_widgets(
 
     let mode_box = section("Mode");
     mode_box.add_css_class("compact-card");
-    mode_box.append(&mode_row());
+    mode_box.append(&mode_row(sync_mode.clone(), color_profile.clone()));
     let preset_tier = gtk::Box::new(gtk::Orientation::Vertical, 10);
     preset_tier.add_css_class("mode-presets-tier");
     let preset_heading = gtk::Label::new(Some("Reactivity"));
@@ -388,6 +391,7 @@ fn build_widgets(
         reactivity,
         profile,
         color_profile,
+        sync_mode,
         autostart,
         connection_status,
         bridge_display,
@@ -645,18 +649,26 @@ fn section(title: &str) -> gtk::Box {
     container
 }
 
-fn mode_row() -> gtk::Box {
+struct ModeTile {
+    mode: SyncMode,
+    button: gtk::ToggleButton,
+    caption: gtk::Label,
+}
+
+fn mode_row(selected_mode: Rc<Cell<SyncMode>>, color_profile: gtk::DropDown) -> gtk::Box {
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
     row.set_homogeneous(true);
     row.set_margin_top(4);
     /* Freedesktop-style symbolic names (Adwaita, Breeze, etc.) — crisp at any DPI */
     const ICON_PX: i32 = 28;
-    for (icon_name, name, active) in [
-        ("applications-graphics-symbolic", "Scenes", false),
-        ("input-gaming-symbolic", "Games", true),
-        ("audio-headphones-symbolic", "Audio", false),
-        ("video-display-symbolic", "Video", false),
+    let tiles = Rc::new(RefCell::new(Vec::<ModeTile>::new()));
+    for (mode, icon_name, label, enabled) in [
+        (SyncMode::Video, "video-display-symbolic", "Video", true),
+        (SyncMode::Game, "input-gaming-symbolic", "Game", true),
+        (SyncMode::Desktop, "computer-symbolic", "Desktop", true),
+        (SyncMode::Music, "audio-headphones-symbolic", "Music", false),
     ] {
+        let active = mode == selected_mode.get();
         let tile = gtk::Box::new(gtk::Orientation::Vertical, 8);
         tile.set_hexpand(true);
         tile.set_halign(gtk::Align::Center);
@@ -665,13 +677,19 @@ fn mode_row() -> gtk::Box {
             .icon_name(icon_name)
             .pixel_size(ICON_PX)
             .build();
-        let circle = gtk::Button::builder().child(&image).build();
+        let circle = gtk::ToggleButton::builder().child(&image).build();
         circle.add_css_class("mode-icon-button");
+        circle.set_active(active);
+        circle.set_sensitive(enabled);
         if active {
             circle.add_css_class("active-mode");
         }
+        if !enabled {
+            circle.set_tooltip_text(Some(i18n::tr("Coming soon").as_str()));
+            tile.set_tooltip_text(Some(i18n::tr("Coming soon").as_str()));
+        }
 
-        let caption = gtk::Label::new(Some(name));
+        let caption = gtk::Label::new(Some(i18n::tr(label).as_str()));
         caption.set_xalign(0.5);
         caption.add_css_class("mode-tile-caption");
         if active {
@@ -681,8 +699,38 @@ fn mode_row() -> gtk::Box {
         tile.append(&circle);
         tile.append(&caption);
         row.append(&tile);
+        let all_tiles = tiles.clone();
+        let selected_mode = selected_mode.clone();
+        let color_profile = color_profile.clone();
+        circle.connect_clicked(move |_| {
+            selected_mode.set(mode);
+            select_color_profile(&color_profile, color_profile_for_sync_mode(mode));
+            let all_tiles = all_tiles.borrow();
+            refresh_mode_tiles(selected_mode.get(), all_tiles.as_slice());
+        });
+        tiles.borrow_mut().push(ModeTile {
+            mode,
+            button: circle,
+            caption,
+        });
     }
+    let all_tiles = tiles.borrow();
+    refresh_mode_tiles(selected_mode.get(), all_tiles.as_slice());
     row
+}
+
+fn refresh_mode_tiles(selected_mode: SyncMode, tiles: &[ModeTile]) {
+    for tile in tiles {
+        let active = tile.mode == selected_mode;
+        tile.button.set_active(active);
+        if active {
+            tile.button.add_css_class("active-mode");
+            tile.caption.add_css_class("mode-tile-caption-active");
+        } else {
+            tile.button.remove_css_class("active-mode");
+            tile.caption.remove_css_class("mode-tile-caption-active");
+        }
+    }
 }
 
 fn preset_row() -> gtk::Box {
@@ -714,16 +762,19 @@ fn percent_scale(value: f64) -> gtk::Scale {
 }
 
 fn color_profile_dropdown(active: &str) -> gtk::DropDown {
-    let profiles = ["soft", "vivid", "game", "boosted", "cinema", "desktop"];
-    let model = gtk::StringList::new(&profiles);
+    let model = gtk::StringList::new(&COLOR_PROFILES);
     let dropdown = gtk::DropDown::builder().model(&model).build();
-    let selected = profiles
+    select_color_profile(&dropdown, active);
+    dropdown.set_tooltip_text(Some("Color grading profile"));
+    dropdown
+}
+
+fn select_color_profile(dropdown: &gtk::DropDown, active: &str) {
+    let selected = COLOR_PROFILES
         .iter()
         .position(|profile| profile.eq_ignore_ascii_case(active.trim()))
         .unwrap_or(1);
     dropdown.set_selected(selected as u32);
-    dropdown.set_tooltip_text(Some("Color grading profile"));
-    dropdown
 }
 
 fn selected_string(dropdown: &gtk::DropDown) -> String {
@@ -1311,15 +1362,17 @@ fn measure_capture_quality(ui: &Ui) {
         &ui.logs,
         "Measuring capture quality. Select the display in Portal.\n",
     );
+    let sync_mode = screen_sync_mode(ui.sync_mode.get());
+    let preset = preset_for_sync_mode(sync_mode);
     let queue = ui_event_queue(ui);
     thread::spawn(move || {
         let output = Command::new(resolve_lumaway_binary())
             .arg("capture-quality")
             .arg("--portal")
             .arg("--sync-mode")
-            .arg(DEFAULT_SYNC_MODE.as_env_value())
+            .arg(sync_mode.as_env_value())
             .arg("--preset")
-            .arg(DEFAULT_PRESET)
+            .arg(preset)
             .arg("--frames")
             .arg("30")
             .output();
@@ -1559,12 +1612,18 @@ fn start_sync_with_log_reset(
     let brightness = percent_to_fraction(ui.intensity.value());
     let smoothing = percent_to_fraction(ui.reactivity.value());
     let profile = ui.profile.text().trim().to_string();
-    let color_profile = selected_string(&ui.color_profile);
+    let sync_mode = screen_sync_mode(ui.sync_mode.get());
+    let preset = preset_for_sync_mode(sync_mode);
+    let color_profile = color_profile_for_sync_mode(sync_mode);
     write_current_env_file(ui)?;
     if clear_logs {
         ui.logs.set_text("");
     }
     append_log(&ui.logs, "Starting sync…\n");
+    append_log(
+        &ui.logs,
+        &format!("Mode {} ({preset}).\n", sync_mode.as_env_value()),
+    );
     append_log(
         &ui.logs,
         &format!("Duration {} ms (0 = until Stop).\n", duration_ms),
@@ -1574,9 +1633,9 @@ fn start_sync_with_log_reset(
     command
         .arg("sync")
         .arg("--sync-mode")
-        .arg(DEFAULT_SYNC_MODE.as_env_value())
+        .arg(sync_mode.as_env_value())
         .arg("--preset")
-        .arg(DEFAULT_PRESET)
+        .arg(preset)
         .arg("--duration-ms")
         .arg(duration_ms.to_string())
         .arg("--brightness")
@@ -1584,7 +1643,7 @@ fn start_sync_with_log_reset(
         .arg("--smoothing")
         .arg(format_fraction(smoothing))
         .arg("--color-profile")
-        .arg(&color_profile)
+        .arg(color_profile)
         .env("LUMAWAY_BRIDGE", bridge)
         .env("LUMAWAY_AREA", area)
         .env("LUMAWAY_APP_KEY", app_key)
@@ -2300,6 +2359,7 @@ fn read_env_file() -> anyhow::Result<HashMap<String, String>> {
 }
 
 struct EnvFileValues {
+    sync_mode: SyncMode,
     bridge: String,
     bridge_id: String,
     area: String,
@@ -2315,6 +2375,7 @@ struct EnvFileValues {
 
 fn env_file_values_from_ui(ui: &Ui, area: &str) -> EnvFileValues {
     EnvFileValues {
+        sync_mode: screen_sync_mode(ui.sync_mode.get()),
         bridge: ui.bridge.text().trim().to_string(),
         bridge_id: ui.bridge_id.borrow().trim().to_string(),
         area: area.trim().to_string(),
@@ -2324,7 +2385,7 @@ fn env_file_values_from_ui(ui: &Ui, area: &str) -> EnvFileValues {
         brightness: percent_to_fraction(ui.intensity.value()),
         smoothing: percent_to_fraction(ui.reactivity.value()),
         profile: ui.profile.text().trim().to_string(),
-        color_profile: selected_string(&ui.color_profile),
+        color_profile: color_profile_for_sync_mode(ui.sync_mode.get()).to_string(),
         autostart: ui.autostart.is_active(),
     }
 }
@@ -2345,7 +2406,7 @@ fn write_env_file(values: EnvFileValues) -> anyhow::Result<()> {
         config_version_key = CONFIG_VERSION_KEY,
         config_version = CURRENT_CONFIG_VERSION,
         sync_mode_key = SYNC_MODE_KEY,
-        sync_mode = DEFAULT_SYNC_MODE.as_env_value(),
+        sync_mode = values.sync_mode.as_env_value(),
         bridge = values.bridge,
         area = values.area,
         app_key = values.app_key,
@@ -2426,6 +2487,35 @@ fn resolve_lumaway_binary() -> PathBuf {
     home_dir().join(".local/bin/lumaway")
 }
 
+fn initial_sync_mode(saved: &HashMap<String, String>) -> SyncMode {
+    screen_sync_mode(resolve_sync_mode(
+        saved.get(SYNC_MODE_KEY).map(String::as_str),
+        saved.get(LEGACY_PRESET_KEY).map(String::as_str),
+    ))
+}
+
+fn screen_sync_mode(mode: SyncMode) -> SyncMode {
+    match mode {
+        SyncMode::Music => DEFAULT_SYNC_MODE,
+        mode => mode,
+    }
+}
+
+fn preset_for_sync_mode(mode: SyncMode) -> &'static str {
+    screen_sync_mode(mode)
+        .default_preset()
+        .unwrap_or("video-wayland")
+}
+
+fn color_profile_for_sync_mode(mode: SyncMode) -> &'static str {
+    match screen_sync_mode(mode) {
+        SyncMode::Video => "vivid",
+        SyncMode::Game => "game",
+        SyncMode::Desktop => "desktop",
+        SyncMode::Music => "vivid",
+    }
+}
+
 fn initial_duration_ms(saved: &HashMap<String, String>) -> i32 {
     std::env::var("LUMAWAY_GUI_DURATION_MS")
         .ok()
@@ -2474,13 +2564,23 @@ fn home_dir() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        bridge_id_display_text, format_bridge_title, format_capture_quality_summary,
-        is_hue_authentication_error, lumaway_bin_override_rejection_reason,
-        parse_area_state_output, parse_areas_output, parse_auth_output,
-        parse_bridge_discovery_output, parse_bridge_info_output, parse_profile_list_output,
-        sanitize_color_profile, sanitize_profile_name, selected_area_index,
+        bridge_id_display_text, color_profile_for_sync_mode, format_bridge_title,
+        format_capture_quality_summary, initial_sync_mode, is_hue_authentication_error,
+        lumaway_bin_override_rejection_reason, parse_area_state_output, parse_areas_output,
+        parse_auth_output, parse_bridge_discovery_output, parse_bridge_info_output,
+        parse_profile_list_output, preset_for_sync_mode, sanitize_color_profile,
+        sanitize_profile_name, selected_area_index,
     };
+    use lumaway_core::SyncMode;
+    use std::collections::HashMap;
     use std::path::Path;
+
+    fn saved(values: &[(&str, &str)]) -> HashMap<String, String> {
+        values
+            .iter()
+            .map(|(key, value)| ((*key).to_string(), (*value).to_string()))
+            .collect()
+    }
 
     fn capture_status_from_log(line: &str) -> Option<String> {
         if line.contains("selected portal stream") {
@@ -2665,6 +2765,35 @@ mod tests {
         assert_eq!(sanitize_profile_name("../tv"), "");
         assert_eq!(sanitize_profile_name("room/tv"), "");
         assert_eq!(sanitize_profile_name(".."), "");
+    }
+
+    #[test]
+    fn initial_sync_mode_reads_v1_config_and_legacy_preset() {
+        assert_eq!(
+            initial_sync_mode(&saved(&[("LUMAWAY_SYNC_MODE", "game")])),
+            SyncMode::Game
+        );
+        assert_eq!(
+            initial_sync_mode(&saved(&[("LUMAWAY_PRESET", "desktop-wayland")])),
+            SyncMode::Desktop
+        );
+        assert_eq!(
+            initial_sync_mode(&saved(&[("LUMAWAY_SYNC_MODE", "music")])),
+            SyncMode::Video
+        );
+    }
+
+    #[test]
+    fn presets_and_color_profiles_follow_screen_modes() {
+        assert_eq!(preset_for_sync_mode(SyncMode::Video), "video-wayland");
+        assert_eq!(preset_for_sync_mode(SyncMode::Game), "game-wayland");
+        assert_eq!(preset_for_sync_mode(SyncMode::Desktop), "desktop-wayland");
+        assert_eq!(preset_for_sync_mode(SyncMode::Music), "video-wayland");
+
+        assert_eq!(color_profile_for_sync_mode(SyncMode::Video), "vivid");
+        assert_eq!(color_profile_for_sync_mode(SyncMode::Game), "game");
+        assert_eq!(color_profile_for_sync_mode(SyncMode::Desktop), "desktop");
+        assert_eq!(color_profile_for_sync_mode(SyncMode::Music), "vivid");
     }
 
     #[test]

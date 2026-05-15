@@ -74,7 +74,7 @@ Capitaliser sur l’existant :
 
 **Manques principaux**
 
-- UX structurée en modes (comme Video / Game / Audio de Hue Sync) — **tuiles Mode déjà dessinées dans la GUI mais non branchées**
+- UX structurée en modes (comme Video / Game / Audio de Hue Sync) — **tuiles Mode branchées au démarrage Phase 1 ; restent intensité, i18n complète et épuration accueil**
 - Parité **user-friendly** : trop de réglages techniques visibles (profil capture, `color_profile` anglais, logs techniques)
 - Icône barre système et présence en arrière-plan
 - Assistant première utilisation
@@ -102,7 +102,7 @@ Objectif : un utilisateur qui connaît Hue Sync sur Windows/macOS doit retrouver
 
 | Hue Sync (attendu) | LumaWay aujourd’hui | Cible |
 |--------------------|---------------------|-------|
-| Modes Video / Game / Music (+ bureau) | Tuiles Scenes/Games/Audio/Video **décoratives** ; **Scenes ≠ mode produit** | Remplacer **Scenes** par **Desktop** ; 4 modes → `LUMAWAY_SYNC_MODE` |
+| Modes Video / Game / Music (+ bureau) | Tuiles Video/Game/Desktop branchées ; Music visible mais grisée jusqu’à Phase 3 | Finaliser l’UX autour des modes, intensité, i18n complète et états pendant sync |
 | Intensité (4 niveaux) | Tuiles Subtle… **décoratives** | Seul contrôle d’intensité sur l’accueil → `LUMAWAY_REACTIVITY` |
 | Luminosité | Curseur Brightness ✓ | Libellé traduit (`Brightness` / `Luminosité` / …) |
 | Pairing en 2 étapes | Boutons Discover / Pair en anglais | Assistant traduit : trouver pont → associer |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | À faire | UX Hue Sync (§3) |
+| 1 | En cours | Tâches 1.1 / 1.3 lancées : tuiles Mode branchées dans la GUI, Music désactivé, Start propage `LUMAWAY_SYNC_MODE`, preset dérivé et profil couleur par mode |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -711,8 +711,8 @@ Tous requis sauf mention « optionnel » :
 
 | Fichier | Action |
 |---------|--------|
-| [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après câblage GUI Phase 1 |
-| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 0 : `SyncMode::Video` propagé au subprocess avec preset dérivé `video-wayland` ; reste à câbler les tuiles Mode en tâche 1.1 |
+| [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après finalisation UX Phase 1 |
+| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, preset/profil couleur dérivés au Start ; restent intensité, i18n complète et épuration accueil |
 | README | Section « Comparaison Hue Sync » + guide traduction (Phase 4) |
 | [`test-matrix.md`](test-matrix.md) | Garder aligné avec §15.2 et §15.3 à chaque jalon |
 
