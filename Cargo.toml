@@ -16,10 +16,10 @@ rust-version = "1.76"
 
 [workspace.dependencies]
 anyhow = "1.0"
-adw = { package = "libadwaita", version = "0.9.1", features = ["gtk_v4_22", "v1_9"] }
+adw = { package = "libadwaita", version = "0.9.1", features = ["v1_5"] }
 ashpd = { version = "0.12", default-features = true }
 clap = { version = "4.5", features = ["derive", "env"] }
-gtk = { package = "gtk4", version = "0.11.3", features = ["v4_18"] }
+gtk = { package = "gtk4", version = "0.11.3", features = ["v4_14"] }
 gstreamer = "0.25"
 gstreamer-app = "0.25"
 gettext-rs = { version = "0.7", features = ["gettext-system"] }
