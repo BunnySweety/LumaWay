@@ -153,6 +153,9 @@ msgstr "Connexion"
 msgid "Connected to bridge"
 msgstr "Connecté au pont"
 
+msgid "Could not update login autostart: {error}"
+msgstr "Impossible de mettre à jour le lancement à la connexion : {error}"
+
 msgid "Could not read bridge name: {message}"
 msgstr "Impossible de lire le nom du pont : {message}"
 
@@ -206,6 +209,9 @@ msgstr "Aucune lumière dans cette zone"
 
 msgid "Open Settings"
 msgstr "Ouvrir les réglages"
+
+msgid "Open LumaWay when you sign in"
+msgstr "Ouvrir LumaWay à la connexion"
 
 msgid "Pair"
 msgstr "Associer"
@@ -266,6 +272,9 @@ msgstr "Démarrer la synchronisation à l'ouverture"
 
 msgid "Starting sync…"
 msgstr "Démarrage de la synchronisation…"
+
+msgid "Starts LumaWay automatically after desktop login."
+msgstr "Démarre LumaWay automatiquement après la connexion au bureau."
 
 msgid "Starts sync when the app launches"
 msgstr "Démarre la synchronisation au lancement de l'application"

@@ -146,6 +146,9 @@ msgstr ""
 msgid "Connected to bridge"
 msgstr ""
 
+msgid "Could not update login autostart: {error}"
+msgstr ""
+
 msgid "Could not read bridge name: {message}"
 msgstr ""
 
@@ -198,6 +201,9 @@ msgid "No lights in this zone"
 msgstr ""
 
 msgid "Open Settings"
+msgstr ""
+
+msgid "Open LumaWay when you sign in"
 msgstr ""
 
 msgid "Pair"
@@ -258,6 +264,9 @@ msgid "Start sync when app opens"
 msgstr ""
 
 msgid "Starting sync…"
+msgstr ""
+
+msgid "Starts LumaWay automatically after desktop login."
 msgstr ""
 
 msgid "Starts sync when the app launches"

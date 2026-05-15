@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-15 (Phase 1.16 — switch zone clarifié)
+Dernière revue : 2026-05-16 (Phase 1.8 — autostart de session)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -274,7 +274,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.5 | **Écran principal épuré** | Fait : accueil limité aux gestes quotidiens ; `duration`, `profile`, `color_profile`, clés, réactivité fine, actions Quality/Calibrate et journal repliés dans Réglages avancés ; option **cinema** uniquement en Réglages avancé (§6). |
 | 1.6 | Assistant première utilisation | Pages traduites : pont → bouton physique → zone → test lumières → mode → démarrer. |
 | 1.7 | Icône barre système | StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter (confirmation si sync) **quand le bureau le supporte**. Sur GNOME vanilla sans extension tray, fallback requis : fenêtre qui conserve Start/Stop + notification minimale pour erreurs critiques si le portail/serveur de notifications est disponible. |
-| 1.8 | Démarrage de session | Autostart app + option traduite « Start sync when the app opens ». |
+| 1.8 | Démarrage de session | Fait : option Réglages traduite pour ouvrir LumaWay à la connexion via `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`; option séparée « Start sync when app opens » conservée pour lancer la sync à l’ouverture. |
 | 1.9 | Échecs explicites | Portal, capture noire, 401 pont — messages gettext + actions Retry / Open Settings. |
 | 1.10 | Flux Portal | Rappel traduit « Choose the screen or window to sync » ; mémoriser le choix si le portail expose un identifiant / `restore_token` (sinon rappel à chaque session). |
 | 1.11 | **Bouton unique sync** | Fait : bouton unique Start sync / Stop sync ; Réglages, pairing, découverte, zone, luminosité, intensité et champs avancés bloqués pendant sync. |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.8 livré : autostart de session + autostart sync séparés ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 partiel : sortie subprocess inattendue et classification pont/Portal/DTLS ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.8 autostart | Option Réglages pour créer/supprimer l’entrée XDG autostart ; option sync à l’ouverture gardée séparée |
 | 2026-05-15 | Phase 1.16 switch zone | Tooltip traduit : le switch contrôle l’allumage zone Hue, Start/Stop contrôle la sync écran |
 | 2026-05-15 | Phase 1.15 modes | Tuiles Mode désactivées pendant sync ; tooltip traduit indiquant Stop avant changement de mode |
 | 2026-05-15 | Phase 1.14 instance unique | Activation secondaire GTK présente la fenêtre existante ; pas de seconde fenêtre ni seconde sync créée |

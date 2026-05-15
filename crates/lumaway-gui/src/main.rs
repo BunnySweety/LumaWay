@@ -1116,6 +1116,13 @@ fn open_settings_window(ui: &Ui) {
         "Profile file in ~/.config/lumaway/profiles",
     )));
     let color_profile = color_profile_dropdown(&selected_string(&ui.color_profile));
+    let session_autostart = gtk::CheckButton::builder()
+        .label(i18n::tr("Open LumaWay when you sign in"))
+        .active(session_autostart_enabled())
+        .build();
+    session_autostart.set_tooltip_text(Some(&i18n::tr(
+        "Starts LumaWay automatically after desktop login.",
+    )));
     let autostart = gtk::CheckButton::builder()
         .label(i18n::tr("Start sync when app opens"))
         .active(ui.autostart.is_active())
@@ -1142,6 +1149,7 @@ fn open_settings_window(ui: &Ui) {
     let tuning = section("Sync");
     tuning.add_css_class("compact-card");
     tuning.append(&row("Brightness", &intensity));
+    tuning.append(&session_autostart);
     tuning.append(&autostart);
 
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
@@ -1224,6 +1232,7 @@ fn open_settings_window(ui: &Ui) {
     let save_reactivity = reactivity.clone();
     let save_profile = profile.clone();
     let save_color_profile = color_profile.clone();
+    let save_session_autostart = session_autostart.clone();
     let save_autostart = autostart.clone();
     save.connect_clicked(move |_| {
         apply_settings_values(
@@ -1238,6 +1247,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &save_reactivity,
                 profile: &save_profile,
                 color_profile: &save_color_profile,
+                session_autostart: &save_session_autostart,
                 autostart: &save_autostart,
             },
         );
@@ -1256,6 +1266,7 @@ fn open_settings_window(ui: &Ui) {
     let detect_reactivity = reactivity.clone();
     let detect_profile = profile.clone();
     let detect_color_profile = color_profile.clone();
+    let detect_session_autostart = session_autostart.clone();
     let detect_autostart = autostart.clone();
     detect.connect_clicked(move |_| {
         apply_settings_values(
@@ -1270,6 +1281,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &detect_reactivity,
                 profile: &detect_profile,
                 color_profile: &detect_color_profile,
+                session_autostart: &detect_session_autostart,
                 autostart: &detect_autostart,
             },
         );
@@ -1286,6 +1298,7 @@ fn open_settings_window(ui: &Ui) {
     let pair_reactivity = reactivity.clone();
     let pair_profile = profile.clone();
     let pair_color_profile = color_profile.clone();
+    let pair_session_autostart = session_autostart.clone();
     let pair_autostart = autostart.clone();
     pair.connect_clicked(move |_| {
         apply_settings_values(
@@ -1300,6 +1313,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &pair_reactivity,
                 profile: &pair_profile,
                 color_profile: &pair_color_profile,
+                session_autostart: &pair_session_autostart,
                 autostart: &pair_autostart,
             },
         );
@@ -1321,6 +1335,7 @@ fn open_settings_window(ui: &Ui) {
     let quality_reactivity = reactivity.clone();
     let quality_profile = profile.clone();
     let quality_color_profile = color_profile.clone();
+    let quality_session_autostart = session_autostart.clone();
     let quality_autostart = autostart.clone();
     quality.connect_clicked(move |_| {
         apply_settings_values(
@@ -1335,6 +1350,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &quality_reactivity,
                 profile: &quality_profile,
                 color_profile: &quality_color_profile,
+                session_autostart: &quality_session_autostart,
                 autostart: &quality_autostart,
             },
         );
@@ -1351,6 +1367,7 @@ fn open_settings_window(ui: &Ui) {
     let calibrate_reactivity = reactivity.clone();
     let calibrate_profile = profile.clone();
     let calibrate_color_profile = color_profile.clone();
+    let calibrate_session_autostart = session_autostart.clone();
     let calibrate_autostart = autostart.clone();
     calibrate.connect_clicked(move |_| {
         apply_settings_values(
@@ -1365,6 +1382,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &calibrate_reactivity,
                 profile: &calibrate_profile,
                 color_profile: &calibrate_color_profile,
+                session_autostart: &calibrate_session_autostart,
                 autostart: &calibrate_autostart,
             },
         );
@@ -1410,6 +1428,7 @@ struct SettingsControls<'a> {
     reactivity: &'a gtk::Scale,
     profile: &'a gtk::Entry,
     color_profile: &'a gtk::DropDown,
+    session_autostart: &'a gtk::CheckButton,
     autostart: &'a gtk::CheckButton,
 }
 
@@ -1430,6 +1449,13 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
     ui.autostart.set_active(controls.autostart.is_active());
     update_health(ui);
 
+    if let Err(error) = set_session_autostart(controls.session_autostart.is_active()) {
+        append_log_msg_format(
+            &ui.logs,
+            "Could not update login autostart: {error}",
+            &[("error", &error.to_string())],
+        );
+    }
     let _ = write_env_file(env_file_values_from_ui(ui, ui.area.text().trim()));
     append_log_msg(&ui.logs, "Settings saved.");
 }
@@ -2639,11 +2665,73 @@ fn append_user_error(buffer: &gtk::TextBuffer, error: &str) {
 }
 
 fn config_path() -> PathBuf {
+    config_home().join("lumaway").join("lumaway.env")
+}
+
+fn config_home() -> PathBuf {
     std::env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|| home_dir().join(".config"))
-        .join("lumaway")
-        .join("lumaway.env")
+}
+
+fn session_autostart_path() -> PathBuf {
+    config_home()
+        .join("autostart")
+        .join(format!("{APP_ID}.desktop"))
+}
+
+fn session_autostart_enabled() -> bool {
+    let Ok(text) = fs::read_to_string(session_autostart_path()) else {
+        return false;
+    };
+    !text.lines().any(|line| {
+        let line = line.trim();
+        line.eq_ignore_ascii_case("Hidden=true")
+            || line.eq_ignore_ascii_case("X-GNOME-Autostart-enabled=false")
+    })
+}
+
+fn set_session_autostart(enabled: bool) -> anyhow::Result<()> {
+    let path = session_autostart_path();
+    if enabled {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(&path, session_autostart_desktop_entry())?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o644))?;
+        }
+    } else if path.exists() {
+        fs::remove_file(path)?;
+    }
+    Ok(())
+}
+
+fn session_autostart_desktop_entry() -> String {
+    let exec_path =
+        std::env::current_exe().unwrap_or_else(|_| home_dir().join(".local/bin/lumaway-gui"));
+    session_autostart_desktop_entry_for_exec(&desktop_exec_arg(&exec_path))
+}
+
+fn session_autostart_desktop_entry_for_exec(exec: &str) -> String {
+    format!(
+        "[Desktop Entry]\nType=Application\nName=LumaWay\nComment=Sync Philips Hue Entertainment lights from the Linux desktop\nExec={exec}\nIcon={APP_ID}\nTerminal=false\nCategories=Utility;AudioVideo;\nX-GNOME-Autostart-enabled=true\n"
+    )
+}
+
+fn desktop_exec_arg(path: &Path) -> String {
+    let value = path.to_string_lossy();
+    if value
+        .chars()
+        .any(|character| character.is_whitespace() || matches!(character, '"' | '\\'))
+    {
+        let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
+        format!("\"{escaped}\"")
+    } else {
+        value.into_owned()
+    }
 }
 
 fn read_env_file() -> anyhow::Result<HashMap<String, String>> {
@@ -2901,12 +2989,13 @@ fn home_dir() -> PathBuf {
 mod tests {
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
-        format_bridge_title, format_capture_quality_summary, initial_reactivity_percent,
-        initial_sync_mode, intensity_level_for_percent, is_sync_failure_candidate,
-        lumaway_bin_override_rejection_reason, parse_area_state_output, parse_areas_output,
-        parse_auth_output, parse_bridge_discovery_output, parse_bridge_info_output,
-        parse_profile_list_output, preset_for_sync_mode, sanitize_color_profile,
-        sanitize_profile_name, selected_area_index, IntensityLevel,
+        desktop_exec_arg, format_bridge_title, format_capture_quality_summary,
+        initial_reactivity_percent, initial_sync_mode, intensity_level_for_percent,
+        is_sync_failure_candidate, lumaway_bin_override_rejection_reason, parse_area_state_output,
+        parse_areas_output, parse_auth_output, parse_bridge_discovery_output,
+        parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
+        sanitize_color_profile, sanitize_profile_name, selected_area_index,
+        session_autostart_desktop_entry_for_exec, IntensityLevel,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3190,6 +3279,28 @@ mod tests {
         assert!(!is_sync_failure_candidate(
             "INFO lumaway: selected portal stream node_id=112"
         ));
+    }
+
+    #[test]
+    fn session_autostart_entry_uses_desktop_exec() {
+        let entry = session_autostart_desktop_entry_for_exec("/home/me/.local/bin/lumaway-gui");
+
+        assert!(entry.contains("Type=Application"));
+        assert!(entry.contains("Name=LumaWay"));
+        assert!(entry.contains("Exec=/home/me/.local/bin/lumaway-gui"));
+        assert!(entry.contains("X-GNOME-Autostart-enabled=true"));
+    }
+
+    #[test]
+    fn desktop_exec_arg_quotes_paths_with_spaces() {
+        assert_eq!(
+            desktop_exec_arg(Path::new("/home/me/.local/bin/lumaway-gui")),
+            "/home/me/.local/bin/lumaway-gui"
+        );
+        assert_eq!(
+            desktop_exec_arg(Path::new("/home/me/My Apps/lumaway-gui")),
+            "\"/home/me/My Apps/lumaway-gui\""
+        );
     }
 
     #[test]

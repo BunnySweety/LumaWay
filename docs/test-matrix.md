@@ -80,6 +80,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `scripts/install-desktop-app.sh`: shell syntax validated; installer completed as user `bunny`, installed `~/.local/bin/lumaway`, `~/.local/bin/lumaway-gui`, and `~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop`, while keeping `~/.config/lumaway/lumaway.env` at mode `0600`.
 - `cargo check -p lumaway-gui`: GTK/libadwaita application crate compiles.
 - `cargo test -p lumaway-gui`: GUI parsing for auth JSON and zone JSON is covered.
+- `cargo test -p lumaway-gui`: XDG session autostart desktop-entry rendering and Exec path quoting are covered.
 - `/home/bunny/.local/bin/lumaway-gui`: real GTK/libadwaita application opens in the GNOME Wayland session and remains running.
 - `gio launch ~/.local/share/applications/io.github.BunnySweety.LumaWay.desktop`: desktop entry starts the GTK/libadwaita application in the GNOME Wayland session.
 - `/home/bunny/.local/bin/lumaway list-areas --bridge 192.168.1.108`: the real controller returned three zones, including `TV`; this validates the data path used by the GUI zone-loading action.
