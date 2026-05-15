@@ -148,6 +148,10 @@ struct AreaOption {
 }
 
 fn build_ui(app: &adw::Application) {
+    if present_existing_window(app) {
+        return;
+    }
+
     install_css();
     let state = Rc::new(RefCell::new(AppState {
         child: None,
@@ -176,6 +180,15 @@ fn build_ui(app: &adw::Application) {
     }
     if env_flag("LUMAWAY_GUI_AUTOSTART") || ui.autostart.is_active() {
         ui.start.emit_clicked();
+    }
+}
+
+fn present_existing_window(app: &adw::Application) -> bool {
+    if let Some(window) = app.active_window().or_else(|| app.windows().pop()) {
+        window.present();
+        true
+    } else {
+        false
     }
 }
 
