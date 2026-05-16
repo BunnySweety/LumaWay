@@ -8,11 +8,50 @@ This file records the current Phase 2 evidence against `docs/plan-hue-sync-daily
 
 Repository state:
 
+- audited baseline head: `5b36a06` (`Update Phase 2 next actions`);
 - implementation commit: `593bd0a` (`Complete Phase 2 screen quality tasks`);
 - TV validation commit: `5bdb192` (`Record Phase 2 TV validation`);
 - field-gate clarification commit: `7e8286e` (`Clarify Phase 2 field validation gates`);
-- latest validated CI run: `25948910463` on `7e8286e`, workflow `CI`, job `rust`, conclusion `success`.
-- validation audit commit: `ab8725d` (`Add Phase 2 validation audit`).
+- validation audit commit: `ab8725d` (`Add Phase 2 validation audit`);
+- latency helper commit: `7533b08` (`Add Phase 2 latency helper`);
+- first-run helper commit: `48093b5` (`Add Phase 2 first-run helper`);
+- CI helper coverage commit: `b914fef` (`Cover Phase 2 validation helpers in CI`);
+- documentation status commit: `2c93ad1` (`Refresh Phase 2 documentation status`);
+- next-action alignment commit: `5b36a06` (`Update Phase 2 next actions`);
+- latest full CI observed during this audit: `25949615463` on `5b36a06`, workflow `CI`, job `rust`, conclusion `success`.
+
+## Completion Audit
+
+Objective: deliver every Phase 2 screen-quality item for daily Hue screen sync.
+
+Concrete success criteria from the plan and linked Phase 2 docs:
+
+- 2.1: persistent manual crop profile values are supported by daily sync and diagnostics.
+- 2.2: Video / `vivid` avoids false black output while preserving true black.
+- 2.3: black/too-dark capture failures guide the user toward backend probing.
+- 2.4: fixed comparison harness exists, including latency evidence fields and a 300 ms visible-reaction gate.
+- 2.5: diagnostics are reusable from CLI/GUI validation flows.
+- 2.6: Hue Entertainment `position.z` is used as a vertical fallback when `position.y` has no usable span.
+- Phase 2 finish criterion: an existing TV user can reach satisfactory sync without mandatory `calibrate-capture`.
+- Phase 2 finish criterion: a new user reaches first satisfactory screen sync in 10 minutes or less.
+- Release gate: visible screen-to-light reaction is <= 300 ms for at least 5 accepted full-screen transitions, with no silent black session.
+
+Prompt-to-artifact checklist:
+
+| Requirement / gate | Artifact inspected | Evidence | Audit status |
+|--------------------|--------------------|----------|--------------|
+| 2.1 persistent crop profile values | `crates/lumaway-cli/src/cli_args.rs`, `crates/lumaway-cli/src/profile_env.rs`, tests | Tests include `sync_reads_sample_crop_from_environment` and `profile_template_includes_persistent_crop_defaults`; selected profile crop keys are non-secret profile values used by `sync`, `sample-debug`, and `capture-quality`. | Covered |
+| 2.2 Video / `vivid` black handling | `crates/lumaway-cli/src/color_tuning.rs`, tests | Test `vivid_tuning_lifts_dim_non_black_video_without_lighting_black` covers black/noise staying dark and dim non-black content receiving a soft luminance floor. | Covered |
+| 2.3 backend-probe assistant | `crates/lumaway-gui/src/main.rs`, `crates/lumaway-gui/src/user_messages.rs`, tests | `CaptureTooDark` exposes `Probe backend`; test `formats_backend_probe_summary` covers the CPU/GL recommendation summary. | Covered |
+| 2.4 fixed harness and latency verifier | `docs/phase2-comparison-harness.md`, `docs/fixtures/phase2-patterns.html`, `scripts/phase2-latency-summary.sh`, CI | Harness lists fixed patterns and result fields; helper enforces at least 5 transitions and <= 300 ms; workflow step `phase2 validation helpers` covers pass/fail examples. | Covered except external video evidence |
+| 2.5 reusable diagnostics | `docs/phase2-comparison-harness.md`, `docs/test-matrix.md`, CLI/GUI evidence | Harness uses `backend-probe`, `capture-quality`, and `sample-debug`; test matrix records CLI diagnostics plus GUI `Quality` action evidence. | Covered |
+| 2.6 `position.z` vertical fallback | `crates/lumaway-cli/src/sampling.rs`, tests | Tests `maps_depth_position_when_vertical_span_is_missing` and `vertical_position_takes_priority_over_depth_position` cover fallback and Y priority. | Covered |
+| Existing TV user does not require `calibrate-capture` | Real TV command evidence below | `sync --area TV --duration-ms 3000 --capture-backend auto` started without `calibrate-capture`, selected CPU after GL-black fallback, sent 75 frames, and shut down cleanly. | Covered for this environment |
+| New-user first satisfactory sync <= 10 min | `scripts/phase2-first-run-summary.sh`, CI | Helper enforces <= 600 seconds and `--calibrate-used no`; CI covers pass/fail examples. No observed new-user timing run exists. | Missing external observer run |
+| Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25949615463` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on `5b36a06`. | Covered |
+
+Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the two external field proofs are captured and recorded.
 
 ## Deliverable Checklist
 
