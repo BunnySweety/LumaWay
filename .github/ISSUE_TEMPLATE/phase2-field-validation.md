@@ -39,11 +39,12 @@ scripts/phase2-field-preflight.sh
 - [ ] Run the combined verifier:
 
 ```sh
-scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --calibrate-used no --silent-black no <screen_frame:light_frame>...
+scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --preflight-pass yes --calibrate-used no --silent-black no <screen_frame:light_frame>...
 ```
 
-The combined verifier exits non-zero when `--fps` is below the default 120 fps
-minimum, even if the frame pairs would otherwise satisfy the latency threshold.
+The combined verifier exits non-zero when `--preflight-pass no` is provided or
+when `--fps` is below the default 120 fps minimum, even if the frame pairs would
+otherwise satisfy the latency threshold.
 
 ## Preflight Block
 

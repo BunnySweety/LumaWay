@@ -128,13 +128,14 @@ To generate one pasteable Phase 2 field-evidence block after both manual
 measurements are available, run:
 
 ```sh
-scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
 ```
 
 This command reuses the latency and first-run helpers above. It exits non-zero
-if the recording frame rate is below 120 fps, latency, first-run timing, or the
-no-silent-black gate fails, but it still prints every section so the failed
-evidence can be copied into the validation audit.
+if the preflight did not pass, the recording frame rate is below 120 fps,
+latency, first-run timing, or the no-silent-black gate fails, but it still
+prints every section so the failed evidence can be copied into the validation
+audit.
 
 ## Result Template
 
