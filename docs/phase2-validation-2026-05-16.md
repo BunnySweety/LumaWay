@@ -21,7 +21,7 @@ Repository state:
 | 2.1 persistent manual crop profile via `LUMAWAY_SAMPLE_CROP_LEFT/RIGHT/TOP/BOTTOM`, reused by `sync`, `sample-debug`, and `capture-quality` | `crates/lumaway-cli/src/cli_args.rs` reads crop env keys for all three commands; `crates/lumaway-cli/src/profile_env.rs` includes crop defaults and whitelists profile keys; tests `sync_reads_sample_crop_from_environment` and `profile_template_includes_persistent_crop_defaults` pass in CI. | Delivered |
 | 2.2 Video / `vivid` preserves true black and near-black noise while lifting dim non-black content | `crates/lumaway-cli/src/color_tuning.rs`; test `vivid_tuning_lifts_dim_non_black_video_without_lighting_black` confirms black/noise stay off and dim content reaches soft output luma. | Delivered |
 | 2.3 GUI suggests `backend-probe` after black/too-dark capture | `crates/lumaway-gui/src/main.rs` shows `Probe backend` after `CaptureTooDark`, runs `lumaway backend-probe`, and formats CPU/GL summary; `crates/lumaway-gui/src/user_messages.rs` recovery action points to backend probe; test `formats_backend_probe_summary` passes in CI. | Delivered |
-| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, and result fields; `scripts/phase2-latency-summary.sh` converts observed video frame pairs into pass/fail latency evidence. | Delivered |
+| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, and result fields; `scripts/phase2-latency-summary.sh` converts observed video frame pairs into pass/fail latency evidence; `scripts/phase2-first-run-summary.sh` converts observed setup time into pass/fail first-run evidence. | Delivered |
 | 2.5 diagnostics reuse `sample-debug` and `capture-quality` | `docs/desktop-app.md` documents GUI `Quality`; `docs/phase2-comparison-harness.md` uses both diagnostics; `docs/test-matrix.md` contains live diagnostic evidence. | Delivered |
 | 2.6 Entertainment `position.z` handling | `crates/lumaway-cli/src/sampling.rs` uses `position.y` first and falls back to `position.z` when Y has no span; tests `maps_depth_position_when_vertical_span_is_missing` and `vertical_position_takes_priority_over_depth_position` pass in CI. | Delivered |
 
@@ -87,3 +87,6 @@ No `/dev/video*` capture device is available in this environment, so these two c
 
 Use `scripts/phase2-latency-summary.sh` after reading video frame numbers to produce a repeatable
 pass/fail result for the 300 ms visible-latency gate.
+
+Use `scripts/phase2-first-run-summary.sh` after timing the installed app flow to produce a
+repeatable pass/fail result for the 10-minute no-calibration first-run gate.

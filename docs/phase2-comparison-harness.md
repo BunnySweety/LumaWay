@@ -101,6 +101,15 @@ Pass criteria:
 - if the bridge has no Entertainment zone, record that as environment setup time outside LumaWay;
 - if `Probe backend` or `Quality` is used, record it as part of the timed flow.
 
+After measuring the elapsed time, use the helper for the Phase 2 pass/fail verdict:
+
+```sh
+scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
+```
+
+The command exits non-zero if elapsed time is greater than 600 seconds or if
+`calibrate-capture` was used.
+
 ## Result Template
 
 ```text
