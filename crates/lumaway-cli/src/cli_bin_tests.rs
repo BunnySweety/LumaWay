@@ -660,6 +660,8 @@ fn brightness_scales_average_color() {
             gain: 1.0,
             gamma: 1.0,
             saturation: 1.0,
+            black_threshold: 0,
+            min_luma: 0.0,
         },
     );
 
@@ -684,6 +686,50 @@ fn vivid_tuning_lifts_dim_capture_and_increases_saturation() {
     assert!(color.green > 60);
     assert!(color.blue > 140);
     assert!(color.blue.abs_diff(color.green) > 60);
+}
+
+#[test]
+fn vivid_tuning_lifts_dim_non_black_video_without_lighting_black() {
+    let vivid = ColorTuning::from(ColorProfile::Vivid);
+    let black = hue_color_from_average(
+        RgbAverage {
+            red: 0,
+            green: 0,
+            blue: 0,
+        },
+        1.0,
+        vivid,
+    );
+    assert_eq!((black.red, black.green, black.blue), (0, 0, 0));
+
+    let near_black_noise = hue_color_from_average(
+        RgbAverage {
+            red: 2,
+            green: 2,
+            blue: 2,
+        },
+        1.0,
+        vivid,
+    );
+    assert_eq!(
+        (
+            near_black_noise.red,
+            near_black_noise.green,
+            near_black_noise.blue
+        ),
+        (0, 0, 0)
+    );
+
+    let dim_content = hue_color_from_average(
+        RgbAverage {
+            red: 5,
+            green: 5,
+            blue: 5,
+        },
+        1.0,
+        vivid,
+    );
+    assert!(hue_luma(dim_content) >= 35.0);
 }
 
 #[test]

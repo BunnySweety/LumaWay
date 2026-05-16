@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 2.1 — crop manuel persistant dans les profils)
+Dernière revue : 2026-05-16 (Phase 2.2 — anti-noir doux du profil Vidéo)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -293,7 +293,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | # | Livrable |
 |---|----------|
 | 2.1 | Livré côté code : crop manuel persistant par profil via `LUMAWAY_SAMPLE_CROP_LEFT`, `LUMAWAY_SAMPLE_CROP_RIGHT`, `LUMAWAY_SAMPLE_CROP_TOP`, `LUMAWAY_SAMPLE_CROP_BOTTOM`, lus par `sync`, `sample-debug` et `capture-quality`; reste tuning visuel sur contenus avec bandes noires / overscan. |
-| 2.2 | Courbes par défaut plus lumineuses en mode Vidéo sur contenu sombre (anti-noir doux). |
+| 2.2 | Livré côté code : profil Vidéo / `vivid` garde le vrai noir et le bruit quasi noir éteints, mais applique un plancher doux de luminance aux contenus sombres non noirs. Reste validation visuelle sur films sombres réels. |
 | 2.3 | `backend-probe` proposé dans l’assistant si première sync noire. |
 | 2.4 | Harness de comparaison documenté (motifs fixes → **latence perceptible &lt; 300 ms** sur changement plein écran, couleur par canal) ; seuil documenté dans le harness ou la checklist release. |
 | 2.5 | Réutiliser `lumaway sample-debug` et `capture-quality` dans le flux diagnostic (déjà implémentés). |
@@ -535,7 +535,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
 | 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : guide première configuration + aucune zone Entertainment guidée ; 1.7 livré côté code : StatusNotifier/AppIndicator opportuniste + fallback fenêtre masquée + réactivation instance unique + notifications d’erreur classifiée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.12 livré : `LUMAWAY_LANG` + sélecteur langue ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
-| 2 | En cours | 2.1 livré côté code : les profils capture acceptent les clés `LUMAWAY_SAMPLE_CROP_*`, les templates/calibrations les initialisent à zéro, et les commandes écran les utilisent via l'environnement ; tuning manuel réel encore requis. |
+| 2 | En cours | 2.1 livré côté code : profils capture avec `LUMAWAY_SAMPLE_CROP_*`. 2.2 livré côté code : anti-noir doux du profil Vidéo / `vivid` avec vrai noir préservé ; tuning visuel réel encore requis. |
 | 3 | À faire | |
 | 4 | À faire | |
 
@@ -721,6 +721,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 2.2 anti-noir Vidéo | `ColorProfile::Vivid` préserve noir / bruit quasi noir et relève les contenus sombres non noirs via un plancher de luminance doux |
 | 2026-05-16 | Phase 2.1 crop profils | `LUMAWAY_SAMPLE_CROP_LEFT/RIGHT/TOP/BOTTOM` ajoutés aux profils non secrets ; `sync`, `sample-debug` et `capture-quality` peuvent réutiliser un crop manuel persistant |
 | 2026-05-16 | Phase 1.7 StatusNotifier/AppIndicator | Tray opportuniste via `ksni` : menu Show, Start/Stop, Quit avec confirmation si sync active ; MSRV relevé à Rust 1.80 pour suivre la dépendance |
 | 2026-05-16 | Phase 1.7 fallback sans tray | Close pendant sync masque la fenêtre au lieu de stopper ; relancer LumaWay présente l’instance existante ; notification minimale pour erreurs classifiées quand la fenêtre est masquée/inactive |

@@ -309,6 +309,7 @@ Store profiles separately from credentials.
 - Done: the point-sampling patch was widened to reduce single-pixel/detail sensitivity.
 - Done: `SampleRegion` and `--sampling point|region` add weighted rectangular region sampling while keeping point sampling available for comparison.
 - Done: `--color-profile soft|vivid|game|boosted|cinema|desktop` and `LUMAWAY_COLOR_PROFILE` select color grading curves for `sync`, `sync-bench`, and `sample-debug`.
+- Done: the default Video / `vivid` curve keeps true black and near-black capture noise dark while applying a soft minimum output luma to dim non-black content.
 - Done: the GTK Settings window exposes the same color-profile selector and passes it to the sync engine.
 - Done: `tv-wayland` uses CPU capture by default, weighted region sampling, and keeps max-step disabled for more responsive window changes.
 - Done: `lumaway backend-probe` compares CPU and GL on the same Portal stream and reports frames, max RGB, average luma, dark-frame detection, timing, and a conservative recommendation.
