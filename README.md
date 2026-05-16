@@ -264,7 +264,7 @@ lumaway portal-probe
 
 `LUMAWAY_APP_KEY` and `LUMAWAY_CLIENT_KEY` can be used instead of passing secrets as CLI arguments.
 
-This sync path now has 2D spatial point and weighted-region sampling, Hue Entertainment `position.z` as a vertical fallback, manual and profile-persistent crop controls, optional dark-border auto-crop, temporal smoothing, a small anti-noise threshold, an optional per-frame step limiter, backend probing/fallback, and Phase 2 latency and first-run validation helpers. Full 3D projection and the external latency/user-timing proof still require field validation.
+This sync path now has 2D spatial point and weighted-region sampling, Hue Entertainment `position.z` as a vertical fallback, manual and profile-persistent crop controls, optional dark-border auto-crop, temporal smoothing, a small anti-noise threshold, an optional per-frame step limiter, backend probing/fallback, and Phase 2 latency and first-run validation helpers. Full 3D projection and the external visible-latency, no-silent-black, and user-timing proof still require field validation.
 
 ## Documentation
 

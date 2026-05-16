@@ -521,7 +521,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 
 ## 10. Prochaines actions
 
-1. Produire les preuves terrain restantes Phase 2 via [`phase2-comparison-harness.md`](phase2-comparison-harness.md) : filmer le harness couleur avec écran + lampes à 120 fps ou plus, puis mesurer au moins 5 transitions acceptées toutes à 300 ms ou moins.
+1. Produire les preuves terrain restantes Phase 2 via [`phase2-comparison-harness.md`](phase2-comparison-harness.md) : filmer le harness couleur avec écran + lampes à 120 fps ou plus, mesurer au moins 5 transitions acceptées toutes à 300 ms ou moins, et confirmer qu'aucun motif non noir ne reste noir silencieusement.
 2. Chronométrer un parcours nouvel utilisateur jusqu'au premier sync écran satisfaisant, sans `calibrate-capture`, avec objectif 10 min ou moins, puis valider l'ensemble avec `scripts/phase2-field-evidence.sh --silent-black no ...`.
 3. Passer les critères release §15.2 sur GNOME Wayland : checklist utilisateur non dev, i18n visible, modes Video/Game/Desktop, fallback sans tray, robustesse P0, install script et absence de clés API à l'écran principal.
 4. Si le suivi GitHub est nécessaire, ouvrir une issue avec `.github/ISSUE_TEMPLATE/phase2-field-validation.md` et coller la sortie `phase2_field_evidence`.
