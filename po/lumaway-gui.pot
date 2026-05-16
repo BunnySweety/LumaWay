@@ -38,6 +38,15 @@ msgstr ""
 msgid "Restart LumaWay to apply the selected language."
 msgstr ""
 
+msgid "LumaWay is still syncing"
+msgstr ""
+
+msgid "Launch LumaWay again to stop sync from the window."
+msgstr ""
+
+msgid "LumaWay needs attention"
+msgstr ""
+
 msgid "Sync Philips Hue Entertainment lights from the Linux desktop. All processing stays local; no telemetry. Philips Hue is mentioned only to identify compatible hardware; LumaWay is not affiliated with Signify."
 msgstr ""
 

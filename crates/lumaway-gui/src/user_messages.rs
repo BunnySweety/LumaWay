@@ -40,7 +40,7 @@ impl UserMessageCode {
         }
     }
 
-    fn summary(self) -> String {
+    pub fn summary(self) -> String {
         match self {
             Self::ZoneOff => {
                 i18n::tr("Turn on the selected Entertainment zone before starting sync.")
@@ -72,7 +72,7 @@ impl UserMessageCode {
         }
     }
 
-    fn action(self) -> String {
+    pub fn action(self) -> String {
         match self {
             Self::ZoneOff => i18n::tr("Enable the zone switch, then start sync again."),
             Self::MissingSyncConfig => {

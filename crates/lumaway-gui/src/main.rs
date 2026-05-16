@@ -1,5 +1,5 @@
 use adw::prelude::*;
-use gtk::glib;
+use gtk::{gio, glib};
 use lumaway_core::{
     lumaway_main_env_path, migrate_lumaway_env_v1, sync_mode::resolve_sync_mode, SyncMode,
     CONFIG_VERSION_KEY, CURRENT_CONFIG_VERSION, LEGACY_PRESET_KEY, SYNC_MODE_KEY,
@@ -81,6 +81,7 @@ fn main() -> glib::ExitCode {
 
 #[derive(Clone)]
 struct Ui {
+    app: adw::Application,
     window: adw::ApplicationWindow,
     bridge: gtk::Entry,
     area: gtk::Entry,
@@ -513,6 +514,7 @@ fn build_widgets(
     window.set_content(Some(&toolbar_view));
 
     Ui {
+        app: app.clone(),
         window,
         bridge,
         area,
@@ -1229,9 +1231,21 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
 
     let close_ui = ui.clone();
     let close_state = state.clone();
-    ui.window.connect_close_request(move |_| {
-        stop_sync(&close_ui, &close_state);
-        glib::Propagation::Proceed
+    ui.window.connect_close_request(move |window| {
+        if sync_running(&close_state) {
+            window.set_visible(false);
+            send_desktop_notification(
+                &close_ui,
+                "lumaway-sync-background",
+                "LumaWay is still syncing",
+                &i18n::tr("Launch LumaWay again to stop sync from the window."),
+                gio::NotificationPriority::Normal,
+            );
+            glib::Propagation::Stop
+        } else {
+            stop_sync(&close_ui, &close_state);
+            glib::Propagation::Proceed
+        }
     });
 }
 
@@ -3014,8 +3028,10 @@ fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&st
 }
 
 fn append_user_error(ui: &Ui, error: &str) {
+    let code = user_messages::classify_error(error);
     append_log(&ui.logs, &user_messages::format_user_error(error));
-    show_error_actions(ui, user_messages::classify_error(error));
+    show_error_actions(ui, code);
+    notify_user_error(ui, code);
 }
 
 fn set_sync_status(ui: &Ui, message: &str) {
@@ -3053,6 +3069,41 @@ fn show_error_actions(ui: &Ui, code: user_messages::UserMessageCode) {
 
 fn hide_error_actions(ui: &Ui) {
     ui.error_actions.set_visible(false);
+}
+
+fn notify_user_error(ui: &Ui, code: user_messages::UserMessageCode) {
+    if !should_send_error_notification(ui.window.is_visible(), ui.window.is_active(), code) {
+        return;
+    }
+    let body = format!("{}\n{}", code.summary(), code.action());
+    send_desktop_notification(
+        ui,
+        "lumaway-error",
+        "LumaWay needs attention",
+        &body,
+        gio::NotificationPriority::High,
+    );
+}
+
+fn should_send_error_notification(
+    window_visible: bool,
+    window_active: bool,
+    code: user_messages::UserMessageCode,
+) -> bool {
+    code != user_messages::UserMessageCode::Unknown && (!window_visible || !window_active)
+}
+
+fn send_desktop_notification(
+    ui: &Ui,
+    id: &str,
+    title: &str,
+    body: &str,
+    priority: gio::NotificationPriority,
+) {
+    let notification = gio::Notification::new(&i18n::tr(title));
+    notification.set_body(Some(body));
+    notification.set_priority(priority);
+    ui.app.send_notification(Some(id), &notification);
 }
 
 fn config_path() -> PathBuf {
@@ -3409,6 +3460,7 @@ fn home_dir() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
+    use super::user_messages::UserMessageCode;
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
         desktop_exec_arg, format_bridge_title, format_capture_quality_summary,
@@ -3419,7 +3471,8 @@ mod tests {
         parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
         sanitize_color_profile, sanitize_language_setting, sanitize_profile_name,
         selected_area_index, session_autostart_desktop_entry_for_exec, setup_guide_complete,
-        setup_guide_status, sync_status_from_log, IntensityLevel, ABOUT_COMMENTS,
+        setup_guide_status, should_send_error_notification, sync_status_from_log, IntensityLevel,
+        ABOUT_COMMENTS,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3736,6 +3789,30 @@ mod tests {
         ));
         assert!(!is_sync_failure_candidate(
             "INFO lumaway: selected portal stream node_id=112"
+        ));
+    }
+
+    #[test]
+    fn critical_error_notifications_are_only_for_background_or_inactive_window() {
+        assert!(!should_send_error_notification(
+            true,
+            true,
+            UserMessageCode::HueBridgeLost
+        ));
+        assert!(should_send_error_notification(
+            false,
+            false,
+            UserMessageCode::HueBridgeLost
+        ));
+        assert!(should_send_error_notification(
+            true,
+            false,
+            UserMessageCode::PortalStreamClosed
+        ));
+        assert!(!should_send_error_notification(
+            false,
+            false,
+            UserMessageCode::Unknown
         ));
     }
 

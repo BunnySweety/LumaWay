@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.12 — sélecteur langue)
+Dernière revue : 2026-05-16 (Phase 1.7 — fallback sans tray)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -273,7 +273,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.4 | **Chaînes i18n complètes** | Socle livré : libellés accueil + réglages + statuts principaux via `tr(...)` / `tr_format(...)`, `po/fr.po` étendu, erreurs courantes via codes stables + `user_messages` ; reste revue visuelle locale et extension au fil des écrans ajoutés. |
 | 1.5 | **Écran principal épuré** | Fait : accueil limité aux gestes quotidiens ; `duration`, `profile`, `color_profile`, clés, réactivité fine, actions Quality/Calibrate et journal repliés dans Réglages avancés ; option **cinema** uniquement en Réglages avancé (§6). |
 | 1.6 | Assistant première utilisation | Partiel livré : carte accueil “First setup” tant que la configuration est incomplète, avec étapes pont → bouton physique / Pair → zone → Test lights → Start sync ; si le pont ne renvoie aucune zone Entertainment, état guidé pour créer une zone dans l’app Hue puis recharger. Assistant pleine page post-v1.0 si nécessaire. |
-| 1.7 | Icône barre système | StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter (confirmation si sync) **quand le bureau le supporte**. Sur GNOME vanilla sans extension tray, fallback requis : fenêtre qui conserve Start/Stop + notification minimale pour erreurs critiques si le portail/serveur de notifications est disponible. |
+| 1.7 | Icône barre système | Partiel livré : fallback GNOME sans tray — fermer la fenêtre pendant une sync masque la fenêtre et garde la sync active ; une deuxième activation de l’app présente l’instance existante pour Stop ; notification minimale GApplication pour erreurs classifiées quand la fenêtre est masquée ou inactive. Reste StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter **quand le bureau le supporte**. |
 | 1.8 | Démarrage de session | Fait : option Réglages traduite pour ouvrir LumaWay à la connexion via `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`; option séparée « Start sync when app opens » conservée pour lancer la sync à l’ouverture. |
 | 1.9 | Échecs explicites | Fait : erreurs Portal / capture / pont classifiées via gettext et complétées par actions contextuelles `Retry` et/ou `Open Settings` sur l’accueil. |
 | 1.10 | Flux Portal | Fait : statut traduit « Choose the screen or window to sync » pendant l’ouverture du sélecteur ; `lumaway sync` réutilise et persiste `LUMAWAY_PORTAL_RESTORE_TOKEN` si le portail renvoie un `restore_token`, sinon le rappel reste affiché à chaque session. |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : guide première configuration + aucune zone Entertainment guidée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : guide première configuration + aucune zone Entertainment guidée ; 1.7 fallback sans tray livré : fenêtre masquée pendant sync + réactivation instance unique + notifications d’erreur classifiée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.12 livré : `LUMAWAY_LANG` + sélecteur langue ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -651,7 +651,7 @@ Tous requis sauf mention « optionnel » :
 | **Pont injoignable** ou perdu pendant sync | Livré partiel : échec d’envoi DTLS pendant sync → arrêt propre, désactivation Entertainment tentée, message i18n “connexion pont perdue” + `Retry` / `Open Settings` ; validation manuelle encore requise | 1.13 |
 | **Flux Portal fermé** pendant sync | Livré partiel : absence de frames > 5 s → arrêt propre + désactivation Entertainment + message i18n ; validation manuelle encore requise | 1.13 |
 | **Échec DTLS** / handshake | **3 tentatives au total** puis message i18n ; doc comportement complet en Phase 4 ([open-questions.md](open-questions.md)) | 1.13 + 4 |
-| **Fallback GNOME sans tray** | Fenêtre Start/Stop toujours accessible ; notification minimale pour erreurs critiques si disponible | 1.7 / 1.13 |
+| **Fallback GNOME sans tray** | Livré côté code : fenêtre masquée au close pendant sync, deuxième lancement présente l’instance existante pour Stop, notification minimale pour erreurs classifiées quand la fenêtre est masquée/inactive ; validation manuelle notification serveur encore requise | 1.7 / 1.13 |
 | **Conflit Entertainment** (autre app / zone) | Message : une seule zone active ; actions `Retry` / `Open Settings` selon le contexte | 1.9 |
 | **Aucune zone** configurée | Livré partiel : état accueil “No Entertainment zone” + journal guidant la création d’une zone Entertainment dans l’app Hue, ajout de lumières, puis rechargement via Réglages > Save ; assistant complet reste 1.6 | 1.6 |
 | **Instance unique** GUI | Une seule fenêtre / une seule sync ; second lancement active l’instance existante | 1.14 |
@@ -712,7 +712,7 @@ Tous requis sauf mention « optionnel » :
 | Fichier | Action |
 |---------|--------|
 | [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après finalisation UX Phase 1 |
-| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.12 ajoute `LUMAWAY_LANG` + sélecteur langue ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
+| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.7 ajoute le fallback sans tray et notifications GApplication ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.12 ajoute `LUMAWAY_LANG` + sélecteur langue ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
 | README | Section « Comparaison Hue Sync » + guide traduction (Phase 4) |
 | [`test-matrix.md`](test-matrix.md) | Garder aligné avec §15.2 et §15.3 à chaque jalon |
 
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.7 fallback sans tray | Close pendant sync masque la fenêtre au lieu de stopper ; relancer LumaWay présente l’instance existante ; notification minimale pour erreurs classifiées quand la fenêtre est masquée/inactive |
 | 2026-05-16 | Phase 1.12 langue | `LUMAWAY_LANG=system|en|fr` lu avant gettext ; sélecteur langue dans Réglages, persistance dans `lumaway.env`, message de redémarrage |
 | 2026-05-16 | Phase 1.6 bouton pont | Erreur Hue “link button not pressed” classifiée avec message i18n et action Pair explicite |
 | 2026-05-16 | Phase 1.6 guide | Carte “First setup” sur l’accueil : Discover, Pair, Test lights (`test-color red`), progression jusqu’à Start sync |
