@@ -132,11 +132,12 @@ scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-out
 ```
 
 This command reuses the latency and first-run helpers above. It exits non-zero
-if the saved preflight is missing, ambiguous, or did not pass, the recording
-frame rate is below 120 fps, latency, first-run timing, or the no-silent-black
-gate fails. With a valid preflight file and valid arguments, it still prints
-every evidence section so the failed result can be copied into the validation
-audit; missing or ambiguous preflight files are treated as command errors.
+if the saved preflight is missing, ambiguous, or did not pass, both preflight
+options are provided, the recording frame rate is below 120 fps, latency,
+first-run timing, or the no-silent-black gate fails. With a valid preflight file
+and valid arguments, it still prints every evidence section so the failed result
+can be copied into the validation audit; missing, ambiguous, or conflicting
+preflight inputs are treated as command errors.
 
 ## Result Template
 

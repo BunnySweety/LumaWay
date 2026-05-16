@@ -152,8 +152,9 @@ Use `scripts/phase2-field-evidence.sh` when preflight and both measurements are 
 produce a single pasteable evidence block for this audit. Prefer
 `--preflight-output phase2-preflight.txt` so the final verifier reads the saved preflight
 result directly; the saved file must contain exactly one `phase2_field_preflight=pass`
-or `phase2_field_preflight=fail` line. Pass `--silent-black no` only when the manual run
-confirms that no non-black pattern stayed black silently.
+or `phase2_field_preflight=fail` line, and the command must not also pass
+`--preflight-pass`. Pass `--silent-black no` only when the manual run confirms that no
+non-black pattern stayed black silently.
 
 This validation is tracked in [GitHub issue #1](https://github.com/BunnySweety/LumaWay/issues/1),
 created from `.github/ISSUE_TEMPLATE/phase2-field-validation.md`.
