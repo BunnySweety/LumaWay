@@ -21,6 +21,13 @@ const APP_ID: &str = "io.github.BunnySweety.LumaWay";
 const DEFAULT_SYNC_MODE: SyncMode = SyncMode::Video;
 const COLOR_PROFILES: [&str; 6] = ["soft", "vivid", "game", "boosted", "cinema", "desktop"];
 const ABOUT_COMMENTS: &str = "Sync Philips Hue Entertainment lights from the Linux desktop. All processing stays local; no telemetry. Philips Hue is mentioned only to identify compatible hardware; LumaWay is not affiliated with Signify.";
+const LANGUAGE_KEY: &str = "LUMAWAY_LANG";
+const DEFAULT_LANGUAGE_SETTING: &str = "system";
+const LANGUAGE_OPTIONS: [(&str, &str); 3] = [
+    ("system", "System default"),
+    ("en", "English"),
+    ("fr", "French"),
+];
 /// Shown in `connection_status` when the Hue bridge is reachable (keep in sync with comparisons).
 const BRIDGE_STATUS_CONNECTED: &str = "Connected to bridge";
 /// Zone-card dim labels: offset to match DropDown / Switch / scale trough (GTK aligns widget tops, not optical centers).
@@ -61,9 +68,11 @@ impl IntensityLevel {
 }
 
 fn main() -> glib::ExitCode {
-    if let Err(error) = migrate_lumaway_env_v1(&lumaway_main_env_path()) {
+    let env_path = lumaway_main_env_path();
+    if let Err(error) = migrate_lumaway_env_v1(&env_path) {
         eprintln!("lumaway-gui: failed to migrate config: {error}");
     }
+    apply_language_override(&env_path);
     i18n::init_i18n();
     let app = adw::Application::builder().application_id(APP_ID).build();
     app.connect_activate(build_ui);
@@ -92,6 +101,7 @@ struct Ui {
     profile: gtk::Entry,
     color_profile: gtk::DropDown,
     sync_mode: Rc<Cell<SyncMode>>,
+    language: Rc<RefCell<String>>,
     autostart: gtk::CheckButton,
     connection_status: gtk::Label,
     bridge_display: gtk::Label,
@@ -297,6 +307,7 @@ fn build_widgets(
     /* Value under the trough keeps the handle at the top of the widget; valign Start on the row aligns label with the track. */
     intensity.set_value_pos(gtk::PositionType::Bottom);
     let sync_mode = Rc::new(Cell::new(initial_sync_mode(saved)));
+    let language = Rc::new(RefCell::new(initial_language_setting(saved)));
     let reactivity_customized = Rc::new(Cell::new(saved.contains_key("LUMAWAY_REACTIVITY")));
     let reactivity = percent_scale(initial_reactivity_percent(saved, sync_mode.get()));
     reactivity.set_tooltip_text(Some(&i18n::tr("Higher values react faster")));
@@ -522,6 +533,7 @@ fn build_widgets(
         profile,
         color_profile,
         sync_mode,
+        language,
         autostart,
         connection_status,
         bridge_display,
@@ -1029,6 +1041,61 @@ fn sanitize_color_profile(value: &str) -> &str {
     }
 }
 
+fn language_dropdown(active: &str) -> gtk::DropDown {
+    let labels = LANGUAGE_OPTIONS
+        .iter()
+        .map(|(_, label)| i18n::tr(label))
+        .collect::<Vec<_>>();
+    let label_refs = labels.iter().map(String::as_str).collect::<Vec<_>>();
+    let model = gtk::StringList::new(&label_refs);
+    let dropdown = gtk::DropDown::builder().model(&model).build();
+    select_language(&dropdown, active);
+    dropdown
+}
+
+fn select_language(dropdown: &gtk::DropDown, active: &str) {
+    dropdown.set_selected(language_option_index(active) as u32);
+}
+
+fn selected_language_setting(dropdown: &gtk::DropDown) -> String {
+    LANGUAGE_OPTIONS
+        .get(dropdown.selected() as usize)
+        .map(|(value, _)| (*value).to_string())
+        .unwrap_or_else(|| DEFAULT_LANGUAGE_SETTING.to_string())
+}
+
+fn language_option_index(active: &str) -> usize {
+    let sanitized = sanitize_language_setting(active);
+    LANGUAGE_OPTIONS
+        .iter()
+        .position(|(value, _)| *value == sanitized)
+        .unwrap_or(0)
+}
+
+fn sanitize_language_setting(value: &str) -> &'static str {
+    let normalized = value.trim().replace('-', "_");
+    let language = normalized
+        .split(['_', '.'])
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    match language.as_str() {
+        "" | "system" | "auto" | "default" => DEFAULT_LANGUAGE_SETTING,
+        "c" | "posix" | "en" => "en",
+        "fr" => "fr",
+        _ => DEFAULT_LANGUAGE_SETTING,
+    }
+}
+
+fn language_gettext_override(value: &str) -> Option<&'static str> {
+    match sanitize_language_setting(value) {
+        DEFAULT_LANGUAGE_SETTING => None,
+        "en" => Some("en"),
+        "fr" => Some("fr"),
+        _ => None,
+    }
+}
+
 fn row<W>(label: &str, widget: &W) -> gtk::Grid
 where
     W: IsA<gtk::Widget>,
@@ -1237,6 +1304,8 @@ fn open_settings_window(ui: &Ui) {
         "Profile file in ~/.config/lumaway/profiles",
     )));
     let color_profile = color_profile_dropdown(&selected_string(&ui.color_profile));
+    let language = language_dropdown(ui.language.borrow().as_str());
+    language.set_tooltip_text(Some(&i18n::tr("Applies after restarting LumaWay")));
     let session_autostart = gtk::CheckButton::builder()
         .label(i18n::tr("Open LumaWay when you sign in"))
         .active(session_autostart_enabled())
@@ -1270,6 +1339,7 @@ fn open_settings_window(ui: &Ui) {
     let tuning = section("Sync");
     tuning.add_css_class("compact-card");
     tuning.append(&row("Brightness", &intensity));
+    tuning.append(&row("App language", &language));
     tuning.append(&session_autostart);
     tuning.append(&autostart);
 
@@ -1353,6 +1423,7 @@ fn open_settings_window(ui: &Ui) {
     let save_reactivity = reactivity.clone();
     let save_profile = profile.clone();
     let save_color_profile = color_profile.clone();
+    let save_language = language.clone();
     let save_session_autostart = session_autostart.clone();
     let save_autostart = autostart.clone();
     save.connect_clicked(move |_| {
@@ -1368,6 +1439,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &save_reactivity,
                 profile: &save_profile,
                 color_profile: &save_color_profile,
+                language: &save_language,
                 session_autostart: &save_session_autostart,
                 autostart: &save_autostart,
             },
@@ -1387,6 +1459,7 @@ fn open_settings_window(ui: &Ui) {
     let detect_reactivity = reactivity.clone();
     let detect_profile = profile.clone();
     let detect_color_profile = color_profile.clone();
+    let detect_language = language.clone();
     let detect_session_autostart = session_autostart.clone();
     let detect_autostart = autostart.clone();
     detect.connect_clicked(move |_| {
@@ -1402,6 +1475,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &detect_reactivity,
                 profile: &detect_profile,
                 color_profile: &detect_color_profile,
+                language: &detect_language,
                 session_autostart: &detect_session_autostart,
                 autostart: &detect_autostart,
             },
@@ -1419,6 +1493,7 @@ fn open_settings_window(ui: &Ui) {
     let pair_reactivity = reactivity.clone();
     let pair_profile = profile.clone();
     let pair_color_profile = color_profile.clone();
+    let pair_language = language.clone();
     let pair_session_autostart = session_autostart.clone();
     let pair_autostart = autostart.clone();
     pair.connect_clicked(move |_| {
@@ -1434,6 +1509,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &pair_reactivity,
                 profile: &pair_profile,
                 color_profile: &pair_color_profile,
+                language: &pair_language,
                 session_autostart: &pair_session_autostart,
                 autostart: &pair_autostart,
             },
@@ -1456,6 +1532,7 @@ fn open_settings_window(ui: &Ui) {
     let quality_reactivity = reactivity.clone();
     let quality_profile = profile.clone();
     let quality_color_profile = color_profile.clone();
+    let quality_language = language.clone();
     let quality_session_autostart = session_autostart.clone();
     let quality_autostart = autostart.clone();
     quality.connect_clicked(move |_| {
@@ -1471,6 +1548,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &quality_reactivity,
                 profile: &quality_profile,
                 color_profile: &quality_color_profile,
+                language: &quality_language,
                 session_autostart: &quality_session_autostart,
                 autostart: &quality_autostart,
             },
@@ -1488,6 +1566,7 @@ fn open_settings_window(ui: &Ui) {
     let calibrate_reactivity = reactivity.clone();
     let calibrate_profile = profile.clone();
     let calibrate_color_profile = color_profile.clone();
+    let calibrate_language = language.clone();
     let calibrate_session_autostart = session_autostart.clone();
     let calibrate_autostart = autostart.clone();
     calibrate.connect_clicked(move |_| {
@@ -1503,6 +1582,7 @@ fn open_settings_window(ui: &Ui) {
                 reactivity: &calibrate_reactivity,
                 profile: &calibrate_profile,
                 color_profile: &calibrate_color_profile,
+                language: &calibrate_language,
                 session_autostart: &calibrate_session_autostart,
                 autostart: &calibrate_autostart,
             },
@@ -1549,6 +1629,7 @@ struct SettingsControls<'a> {
     reactivity: &'a gtk::Scale,
     profile: &'a gtk::Entry,
     color_profile: &'a gtk::DropDown,
+    language: &'a gtk::DropDown,
     session_autostart: &'a gtk::CheckButton,
     autostart: &'a gtk::CheckButton,
 }
@@ -1567,6 +1648,9 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
     ui.profile.set_text(controls.profile.text().trim());
     ui.color_profile
         .set_selected(controls.color_profile.selected());
+    let previous_language = ui.language.borrow().clone();
+    let selected_language = selected_language_setting(controls.language);
+    *ui.language.borrow_mut() = selected_language.clone();
     ui.autostart.set_active(controls.autostart.is_active());
     update_health(ui);
     update_zone_controls(ui, false);
@@ -1580,6 +1664,9 @@ fn apply_settings_values(ui: &Ui, controls: SettingsControls<'_>) {
     }
     let _ = write_env_file(env_file_values_from_ui(ui, ui.area.text().trim()));
     append_log_msg(&ui.logs, "Settings saved.");
+    if selected_language != previous_language {
+        append_log_msg(&ui.logs, "Restart LumaWay to apply the selected language.");
+    }
 }
 
 fn discover_bridges(ui: &Ui) {
@@ -3057,8 +3144,26 @@ fn read_env_file() -> anyhow::Result<HashMap<String, String>> {
     Ok(values)
 }
 
+fn apply_language_override(path: &Path) {
+    let requested = std::env::var(LANGUAGE_KEY)
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| {
+            lumaway_core::read_env_file(path)
+                .ok()
+                .and_then(|values| values.get(LANGUAGE_KEY).cloned())
+        });
+    let Some(requested) = requested else {
+        return;
+    };
+    if let Some(language) = language_gettext_override(&requested) {
+        std::env::set_var("LANGUAGE", language);
+    }
+}
+
 struct EnvFileValues {
     sync_mode: SyncMode,
+    language: String,
     bridge: String,
     bridge_id: String,
     area: String,
@@ -3075,6 +3180,7 @@ struct EnvFileValues {
 fn env_file_values_from_ui(ui: &Ui, area: &str) -> EnvFileValues {
     EnvFileValues {
         sync_mode: screen_sync_mode(ui.sync_mode.get()),
+        language: ui.language.borrow().clone(),
         bridge: ui.bridge.text().trim().to_string(),
         bridge_id: ui.bridge_id.borrow().trim().to_string(),
         area: area.trim().to_string(),
@@ -3101,11 +3207,13 @@ fn write_env_file(values: EnvFileValues) -> anyhow::Result<()> {
         format!("LUMAWAY_BRIDGE_ID={}\n", values.bridge_id.trim())
     };
     let text = format!(
-        "{config_version_key}={config_version}\n{sync_mode_key}={sync_mode}\nLUMAWAY_BRIDGE={bridge}\n{bridge_id_line}LUMAWAY_AREA={area}\nLUMAWAY_APP_KEY={app_key}\nLUMAWAY_CLIENT_KEY={client_key}\nLUMAWAY_PROFILE={profile}\nLUMAWAY_DURATION_MS={duration_ms}\nLUMAWAY_BRIGHTNESS={brightness}\nLUMAWAY_REACTIVITY={reactivity}\nLUMAWAY_COLOR_PROFILE={color_profile}\nLUMAWAY_AUTOSTART_SYNC={autostart}\nRUST_LOG=lumaway=info\n",
+        "{config_version_key}={config_version}\n{sync_mode_key}={sync_mode}\n{language_key}={language}\nLUMAWAY_BRIDGE={bridge}\n{bridge_id_line}LUMAWAY_AREA={area}\nLUMAWAY_APP_KEY={app_key}\nLUMAWAY_CLIENT_KEY={client_key}\nLUMAWAY_PROFILE={profile}\nLUMAWAY_DURATION_MS={duration_ms}\nLUMAWAY_BRIGHTNESS={brightness}\nLUMAWAY_REACTIVITY={reactivity}\nLUMAWAY_COLOR_PROFILE={color_profile}\nLUMAWAY_AUTOSTART_SYNC={autostart}\nRUST_LOG=lumaway=info\n",
         config_version_key = CONFIG_VERSION_KEY,
         config_version = CURRENT_CONFIG_VERSION,
         sync_mode_key = SYNC_MODE_KEY,
         sync_mode = values.sync_mode.as_env_value(),
+        language_key = LANGUAGE_KEY,
+        language = sanitize_language_setting(&values.language),
         bridge = values.bridge,
         area = values.area,
         app_key = values.app_key,
@@ -3191,6 +3299,16 @@ fn initial_sync_mode(saved: &HashMap<String, String>) -> SyncMode {
         saved.get(SYNC_MODE_KEY).map(String::as_str),
         saved.get(LEGACY_PRESET_KEY).map(String::as_str),
     ))
+}
+
+fn initial_language_setting(saved: &HashMap<String, String>) -> String {
+    sanitize_language_setting(
+        saved
+            .get(LANGUAGE_KEY)
+            .map(String::as_str)
+            .unwrap_or(DEFAULT_LANGUAGE_SETTING),
+    )
+    .to_string()
 }
 
 fn screen_sync_mode(mode: SyncMode) -> SyncMode {
@@ -3294,13 +3412,14 @@ mod tests {
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
         desktop_exec_arg, format_bridge_title, format_capture_quality_summary,
-        initial_reactivity_percent, initial_sync_mode, intensity_level_for_percent,
-        is_sync_failure_candidate, lumaway_bin_override_rejection_reason, parse_area_state_output,
+        initial_language_setting, initial_reactivity_percent, initial_sync_mode,
+        intensity_level_for_percent, is_sync_failure_candidate, language_gettext_override,
+        language_option_index, lumaway_bin_override_rejection_reason, parse_area_state_output,
         parse_areas_output, parse_auth_output, parse_bridge_discovery_output,
         parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
-        sanitize_color_profile, sanitize_profile_name, selected_area_index,
-        session_autostart_desktop_entry_for_exec, setup_guide_complete, setup_guide_status,
-        sync_status_from_log, IntensityLevel, ABOUT_COMMENTS,
+        sanitize_color_profile, sanitize_language_setting, sanitize_profile_name,
+        selected_area_index, session_autostart_desktop_entry_for_exec, setup_guide_complete,
+        setup_guide_status, sync_status_from_log, IntensityLevel, ABOUT_COMMENTS,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3518,6 +3637,27 @@ mod tests {
             initial_sync_mode(&saved(&[("LUMAWAY_SYNC_MODE", "music")])),
             SyncMode::Video
         );
+    }
+
+    #[test]
+    fn language_setting_supports_system_english_and_french() {
+        assert_eq!(sanitize_language_setting(""), "system");
+        assert_eq!(sanitize_language_setting("system"), "system");
+        assert_eq!(sanitize_language_setting("fr_FR.UTF-8"), "fr");
+        assert_eq!(sanitize_language_setting("fr-FR"), "fr");
+        assert_eq!(sanitize_language_setting("en_US.UTF-8"), "en");
+        assert_eq!(sanitize_language_setting("C"), "en");
+        assert_eq!(sanitize_language_setting("de_DE.UTF-8"), "system");
+        assert_eq!(
+            initial_language_setting(&saved(&[("LUMAWAY_LANG", "fr_FR.UTF-8")])),
+            "fr"
+        );
+        assert_eq!(language_option_index("system"), 0);
+        assert_eq!(language_option_index("en"), 1);
+        assert_eq!(language_option_index("fr"), 2);
+        assert_eq!(language_gettext_override("system"), None);
+        assert_eq!(language_gettext_override("fr_FR.UTF-8"), Some("fr"));
+        assert_eq!(language_gettext_override("en_US.UTF-8"), Some("en"));
     }
 
     #[test]

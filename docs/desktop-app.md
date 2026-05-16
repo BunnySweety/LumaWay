@@ -96,6 +96,7 @@ The wrapper reads these optional values from `~/.config/lumaway/lumaway.env`:
 
 ```text
 LUMAWAY_BIN=/custom/path/to/lumaway
+LUMAWAY_LANG=system
 LUMAWAY_PROFILE=default
 LUMAWAY_SYNC_MODE=video
 LUMAWAY_DURATION_MS=0
@@ -112,6 +113,8 @@ With pinning enabled, the first successful HTTPS session to the bridge stores a 
 For entertainment **DTLS** (UDP 2100), `LUMAWAY_BRIDGE` must be a private or link-local address unless you set `LUMAWAY_DTLS_ALLOW_REMOTE=1`. `lumaway doctor` checks `LUMAWAY_CLIENT_KEY` and this target.
 
 Keep `LUMAWAY_DURATION_MS=0` for normal long-running use. CLI commands load this file automatically, then load `LUMAWAY_PROFILE` non-secret capture/color defaults from `~/.config/lumaway/profiles/<name>.env`; the GUI-saved file is the source of truth for commands run without explicit flags. `LUMAWAY_SYNC_MODE=video|game|desktop` chooses the screen mode and resolves the matching preset (`video-wayland`, `game-wayland`, `desktop-wayland`). `LUMAWAY_PRESET=tv-wayland` remains accepted as a legacy alias for Video when no sync mode is set. `LUMAWAY_BRIGHTNESS` and `LUMAWAY_REACTIVITY` are written by the GUI sliders as values from `0.00` to `1.00`. `LUMAWAY_COLOR_PROFILE` is kept as an advanced compatibility value; when `LUMAWAY_SYNC_MODE` is set, the mode default wins. `LUMAWAY_PORTAL_RESTORE_TOKEN` is managed by `lumaway sync` when the desktop portal supports persistent ScreenCast selections. `LUMAWAY_AUTOSTART_SYNC=true` starts sync automatically when the application opens.
+
+`LUMAWAY_LANG=system|en|fr` controls the GUI language before gettext initializes. Settings exposes the same App language selector and writes it to `lumaway.env`; restart LumaWay after changing it. A process-level `LUMAWAY_LANG` environment variable overrides the saved setting for that launch.
 
 Settings has two separate startup options. `Open LumaWay when you sign in` creates or removes the XDG autostart entry at `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`. `Start sync when app opens` writes `LUMAWAY_AUTOSTART_SYNC=true` and starts screen sync after the app opens.
 

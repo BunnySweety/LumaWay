@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.6 — pairing sans bouton pont)
+Dernière revue : 2026-05-16 (Phase 1.12 — sélecteur langue)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -278,7 +278,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.9 | Échecs explicites | Fait : erreurs Portal / capture / pont classifiées via gettext et complétées par actions contextuelles `Retry` et/ou `Open Settings` sur l’accueil. |
 | 1.10 | Flux Portal | Fait : statut traduit « Choose the screen or window to sync » pendant l’ouverture du sélecteur ; `lumaway sync` réutilise et persiste `LUMAWAY_PORTAL_RESTORE_TOKEN` si le portail renvoie un `restore_token`, sinon le rappel reste affiché à chaque session. |
 | 1.11 | **Bouton unique sync** | Fait : bouton unique Start sync / Stop sync ; Réglages, pairing, découverte, zone, luminosité, intensité et champs avancés bloqués pendant sync. |
-| 1.12 | **Langue (optionnel v1.0)** | Sélecteur langue dans Réglages ou `LUMAWAY_LANG` ; sinon locale OS uniquement. |
+| 1.12 | **Langue (optionnel v1.0)** | Fait : sélecteur `App language` dans Réglages (`system`, `en`, `fr`) persisté via `LUMAWAY_LANG`; lecture avant gettext au démarrage, avec variable d'environnement `LUMAWAY_LANG` prioritaire sur la valeur sauvegardée pour le lancement courant. Changement appliqué après redémarrage. |
 | 1.13 | **Robustesse quotidienne** | P0 livré côté code : **sortie inattendue du subprocess `lumaway`** → UI + message i18n + Start disponible ; le dernier log d’erreur classe pont / Portal / capture / DTLS via `user_messages` ; flux Portal sans nouvelle frame > 5 s → erreur classifiée + arrêt/désactivation Entertainment ; échec d’envoi DTLS pendant sync → message “connexion pont perdue” + Start disponible ; reprise après veille détectée par écart horloge murale / monotone > 5 s → Stop + message i18n. Reste validation manuelle §15.3 ; reconnexion DTLS continue = post-v1.0. |
 | 1.14 | **Instance unique GUI** | Fait : `application_id` GTK unique ; une activation secondaire présente la fenêtre existante au lieu de reconstruire une seconde fenêtre/sync. |
 | 1.15 | **Changement de mode** | Fait : en v1.0, changement de mode **après Stop** ; tuiles Mode désactivées pendant sync avec tooltip traduit ; bascule à chaud = post-v1.0. |
@@ -712,7 +712,7 @@ Tous requis sauf mention « optionnel » :
 | Fichier | Action |
 |---------|--------|
 | [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après finalisation UX Phase 1 |
-| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
+| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.12 ajoute `LUMAWAY_LANG` + sélecteur langue ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
 | README | Section « Comparaison Hue Sync » + guide traduction (Phase 4) |
 | [`test-matrix.md`](test-matrix.md) | Garder aligné avec §15.2 et §15.3 à chaque jalon |
 
@@ -720,6 +720,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.12 langue | `LUMAWAY_LANG=system|en|fr` lu avant gettext ; sélecteur langue dans Réglages, persistance dans `lumaway.env`, message de redémarrage |
 | 2026-05-16 | Phase 1.6 bouton pont | Erreur Hue “link button not pressed” classifiée avec message i18n et action Pair explicite |
 | 2026-05-16 | Phase 1.6 guide | Carte “First setup” sur l’accueil : Discover, Pair, Test lights (`test-color red`), progression jusqu’à Start sync |
 | 2026-05-16 | Phase 1.6 aucune zone | Retour `list-areas` vide transformé en état guidé : zone désactivée, en-tête clair, étapes app Hue puis rechargement |

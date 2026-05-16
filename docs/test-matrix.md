@@ -41,6 +41,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - First-run wizard: discover bridge → pair → load area → test color → start sync.
 - Non-developer UX checklist ([plan-hue-sync-daily.md](plan-hue-sync-daily.md) §3.4): no terminal, no app-key on home screen.
 - i18n: `LANG=fr_FR.UTF-8` — home screen fully French; unknown locale falls back to English (§3.5).
+- i18n: Settings `App language` persists `LUMAWAY_LANG=system|en|fr`; after restart, saved language is applied before gettext initializes, and a process-level `LUMAWAY_LANG` override wins for that launch.
 - i18n: `LANG=de_DE.UTF-8` — when `de.po` ships, primary UI in German.
 - Install script installs compiled `.mo` under `~/.local/share/locale/`.
 - Install script installs translated `.desktop` and AppStream `.metainfo.xml`.
@@ -139,6 +140,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: About dialog copy covers local processing, no telemetry, Philips Hue compatibility scope, and non-affiliation.
 - `cargo test`: first-setup guide status advances from bridge discovery to ready-to-start.
 - `cargo test`: Hue link-button pairing errors are classified separately from saved-key authentication failures.
+- `cargo test`: GUI language settings normalize `LUMAWAY_LANG`, map saved `fr_FR` / `en_US` values before gettext, and keep the Settings selector on system/en/fr.
 - `cargo test`: empty area-list selection keeps no zone selected instead of picking a stale value.
 - `cargo test`: relative 2D channel sample mapping, configurable edge margin, manual crop bounds, same-height vertical centering, and fallback placement are covered with unit tests.
 - `cargo test`: sampled dark-border detection, fully dark frame handling, crop aggregation, auto-crop edge cap validation, manual-plus-auto crop merging, and copyable crop args are covered with unit tests.

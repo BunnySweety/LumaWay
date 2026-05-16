@@ -21,6 +21,24 @@ msgstr "Réglages"
 msgid "About"
 msgstr "À propos"
 
+msgid "System default"
+msgstr "Langue du système"
+
+msgid "English"
+msgstr "Anglais"
+
+msgid "French"
+msgstr "Français"
+
+msgid "App language"
+msgstr "Langue de l'application"
+
+msgid "Applies after restarting LumaWay"
+msgstr "S'applique après le redémarrage de LumaWay"
+
+msgid "Restart LumaWay to apply the selected language."
+msgstr "Redémarrez LumaWay pour appliquer la langue sélectionnée."
+
 msgid "Sync Philips Hue Entertainment lights from the Linux desktop. All processing stays local; no telemetry. Philips Hue is mentioned only to identify compatible hardware; LumaWay is not affiliated with Signify."
 msgstr "Synchronise les lumières Philips Hue Entertainment depuis le bureau Linux. Tout le traitement reste local ; aucune télémétrie. Philips Hue est mentionné uniquement pour identifier le matériel compatible ; LumaWay n'est pas affilié à Signify."
 
