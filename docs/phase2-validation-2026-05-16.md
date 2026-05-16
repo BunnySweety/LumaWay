@@ -12,6 +12,7 @@ Repository state:
 - TV validation commit: `5bdb192` (`Record Phase 2 TV validation`);
 - field-gate clarification commit: `7e8286e` (`Clarify Phase 2 field validation gates`);
 - latest validated CI run: `25948910463` on `7e8286e`, workflow `CI`, job `rust`, conclusion `success`.
+- validation audit commit: `ab8725d` (`Add Phase 2 validation audit`).
 
 ## Deliverable Checklist
 
@@ -20,7 +21,7 @@ Repository state:
 | 2.1 persistent manual crop profile via `LUMAWAY_SAMPLE_CROP_LEFT/RIGHT/TOP/BOTTOM`, reused by `sync`, `sample-debug`, and `capture-quality` | `crates/lumaway-cli/src/cli_args.rs` reads crop env keys for all three commands; `crates/lumaway-cli/src/profile_env.rs` includes crop defaults and whitelists profile keys; tests `sync_reads_sample_crop_from_environment` and `profile_template_includes_persistent_crop_defaults` pass in CI. | Delivered |
 | 2.2 Video / `vivid` preserves true black and near-black noise while lifting dim non-black content | `crates/lumaway-cli/src/color_tuning.rs`; test `vivid_tuning_lifts_dim_non_black_video_without_lighting_black` confirms black/noise stay off and dim content reaches soft output luma. | Delivered |
 | 2.3 GUI suggests `backend-probe` after black/too-dark capture | `crates/lumaway-gui/src/main.rs` shows `Probe backend` after `CaptureTooDark`, runs `lumaway backend-probe`, and formats CPU/GL summary; `crates/lumaway-gui/src/user_messages.rs` recovery action points to backend probe; test `formats_backend_probe_summary` passes in CI. | Delivered |
-| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, and result fields. | Delivered |
+| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, and result fields; `scripts/phase2-latency-summary.sh` converts observed video frame pairs into pass/fail latency evidence. | Delivered |
 | 2.5 diagnostics reuse `sample-debug` and `capture-quality` | `docs/desktop-app.md` documents GUI `Quality`; `docs/phase2-comparison-harness.md` uses both diagnostics; `docs/test-matrix.md` contains live diagnostic evidence. | Delivered |
 | 2.6 Entertainment `position.z` handling | `crates/lumaway-cli/src/sampling.rs` uses `position.y` first and falls back to `position.z` when Y has no span; tests `maps_depth_position_when_vertical_span_is_missing` and `vertical_position_takes_priority_over_depth_position` pass in CI. | Delivered |
 
@@ -83,3 +84,6 @@ The remaining Phase 2 finish criteria require a person and/or camera:
 - new-user timing: start from installed app, no prior capture calibration, and time until first satisfactory non-black TV/monitor sync; pass threshold is <= 10 minutes.
 
 No `/dev/video*` capture device is available in this environment, so these two criteria cannot be completed by the agent here.
+
+Use `scripts/phase2-latency-summary.sh` after reading video frame numbers to produce a repeatable
+pass/fail result for the 300 ms visible-latency gate.

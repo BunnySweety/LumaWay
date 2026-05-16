@@ -79,6 +79,15 @@ Phase 2.4 / v1.0 pass criteria:
 - no session may stay black silently after a non-black pattern is shown;
 - if a transition is discarded, record why, for example camera exposure loss or occluded light.
 
+After reading frame numbers from the video, use the helper to avoid manual arithmetic mistakes:
+
+```sh
+scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
+```
+
+Each argument is `screen_frame:light_frame`. The command exits non-zero if fewer than 5
+transitions are supplied or if any accepted transition exceeds 300 ms.
+
 ## First-Run Timing
 
 For the Phase 2 finish criterion, time a user who starts from an installed app and no prior capture
