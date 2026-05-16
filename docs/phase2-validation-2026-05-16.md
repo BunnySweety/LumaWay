@@ -21,7 +21,8 @@ Repository state:
 - silent-black evidence gate commit: `b74ff6c` (`Track Phase 2 silent black evidence`);
 - required silent-black flag coverage commit: `7a6db70` (`Cover required silent black evidence flag`);
 - plan latency wording alignment commit: `936e75b` (`Align Phase 2 latency threshold wording`);
-- CI evidence for the automated Phase 2 artifacts: `25950935562` on `936e75b`, workflow `CI`, job `rust`, conclusion `success`.
+- field preflight helper commit: `a17b966` (`Add Phase 2 field preflight helper`);
+- CI evidence for the automated Phase 2 artifacts: `25973281682` on `a17b966`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
 
@@ -54,7 +55,7 @@ Prompt-to-artifact checklist:
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Field capture preflight | `scripts/phase2-field-preflight.sh`, CI | Helper checks local helper/harness files and camera availability before a manual run; CI covers camera-optional pass and missing-camera fail paths. | Covered |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950935562` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 latency wording baseline `936e75b`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25973281682` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 preflight baseline `a17b966`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
