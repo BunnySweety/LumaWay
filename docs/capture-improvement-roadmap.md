@@ -324,7 +324,7 @@ Store profiles separately from credentials.
 - Done: CLI commands automatically load `~/.config/lumaway/lumaway.env` before profile defaults, so diagnostics can reuse the GUI-saved bridge, keys, area, and selected profile without manual shell sourcing.
 - Done: `lumaway calibrate-capture --name <name>` probes CPU/GL on a real Portal stream and writes a measured profile with the recommended capture backend.
 - Done: the GUI Settings window exposes a `Capture profile` field, can list existing profiles, passes `LUMAWAY_PROFILE` to sync, and has a `Calibrate` button that writes the selected measured profile.
-- Remaining: guided pattern-based calibration for color/gamma/saturation and a richer GUI profile picker/dropdown.
+- Post-v1.0 / non-blocking for the Phase 2 release gate: guided pattern-based calibration for color/gamma/saturation and a richer GUI profile picker/dropdown.
 
 ### Phase 1: Diagnostics
 
@@ -404,4 +404,4 @@ Build `sample-debug` first. It is the foundation for every later improvement bec
 - what color did the grading produce?
 - what was sent to Hue?
 
-Region sampling and color profiles are now implemented. The next highest-impact work is a backend quality self-test plus persistent calibration profiles so the app can pick a reliable capture path and remember per-room tuning.
+Region sampling, color profiles, backend quality self-test, CPU fallback, persistent capture profiles, and GUI profile wiring are now implemented. The remaining Phase 2 release gate is external field evidence: record the comparison harness with screen and Hue lights, confirm visible latency at or below 300 ms for at least five accepted transitions, confirm no silent black session, and time a no-calibration first run at 10 minutes or less.
