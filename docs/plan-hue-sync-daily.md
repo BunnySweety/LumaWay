@@ -549,6 +549,7 @@ Mettre à jour ce tableau à chaque jalon livré.
 | [hue-sync-research.md](hue-sync-research.md) | Contraintes API Entertainment et parité technique écran |
 | [capture-improvement-roadmap.md](capture-improvement-roadmap.md) | Détail Phase 2 (qualité capture/couleur) |
 | [phase2-comparison-harness.md](phase2-comparison-harness.md) | Harness Phase 2.4 : motifs fixes, mesure latence ≤ 300 ms, preuve couleur par canal |
+| [phase2-validation-2026-05-16.md](phase2-validation-2026-05-16.md) | Audit Phase 2 : mapping livrables → preuves, validation TV réelle, critères terrain restants |
 | [desktop-app.md](desktop-app.md) | Install GUI, `lumaway.env`, autostart |
 | [security.md](security.md) | Pinning TLS, DTLS LAN, `LUMAWAY_BRIDGE_ID` |
 | [backlog.md](backlog.md) | Historique jalons + éléments reportés |
