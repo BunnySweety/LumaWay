@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 2.6 — projection depth `position.z`)
+Dernière revue : 2026-05-16 (Phase 2 — état livré et preuves terrain restantes)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -521,12 +521,12 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 
 ## 10. Prochaines actions
 
-1. Valider wireframe §3.3, msgid stables et table réactivité §6 (Subtle→Max).
-2. Phase 0 : `SyncMode` + presets CLI + `LUMAWAY_CONFIG_VERSION` + `po/` + gettext dans `lumaway-gui`.
-3. Phase 1 en priorité : i18n, puis **1.1, 1.2, 1.3** (propagation env / preset), **1.4, 1.5, 1.11**, puis **1.13–1.14** (robustesse §15 P0, instance unique), tray/assistant.
-4. Tests checklist §3.4, §3.5 et release §15.2 avec utilisateur non dev.
-5. Spike Phase 3 : `audio-sync` puis activer tuile Musique.
-6. Relire [`desktop-app.md`](desktop-app.md) après câblage GUI Phase 1 pour vérifier les modes visibles, gettext et le périmètre v1.0 (§15.6).
+1. Produire les preuves terrain restantes Phase 2 : filmer le harness couleur avec écran + lampes à 120 fps ou plus, puis mesurer au moins 5 transitions acceptées toutes à 300 ms ou moins.
+2. Chronométrer un parcours nouvel utilisateur jusqu'au premier sync écran satisfaisant, sans `calibrate-capture`, avec objectif 10 min ou moins.
+3. Passer les critères release §15.2 sur GNOME Wayland : checklist utilisateur non dev, i18n visible, modes Video/Game/Desktop, fallback sans tray, robustesse P0, install script et absence de clés API à l'écran principal.
+4. Ajuster les valeurs visuelles uniquement après preuve sur contenu réel : smoothing, `noise-threshold`, `max-step`, marge d'échantillonnage, crop persistant et `--auto-crop`.
+5. Relire [`desktop-app.md`](desktop-app.md), README et [`test-matrix.md`](test-matrix.md) après validation manuelle pour aligner captures, commandes et périmètre v1.0 (§15.6).
+6. Après gel v1.0 écran quotidien, ouvrir Phase 3 : `audio-sync`, puis tuile Musique.
 7. Ne plus modifier le périmètre sans entrée §15.7 + mise à jour **Dernière revue** (§16).
 
 ## 11. Suivi
@@ -723,6 +723,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Prochaines actions réalignées | §10 ne liste plus Phase 0 / premières tâches Phase 1 comme travaux à lancer ; il pointe maintenant vers les preuves terrain Phase 2, la checklist release v1.0 et le gel avant Phase 3 |
 | 2026-05-16 | Phase 2 critères terrain restants | Harness Phase 2 enrichi avec garde-fou interne `sync_stats`, champs de preuve vidéo ≤ 300 ms et chronométrage nouvel utilisateur ≤ 10 min ; ces deux preuves restent manuelles car elles exigent caméra / observateur |
 | 2026-05-16 | Phase 2 validation TV réelle | Commit `593bd0a` validé sur GNOME Wayland + zone TV : `backend-probe` recommande CPU, `sample-debug` et `capture-quality` capturent sans frame noire, `sync --area TV --duration-ms 3000` démarre sans `calibrate-capture`, bascule GL noir → CPU, envoie 75 frames puis désactive Entertainment |
 | 2026-05-16 | Phase 2.6 projection `z` | Sampling 2D garde `position.y` prioritaire et utilise `position.z` comme axe vertical de repli si `y` n'a pas de variation exploitable |
