@@ -27,24 +27,24 @@ Relevant artifacts:
 For a phone or another non-V4L2 camera, use:
 
 ```sh
-scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120
+scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee phase2-preflight.txt
 ```
 
 For a local `/dev/video*` camera, use:
 
 ```sh
-scripts/phase2-field-preflight.sh
+scripts/phase2-field-preflight.sh | tee phase2-preflight.txt
 ```
 
 - [ ] Run the combined verifier:
 
 ```sh
-scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --preflight-pass yes --calibrate-used no --silent-black no <screen_frame:light_frame>...
+scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --preflight-output phase2-preflight.txt --calibrate-used no --silent-black no <screen_frame:light_frame>...
 ```
 
-The combined verifier exits non-zero when `--preflight-pass no` is provided or
-when `--fps` is below the default 120 fps minimum, even if the frame pairs would
-otherwise satisfy the latency threshold.
+The combined verifier exits non-zero when the saved preflight output is missing,
+ambiguous, or did not pass, or when `--fps` is below the default 120 fps minimum,
+even if the frame pairs would otherwise satisfy the latency threshold.
 
 ## Preflight Block
 

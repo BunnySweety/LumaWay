@@ -135,9 +135,10 @@ The remaining Phase 2 finish criteria require a person and/or camera:
 
 No `/dev/video*` capture device is available in this environment, so these field criteria cannot be completed by the agent here.
 
-Use `scripts/phase2-field-preflight.sh` on the target machine before recording to confirm that
+Use `scripts/phase2-field-preflight.sh | tee phase2-preflight.txt` on the target machine before recording to confirm that
 the helper files, camera availability, and capture FPS are ready. For a phone or another
-non-V4L2 camera, use `scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120`.
+non-V4L2 camera, use
+`scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee phase2-preflight.txt`.
 
 Use `scripts/phase2-latency-summary.sh` after reading video frame numbers to produce a repeatable
 pass/fail result for the 300 ms visible-latency gate.
@@ -146,10 +147,11 @@ Use `scripts/phase2-first-run-summary.sh` after timing the installed app flow to
 repeatable pass/fail result for the 10-minute no-calibration first-run gate.
 
 Use `scripts/phase2-field-evidence.sh` when preflight and both measurements are available to
-produce a single pasteable evidence block for this audit. Pass `--preflight-pass yes` only
-when the target-machine preflight printed `phase2_field_preflight=pass`. Pass
-`--silent-black no` only when the manual run confirms that no non-black pattern stayed
-black silently.
+produce a single pasteable evidence block for this audit. Prefer
+`--preflight-output phase2-preflight.txt` so the final verifier reads the saved preflight
+result directly; the saved file must contain exactly one `phase2_field_preflight=pass`
+or `phase2_field_preflight=fail` line. Pass `--silent-black no` only when the manual run
+confirms that no non-black pattern stayed black silently.
 
 This validation is tracked in [GitHub issue #1](https://github.com/BunnySweety/LumaWay/issues/1),
 created from `.github/ISSUE_TEMPLATE/phase2-field-validation.md`.

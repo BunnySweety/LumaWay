@@ -7,6 +7,7 @@ fps=""
 elapsed_seconds=""
 calibrate_used="no"
 preflight_pass=""
+preflight_output=""
 silent_black=""
 latency_threshold_ms="300"
 first_run_threshold_seconds="600"
@@ -17,11 +18,12 @@ declare -a pairs=()
 usage() {
     cat <<'EOF'
 Usage:
-  scripts/phase2-field-evidence.sh --fps <fps> --elapsed-seconds <seconds> --preflight-pass yes|no --silent-black yes|no [options] <screen_frame:light_frame>...
+  scripts/phase2-field-evidence.sh --fps <fps> --elapsed-seconds <seconds> (--preflight-output <path>|--preflight-pass yes|no) --silent-black yes|no [options] <screen_frame:light_frame>...
 
 Options:
   --calibrate-used yes|no              Whether calibrate-capture was used in the timed flow. Default: no.
-  --preflight-pass yes|no              Whether phase2-field-preflight passed on the target machine. Required.
+  --preflight-output <path>            Saved output from phase2-field-preflight.sh. Preferred.
+  --preflight-pass yes|no              Whether phase2-field-preflight passed on the target machine.
   --silent-black yes|no                Whether a non-black pattern stayed black silently. Required.
   --latency-threshold-ms <ms>          Visible latency gate. Default: 300.
   --first-run-threshold-seconds <sec>  First-run timing gate. Default: 600.
@@ -29,7 +31,8 @@ Options:
   --min-transitions <n>                Minimum accepted video transitions. Default: 5.
 
 Example:
-  scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+  scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee phase2-preflight.txt
+  scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output phase2-preflight.txt --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
 
 Each frame pair is measured from the first video frame where the screen changes
 to the first frame where any target Hue light visibly changes.
@@ -60,6 +63,14 @@ while [[ $# -gt 0 ]]; do
                 exit 2
             }
             calibrate_used="$2"
+            shift 2
+            ;;
+        --preflight-output)
+            [[ $# -ge 2 ]] || {
+                echo "missing value for --preflight-output" >&2
+                exit 2
+            }
+            preflight_output="$2"
             shift 2
             ;;
         --preflight-pass)
@@ -145,8 +156,8 @@ if [[ -z "$elapsed_seconds" ]]; then
     exit 2
 fi
 
-if [[ -z "$preflight_pass" ]]; then
-    echo "missing required --preflight-pass" >&2
+if [[ -z "$preflight_output" && -z "$preflight_pass" ]]; then
+    echo "missing required --preflight-output or --preflight-pass" >&2
     usage >&2
     exit 2
 fi
@@ -179,20 +190,55 @@ awk -v value="$min_fps" 'BEGIN { exit !(value > 0) }' || {
     exit 2
 }
 
-case "$preflight_pass" in
-    yes)
-        preflight_status=0
-        preflight_verdict="pass"
-        ;;
-    no)
-        preflight_status=1
-        preflight_verdict="fail"
-        ;;
-    *)
-        echo "--preflight-pass must be yes or no" >&2
+preflight_source="declared"
+
+if [[ -n "$preflight_output" ]]; then
+    if [[ ! -f "$preflight_output" ]]; then
+        echo "--preflight-output file not found: $preflight_output" >&2
         exit 2
-        ;;
-esac
+    fi
+
+    preflight_verdict="$(awk -F= '
+        /^phase2_field_preflight=(pass|fail)$/ {
+            count += 1
+            verdict = $2
+        }
+        END {
+            if (count == 1) {
+                print verdict
+            } else {
+                exit 1
+            }
+        }
+    ' "$preflight_output")" || {
+        echo "--preflight-output must contain exactly one phase2_field_preflight=pass or phase2_field_preflight=fail line" >&2
+        exit 2
+    }
+
+    if [[ "$preflight_verdict" == "pass" ]]; then
+        preflight_pass="yes"
+        preflight_status=0
+    else
+        preflight_pass="no"
+        preflight_status=1
+    fi
+    preflight_source="$preflight_output"
+elif [[ -n "$preflight_pass" ]]; then
+    case "$preflight_pass" in
+        yes)
+            preflight_status=0
+            preflight_verdict="pass"
+            ;;
+        no)
+            preflight_status=1
+            preflight_verdict="fail"
+            ;;
+        *)
+            echo "--preflight-pass must be yes or no" >&2
+            exit 2
+            ;;
+    esac
+fi
 
 case "$silent_black" in
     yes)
@@ -249,7 +295,7 @@ printf "preflight=%s video_fps=%s latency=%s first_run=%s silent_black=%s\n" "$p
 printf "preflight_pass=%s fps=%s min_fps=%s elapsed_seconds=%s calibrate_used=%s silent_black_observed=%s\n" "$preflight_pass" "$fps" "$min_fps" "$elapsed_seconds" "$calibrate_used" "$silent_black"
 echo
 echo "[preflight]"
-printf "phase2_field_preflight=%s source=declared\n" "$preflight_verdict"
+printf "phase2_field_preflight=%s source=%s\n" "$preflight_verdict" "$preflight_source"
 echo
 echo "[video_fps]"
 printf "fps=%s min_fps=%s result=%s\n" "$fps" "$min_fps" "$video_fps_verdict"

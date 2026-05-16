@@ -46,7 +46,7 @@ jobs:
       - name: phase2 validation helpers
         run: |
           scripts/phase2-field-preflight.sh --require-camera no
-          scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120
+          scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee /tmp/phase2-preflight-pass.txt
           ! scripts/phase2-field-preflight.sh --require-camera no --camera-fps 60
           ! scripts/phase2-field-preflight.sh --video-device /tmp/lumaway-missing-camera
           scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
@@ -55,8 +55,11 @@ jobs:
           scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 601 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used yes
-          scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output /tmp/phase2-preflight-pass.txt --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass no --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output /tmp/lumaway-missing-preflight.txt --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          printf "phase2_field_preflight=pass\nphase2_field_preflight=fail\n" > /tmp/phase2-preflight-ambiguous.txt
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output /tmp/phase2-preflight-ambiguous.txt --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 60 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:118 220:238 340:358 460:478 580:598
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 601 --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:148 220:247 340:369 460:490 580:613
