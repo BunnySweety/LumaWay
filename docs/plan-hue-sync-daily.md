@@ -524,7 +524,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 1. Produire les preuves terrain restantes Phase 2 via [`phase2-comparison-harness.md`](phase2-comparison-harness.md) : lancer `scripts/phase2-field-preflight.sh` sur la machine cible, ou `scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120` pour une caméra téléphone/non-V4L2, filmer le harness couleur avec écran + lampes à 120 fps ou plus, mesurer au moins 5 transitions acceptées toutes à 300 ms ou moins, et confirmer qu'aucun motif non noir ne reste noir silencieusement.
 2. Chronométrer un parcours nouvel utilisateur jusqu'au premier sync écran satisfaisant, sans `calibrate-capture`, avec objectif 10 min ou moins, puis valider l'ensemble avec `scripts/phase2-field-evidence.sh --silent-black no ...`.
 3. Passer les critères release §15.2 sur GNOME Wayland : checklist utilisateur non dev, i18n visible, modes Video/Game/Desktop, fallback sans tray, robustesse P0, install script et absence de clés API à l'écran principal.
-4. Si le suivi GitHub est nécessaire, ouvrir une issue avec `.github/ISSUE_TEMPLATE/phase2-field-validation.md` et coller la sortie `phase2_field_evidence`.
+4. Suivre la preuve terrain dans [l'issue GitHub #1](https://github.com/BunnySweety/LumaWay/issues/1), créée depuis `.github/ISSUE_TEMPLATE/phase2-field-validation.md`, et y coller les sorties `phase2_field_preflight` puis `phase2_field_evidence`.
 5. Ajuster les valeurs visuelles uniquement après preuve sur contenu réel : smoothing, `noise-threshold`, `max-step`, marge d'échantillonnage, crop persistant et `--auto-crop`.
 6. Relire [`desktop-app.md`](desktop-app.md), README et [`test-matrix.md`](test-matrix.md) après validation manuelle pour aligner captures, commandes et périmètre v1.0 (§15.6).
 7. Après gel v1.0 écran quotidien, ouvrir Phase 3 : `audio-sync`, puis tuile Musique.
@@ -724,6 +724,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 2 suivi terrain GitHub | Issue [#1](https://github.com/BunnySweety/LumaWay/issues/1) ouverte pour collecter `phase2_field_preflight`, la vidéo latence 120 fps, l'observation no-silent-black, le chrono nouvel utilisateur et `phase2_field_evidence` |
 | 2026-05-16 | Phase 2 preflight caméra | `scripts/phase2-field-preflight.sh` vérifie désormais le FPS déclaré (`--camera-fps`) ou exposé via V4L2, avec procédure explicite pour les caméras téléphone/non-V4L2 |
 | 2026-05-16 | Phase 2 preuve terrain outillée | Ajout du verifier combiné `scripts/phase2-field-evidence.sh` (latence, premier lancement, absence de session noire silencieuse) et du template `.github/ISSUE_TEMPLATE/phase2-field-validation.md`; §10 pointe désormais vers ces artefacts |
 | 2026-05-16 | Prochaines actions réalignées | §10 ne liste plus Phase 0 / premières tâches Phase 1 comme travaux à lancer ; il pointe maintenant vers les preuves terrain Phase 2, la checklist release v1.0 et le gel avant Phase 3 |

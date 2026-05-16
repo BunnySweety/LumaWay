@@ -23,6 +23,7 @@ Repository state:
 - plan latency wording alignment commit: `936e75b` (`Align Phase 2 latency threshold wording`);
 - field preflight helper commit: `a17b966` (`Add Phase 2 field preflight helper`);
 - camera FPS preflight coverage baseline: `23f6e36` (`Cover Phase 2 preflight camera FPS`);
+- field validation tracking issue: [#1](https://github.com/BunnySweety/LumaWay/issues/1);
 - CI evidence for the automated Phase 2 artifacts: `25973532615` on `23f6e36`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
@@ -146,5 +147,5 @@ Use `scripts/phase2-field-evidence.sh` when both measurements are available to p
 single pasteable evidence block for this audit. Pass `--silent-black no` only when the
 manual run confirms that no non-black pattern stayed black silently.
 
-If this validation needs to be tracked as a GitHub issue, use
-`.github/ISSUE_TEMPLATE/phase2-field-validation.md`.
+This validation is tracked in [GitHub issue #1](https://github.com/BunnySweety/LumaWay/issues/1),
+created from `.github/ISSUE_TEMPLATE/phase2-field-validation.md`.
