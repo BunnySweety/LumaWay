@@ -28,8 +28,9 @@ Repository state:
 - field evidence preflight-output baseline: `ddccb25` (`Link Phase 2 evidence to saved preflight`);
 - field evidence preflight flag baseline: `4cf70ac` (`Reject ambiguous Phase 2 preflight flags`);
 - latency minimum-transition guard: `e4c72f8` (`Enforce positive Phase 2 transition minimum`);
+- preflight declared camera FPS guard: `5b6151a` (`Require declared Phase 2 camera FPS`);
 - field validation tracking issue: [#1](https://github.com/BunnySweety/LumaWay/issues/1);
-- CI evidence for the automated Phase 2 artifacts: `25975163309` on `e4c72f8`, workflow `CI`, job `rust`, conclusion `success`.
+- CI evidence for the automated Phase 2 artifacts: `25975349177` on `5b6151a`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
 
@@ -62,7 +63,7 @@ Prompt-to-artifact checklist:
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Field capture preflight | `scripts/phase2-field-preflight.sh`, CI | Helper checks local helper/harness files, camera availability, and either declared or V4L2-reported camera FPS before a manual run; CI covers camera-optional pass with declared FPS, missing declared FPS, declared-FPS fail, and missing-camera fail paths. | Covered |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps saved preflight output, video FPS, latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. The saved preflight output must contain exactly one final `phase2_field_preflight` verdict, and `--preflight-output` is mutually exclusive with the legacy `--preflight-pass` fallback. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25975163309` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 transition-minimum baseline `e4c72f8`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25975349177` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 declared-camera-FPS preflight baseline `5b6151a`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
