@@ -724,6 +724,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-17 | Phase 2 evidence FPS gate | `scripts/phase2-field-evidence.sh` vérifie désormais que la vidéo déclarée respecte le minimum 120 fps avant de produire `phase2_field_evidence=pass` |
 | 2026-05-16 | Phase 2 suivi terrain GitHub | Issue [#1](https://github.com/BunnySweety/LumaWay/issues/1) ouverte pour collecter `phase2_field_preflight`, la vidéo latence 120 fps, l'observation no-silent-black, le chrono nouvel utilisateur et `phase2_field_evidence` |
 | 2026-05-16 | Phase 2 preflight caméra | `scripts/phase2-field-preflight.sh` vérifie désormais le FPS déclaré (`--camera-fps`) ou exposé via V4L2, avec procédure explicite pour les caméras téléphone/non-V4L2 |
 | 2026-05-16 | Phase 2 preuve terrain outillée | Ajout du verifier combiné `scripts/phase2-field-evidence.sh` (latence, premier lancement, absence de session noire silencieuse) et du template `.github/ISSUE_TEMPLATE/phase2-field-validation.md`; §10 pointe désormais vers ces artefacts |

@@ -9,6 +9,7 @@ calibrate_used="no"
 silent_black=""
 latency_threshold_ms="300"
 first_run_threshold_seconds="600"
+min_fps="120"
 min_transitions="5"
 declare -a pairs=()
 
@@ -22,6 +23,7 @@ Options:
   --silent-black yes|no                Whether a non-black pattern stayed black silently. Required.
   --latency-threshold-ms <ms>          Visible latency gate. Default: 300.
   --first-run-threshold-seconds <sec>  First-run timing gate. Default: 600.
+  --min-fps <fps>                      Minimum recording frame rate. Default: 120.
   --min-transitions <n>                Minimum accepted video transitions. Default: 5.
 
 Example:
@@ -82,6 +84,14 @@ while [[ $# -gt 0 ]]; do
             first_run_threshold_seconds="$2"
             shift 2
             ;;
+        --min-fps)
+            [[ $# -ge 2 ]] || {
+                echo "missing value for --min-fps" >&2
+                exit 2
+            }
+            min_fps="$2"
+            shift 2
+            ;;
         --min-transitions)
             [[ $# -ge 2 ]] || {
                 echo "missing value for --min-transitions" >&2
@@ -131,6 +141,28 @@ if [[ -z "$silent_black" ]]; then
     exit 2
 fi
 
+number_re='^[0-9]+([.][0-9]+)?$'
+
+if [[ ! "$fps" =~ $number_re ]]; then
+    echo "--fps must be a positive number" >&2
+    exit 2
+fi
+
+if [[ ! "$min_fps" =~ $number_re ]]; then
+    echo "--min-fps must be a positive number" >&2
+    exit 2
+fi
+
+awk -v value="$fps" 'BEGIN { exit !(value > 0) }' || {
+    echo "--fps must be greater than zero" >&2
+    exit 2
+}
+
+awk -v value="$min_fps" 'BEGIN { exit !(value > 0) }' || {
+    echo "--min-fps must be greater than zero" >&2
+    exit 2
+}
+
 case "$silent_black" in
     yes)
         silent_black_status=1
@@ -145,6 +177,14 @@ case "$silent_black" in
         exit 2
         ;;
 esac
+
+if awk -v fps="$fps" -v min="$min_fps" 'BEGIN { exit !(fps >= min) }'; then
+    video_fps_status=0
+    video_fps_verdict="pass"
+else
+    video_fps_status=1
+    video_fps_verdict="fail"
+fi
 
 set +e
 latency_output="$("$script_dir/phase2-latency-summary.sh" \
@@ -174,8 +214,11 @@ else
 fi
 
 echo "phase2_field_evidence"
-printf "latency=%s first_run=%s silent_black=%s\n" "$latency_verdict" "$first_run_verdict" "$silent_black_verdict"
-printf "fps=%s elapsed_seconds=%s calibrate_used=%s silent_black_observed=%s\n" "$fps" "$elapsed_seconds" "$calibrate_used" "$silent_black"
+printf "video_fps=%s latency=%s first_run=%s silent_black=%s\n" "$video_fps_verdict" "$latency_verdict" "$first_run_verdict" "$silent_black_verdict"
+printf "fps=%s min_fps=%s elapsed_seconds=%s calibrate_used=%s silent_black_observed=%s\n" "$fps" "$min_fps" "$elapsed_seconds" "$calibrate_used" "$silent_black"
+echo
+echo "[video_fps]"
+printf "fps=%s min_fps=%s result=%s\n" "$fps" "$min_fps" "$video_fps_verdict"
 echo
 echo "[latency]"
 printf "%s\n" "$latency_output"
@@ -186,7 +229,7 @@ echo
 echo "[silent_black]"
 printf "observed=%s result=%s\n" "$silent_black" "$silent_black_verdict"
 
-if (( latency_status == 0 && first_run_status == 0 && silent_black_status == 0 )); then
+if (( video_fps_status == 0 && latency_status == 0 && first_run_status == 0 && silent_black_status == 0 )); then
     echo "phase2_field_evidence=pass"
     exit 0
 fi

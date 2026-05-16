@@ -132,9 +132,9 @@ scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-use
 ```
 
 This command reuses the latency and first-run helpers above. It exits non-zero
-if latency, first-run timing, or the no-silent-black gate fails, but it still
-prints every section so the failed evidence can be copied into the validation
-audit.
+if the recording frame rate is below 120 fps, latency, first-run timing, or the
+no-silent-black gate fails, but it still prints every section so the failed
+evidence can be copied into the validation audit.
 
 ## Result Template
 
