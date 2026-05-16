@@ -30,6 +30,9 @@ For a phone or another non-V4L2 camera, use:
 scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee phase2-preflight.txt
 ```
 
+Do not omit `--camera-fps` when using `--require-camera no`; the preflight must
+verify the planned capture rate.
+
 For a local `/dev/video*` camera, use:
 
 ```sh

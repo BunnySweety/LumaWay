@@ -218,6 +218,9 @@ elif (( usable_devices > 0 )); then
         echo "camera_fps=fail reason=not_checked_missing_v4l2_ctl hint=install_v4l_utils_or_pass_camera_fps"
         status=1
     fi
+elif [[ "$require_camera" == "no" ]]; then
+    echo "camera_fps=fail reason=missing_declared_camera_fps min_fps=$min_fps hint=pass_camera_fps_for_non_v4l2_camera"
+    status=1
 else
     echo "camera_fps=skip reason=no_camera_to_check"
 fi
