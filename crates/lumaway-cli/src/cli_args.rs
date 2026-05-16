@@ -147,13 +147,13 @@ pub enum Command {
         sample_edge_margin: f64,
         #[arg(long, env = "LUMAWAY_SAMPLING", value_enum)]
         sampling: Option<SamplingMode>,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_LEFT", default_value_t = 0.0)]
         sample_crop_left: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_RIGHT", default_value_t = 0.0)]
         sample_crop_right: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_TOP", default_value_t = 0.0)]
         sample_crop_top: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_BOTTOM", default_value_t = 0.0)]
         sample_crop_bottom: f64,
         #[arg(long, env = "LUMAWAY_REACTIVITY", default_value_t = 0.35)]
         smoothing: f64,
@@ -197,13 +197,13 @@ pub enum Command {
         sample_edge_margin: f64,
         #[arg(long, env = "LUMAWAY_SAMPLING", value_enum)]
         sampling: Option<SamplingMode>,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_LEFT", default_value_t = 0.0)]
         sample_crop_left: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_RIGHT", default_value_t = 0.0)]
         sample_crop_right: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_TOP", default_value_t = 0.0)]
         sample_crop_top: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_BOTTOM", default_value_t = 0.0)]
         sample_crop_bottom: f64,
         #[arg(long, env = "LUMAWAY_COLOR_PROFILE", value_enum)]
         color_profile: Option<ColorProfile>,
@@ -276,13 +276,13 @@ pub enum Command {
         sample_edge_margin: f64,
         #[arg(long, env = "LUMAWAY_SAMPLING", value_enum)]
         sampling: Option<SamplingMode>,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_LEFT", default_value_t = 0.0)]
         sample_crop_left: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_RIGHT", default_value_t = 0.0)]
         sample_crop_right: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_TOP", default_value_t = 0.0)]
         sample_crop_top: f64,
-        #[arg(long, default_value_t = 0.0)]
+        #[arg(long, env = "LUMAWAY_SAMPLE_CROP_BOTTOM", default_value_t = 0.0)]
         sample_crop_bottom: f64,
         #[arg(long)]
         auto_crop: bool,
@@ -344,4 +344,70 @@ pub enum Command {
         #[arg(long, env = "LUMAWAY_APP_KEY", hide_env_values = true)]
         app_key: Option<String>,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Cli, Command};
+    use clap::Parser;
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+
+    fn env_lock() -> MutexGuard<'static, ()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
+    }
+
+    fn restore_env(key: &str, value: Option<std::ffi::OsString>) {
+        match value {
+            Some(value) => std::env::set_var(key, value),
+            None => std::env::remove_var(key),
+        }
+    }
+
+    #[test]
+    fn sync_reads_sample_crop_from_environment() {
+        let _env = env_lock();
+        let old_left = std::env::var_os("LUMAWAY_SAMPLE_CROP_LEFT");
+        let old_right = std::env::var_os("LUMAWAY_SAMPLE_CROP_RIGHT");
+        let old_top = std::env::var_os("LUMAWAY_SAMPLE_CROP_TOP");
+        let old_bottom = std::env::var_os("LUMAWAY_SAMPLE_CROP_BOTTOM");
+
+        std::env::set_var("LUMAWAY_SAMPLE_CROP_LEFT", "0.1000");
+        std::env::set_var("LUMAWAY_SAMPLE_CROP_RIGHT", "0.2000");
+        std::env::set_var("LUMAWAY_SAMPLE_CROP_TOP", "0.0300");
+        std::env::set_var("LUMAWAY_SAMPLE_CROP_BOTTOM", "0.0400");
+
+        let cli = Cli::parse_from([
+            "lumaway",
+            "sync",
+            "--bridge",
+            "192.0.2.10",
+            "--app-key",
+            "app",
+            "--client-key",
+            "client",
+            "--area",
+            "TV",
+        ]);
+
+        let Command::Sync {
+            sample_crop_left,
+            sample_crop_right,
+            sample_crop_top,
+            sample_crop_bottom,
+            ..
+        } = cli.command
+        else {
+            panic!("expected sync command");
+        };
+        assert_eq!(sample_crop_left, 0.1);
+        assert_eq!(sample_crop_right, 0.2);
+        assert_eq!(sample_crop_top, 0.03);
+        assert_eq!(sample_crop_bottom, 0.04);
+
+        restore_env("LUMAWAY_SAMPLE_CROP_LEFT", old_left);
+        restore_env("LUMAWAY_SAMPLE_CROP_RIGHT", old_right);
+        restore_env("LUMAWAY_SAMPLE_CROP_TOP", old_top);
+        restore_env("LUMAWAY_SAMPLE_CROP_BOTTOM", old_bottom);
+    }
 }

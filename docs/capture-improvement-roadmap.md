@@ -316,6 +316,7 @@ Store profiles separately from credentials.
 - Done: `lumaway capture-quality` summarizes real Portal capture luma, saturation, temporal variation, channel separation, dark frames, and a recommendation for weak capture symptoms.
 - Done: capture quality distinguishes one-channel areas from real spatial-correlation failures and tells the user to test with a multi-light area.
 - Done: `LUMAWAY_PROFILE=<name>` loads non-secret capture/color defaults from `~/.config/lumaway/profiles/<name>.env`; `lumaway profile-template --name <name>` creates a starter profile and `lumaway profile-list` lists available profile files.
+- Done: profiles can persist manual crop values with `LUMAWAY_SAMPLE_CROP_LEFT`, `LUMAWAY_SAMPLE_CROP_RIGHT`, `LUMAWAY_SAMPLE_CROP_TOP`, and `LUMAWAY_SAMPLE_CROP_BOTTOM`; `sync`, `sample-debug`, and `capture-quality` read them from the selected profile unless explicit CLI flags override them.
 - Done: CLI commands automatically load `~/.config/lumaway/lumaway.env` before profile defaults, so diagnostics can reuse the GUI-saved bridge, keys, area, and selected profile without manual shell sourcing.
 - Done: `lumaway calibrate-capture --name <name>` probes CPU/GL on a real Portal stream and writes a measured profile with the recommended capture backend.
 - Done: the GUI Settings window exposes a `Capture profile` field, can list existing profiles, passes `LUMAWAY_PROFILE` to sync, and has a `Calibrate` button that writes the selected measured profile.

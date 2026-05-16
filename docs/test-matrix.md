@@ -123,13 +123,13 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: `boosted` color profile is covered as stronger than `game` on low-saturation captures and is accepted by the GUI profile sanitizer.
 - `/home/bunny/.local/bin/lumaway sample-debug --portal --area TV --frames 1 --capture-backend auto --sampling region --color-profile desktop`: real GNOME Wayland Portal capture detected dark GL output during the auto quality probe, logged fallback to CPU, and completed with `capture_backend=cpu`, `sampling=Region`, and non-black per-channel output.
 - `LUMAWAY_PROFILE=live /home/bunny/.local/bin/lumaway sample-debug --portal --area TV --frames 1`: real GNOME Wayland Portal capture loaded non-secret profile defaults from `~/.config/lumaway/profiles/live.env` equivalent test config, applied `preset=tv-wayland`, `capture_backend=auto`, `sampling=region`, `color_profile=desktop`, detected dark GL, and completed on CPU.
-- `XDG_CONFIG_HOME=<tmp> /home/bunny/.local/bin/lumaway profile-template --name testprofile`: created a starter non-secret profile containing capture backend, cadence, sampling, brightness, reactivity, color profile, and noise-threshold defaults.
+- `XDG_CONFIG_HOME=<tmp> /home/bunny/.local/bin/lumaway profile-template --name testprofile`: created a starter non-secret profile containing capture backend, cadence, sampling, sample crop defaults, brightness, reactivity, color profile, and noise-threshold defaults.
 - `XDG_CONFIG_HOME=<tmp> /home/bunny/.local/bin/lumaway profile-list`: listed sorted `.env` profiles and ignored non-profile files.
 - `cargo test`: CLI config loading is covered so `~/.config/lumaway/lumaway.env` supplies bridge/app/profile defaults without overriding explicit shell variables.
 - `XDG_CONFIG_HOME=<tmp> /home/bunny/.local/bin/lumaway calibrate-capture --name tvtest --frames 3 --force`: real GNOME Wayland Portal calibration wrote a measured profile with `LUMAWAY_CAPTURE_BACKEND=cpu` after CPU returned usable frames and GL returned black frames.
 - `/home/bunny/.local/bin/lumaway-gui`: real GTK/libadwaita launch smoke completed after adding the Settings `Capture profile` field and profile propagation to sync. Local autostart began a long-running sync during the smoke; the spawned sync was stopped and the TV area was deactivated afterward.
 - `cargo test`: weighted rectangular `SampleRegion` averaging is covered with a synthetic RGB frame; the `tv-wayland` preset is covered as CPU capture plus region sampling.
-- `cargo test`: profile path validation, non-secret profile key allowlist, calibrated profile generation, and GUI profile-name sanitization are covered.
+- `cargo test`: profile path validation, non-secret profile key allowlist, persistent sample-crop env parsing, calibrated profile generation, and GUI profile-name sanitization are covered.
 - `LUMAWAY_PROFILE=diag lumaway doctor`: profile diagnostics report `profile.file` ok for supported profile keys and `profile.ignored_keys` warning for unsupported keys.
 - `LUMAWAY_PROFILE=missing lumaway doctor`: profile diagnostics report `profile.load` as an error instead of exiting before diagnostics; other commands still fail clearly when the selected profile is missing.
 - `cargo test`: temporal smoothing behavior is covered with unit tests.
@@ -157,7 +157,7 @@ Product roadmap items (music, tray, mode selector) are tracked in [plan-hue-sync
 - Portal scaled RGB conversion path must be remeasured after accepting the GNOME Portal selector.
 - Sync uses 2D point or weighted-region sampling, not full 3D-aware placement.
 - Smoothing, noise-threshold, and max-step defaults need visual tuning on real content.
-- `--sample-edge-margin` and manual crop defaults need visual tuning on real content and black-bar scenarios.
+- `--sample-edge-margin` and persistent manual crop values need visual tuning on real content and black-bar scenarios.
 - `--auto-crop` still needs real Portal validation on black-bar video content.
 - GStreamer-side Portal scaling needs a safer implementation; native sample caps are used for now.
 - CPU sampling grid defaults to `120x68`; quality still needs tuning across content types.

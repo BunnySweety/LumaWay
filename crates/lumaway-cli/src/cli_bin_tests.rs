@@ -2,9 +2,9 @@
 
 use crate::{
     available_profiles, cap_detected_crop, capture_quality_hint, channel_samples_by_position,
-    effective_capture_poll_timeout, effective_pipewire_fps, expected_frames, frame_delay_for_fps,
-    hue_color_from_average, hue_luma, hue_saturation, is_profile_key, max_detected_crop,
-    parse_capture_poll_ms_list, profile_path, send_dtls_frame, sync_crop_args,
+    default_profile_text, effective_capture_poll_timeout, effective_pipewire_fps, expected_frames,
+    frame_delay_for_fps, hue_color_from_average, hue_luma, hue_saturation, is_profile_key,
+    max_detected_crop, parse_capture_poll_ms_list, profile_path, send_dtls_frame, sync_crop_args,
     synthetic_bench_area, validate_auto_crop_max_edge, validate_brightness,
     validate_capture_poll_ms, validate_fps, BackendProbeResult, CaptureBackend,
     CaptureQualityStats, ColorProfile, ColorTuning, SampleCrop, SamplingMode, StageStats,
@@ -77,6 +77,7 @@ fn profile_path_rejects_path_traversal_names() {
 fn profile_keys_are_limited_to_non_secret_capture_settings() {
     assert!(is_profile_key("LUMAWAY_CAPTURE_BACKEND"));
     assert!(is_profile_key("LUMAWAY_COLOR_PROFILE"));
+    assert!(is_profile_key("LUMAWAY_SAMPLE_CROP_TOP"));
     assert!(!is_profile_key("LUMAWAY_APP_KEY"));
     assert!(!is_profile_key("LUMAWAY_CLIENT_KEY"));
 }
@@ -191,6 +192,17 @@ fn calibrated_profile_records_backend_probe_result() {
     assert!(text.contains("# gl_frames=3 gl_dark=true gl_max_rgb=0"));
     assert!(text.contains("LUMAWAY_CAPTURE_BACKEND=cpu"));
     assert!(text.contains("LUMAWAY_SAMPLING=region"));
+    assert!(text.contains("LUMAWAY_SAMPLE_CROP_TOP=0.0000"));
+}
+
+#[test]
+fn profile_template_includes_persistent_crop_defaults() {
+    let text = default_profile_text("auto", 120, 68);
+
+    assert!(text.contains("LUMAWAY_SAMPLE_CROP_LEFT=0.0000"));
+    assert!(text.contains("LUMAWAY_SAMPLE_CROP_RIGHT=0.0000"));
+    assert!(text.contains("LUMAWAY_SAMPLE_CROP_TOP=0.0000"));
+    assert!(text.contains("LUMAWAY_SAMPLE_CROP_BOTTOM=0.0000"));
 }
 
 #[test]
