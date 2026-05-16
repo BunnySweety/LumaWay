@@ -56,6 +56,33 @@ msgstr ""
 msgid "Stop sync"
 msgstr ""
 
+msgid "Show LumaWay"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
+
+msgid "Ready"
+msgstr ""
+
+msgid "Status tray available."
+msgstr ""
+
+msgid "Status tray unavailable; using window controls."
+msgstr ""
+
+msgid "Stop sync and quit?"
+msgstr ""
+
+msgid "LumaWay is syncing. Quitting will stop the active sync."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Stop and quit"
+msgstr ""
+
 msgid "Video"
 msgstr ""
 

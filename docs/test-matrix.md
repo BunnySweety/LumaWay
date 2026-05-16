@@ -37,7 +37,8 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - Phase 3 / v1.1 Music: default vs explicit PipeWire/Pulse audio source.
 - Phase 3 / v1.1 Music: audio source unavailable or changed while syncing.
 - Phase 3 / v1.1 Music: long silence → dimmed or off lights within 5 s.
-- StatusNotifier/AppIndicator Start/Stop when the desktop exposes a tray; on GNOME without tray support, validate the fallback window Start/Stop flow plus minimal critical-error notification when available.
+- StatusNotifier/AppIndicator Start/Stop when the desktop exposes a tray: tray menu shows `Show LumaWay`, Start/Stop according to sync state, and Quit asks for confirmation while sync is active.
+- GNOME/KDE tray watcher late/absent: tray registration must not block startup; window Start/Stop remains the control surface.
 - GNOME without tray support: closing the window during sync hides it, keeps sync running, and launching LumaWay again presents the existing window for Stop.
 - GNOME notification fallback: classified errors send a GApplication desktop notification only when the window is hidden or inactive.
 - First-run wizard: discover bridge → pair → load area → test color → start sync.
@@ -144,6 +145,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: Hue link-button pairing errors are classified separately from saved-key authentication failures.
 - `cargo test`: GUI language settings normalize `LUMAWAY_LANG`, map saved `fr_FR` / `en_US` values before gettext, and keep the Settings selector on system/en/fr.
 - `cargo test`: GUI error notifications are gated to classified errors while the window is hidden or inactive.
+- `cargo test`: StatusNotifier tray menu switches Start/Stop labels by state and tray activation sends the expected UI command.
 - `cargo test`: empty area-list selection keeps no zone selected instead of picking a stale value.
 - `cargo test`: relative 2D channel sample mapping, configurable edge margin, manual crop bounds, same-height vertical centering, and fallback placement are covered with unit tests.
 - `cargo test`: sampled dark-border detection, fully dark frame handling, crop aggregation, auto-crop edge cap validation, manual-plus-auto crop merging, and copyable crop args are covered with unit tests.

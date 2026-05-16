@@ -57,6 +57,33 @@ msgstr "Démarrer la synchronisation"
 msgid "Stop sync"
 msgstr "Arrêter la synchronisation"
 
+msgid "Show LumaWay"
+msgstr "Afficher LumaWay"
+
+msgid "Quit"
+msgstr "Quitter"
+
+msgid "Ready"
+msgstr "Prêt"
+
+msgid "Status tray available."
+msgstr "Icône de zone de notification disponible."
+
+msgid "Status tray unavailable; using window controls."
+msgstr "Zone de notification indisponible ; utilisation des contrôles de la fenêtre."
+
+msgid "Stop sync and quit?"
+msgstr "Arrêter la synchronisation et quitter ?"
+
+msgid "LumaWay is syncing. Quitting will stop the active sync."
+msgstr "LumaWay synchronise. Quitter arrêtera la synchronisation active."
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Stop and quit"
+msgstr "Arrêter et quitter"
+
 msgid "Stop sync before changing mode"
 msgstr "Arrêtez la synchronisation avant de changer de mode"
 

@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 1.7 — fallback sans tray)
+Dernière revue : 2026-05-16 (Phase 1.7 — StatusNotifier + fallback sans tray)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -111,7 +111,7 @@ Objectif : un utilisateur qui connaît Hue Sync sur Windows/macOS doit retrouver
 | Logs techniques | Journal replié dans Réglages | Garder replié par défaut ; messages humains en premier plan |
 | Profil `vivid` / `game`… | Menu déroulant anglais technique | Déduit du **mode** ; avancé seulement |
 | `Capture profile` / Calibrate | Repliés dans Réglages avancés | Garder en Avancé + proposition auto si échec |
-| Tray | Absent | Phase 1.7 si support StatusNotifier/AppIndicator détecté ; fallback fenêtre Start/Stop obligatoire + notification minimale si disponible |
+| Tray | StatusNotifier/AppIndicator opportuniste livré côté code ; fallback sans tray livré | Fonction critique toujours disponible via fenêtre Start/Stop ; notification minimale si disponible |
 | Langue UI | Gettext initialisé ; accueil/réglages/statuts principaux + erreurs courantes migrés | Revue visuelle locale + complétion au fil des écrans restants |
 | Langue ≠ OS | N/A | Optionnel : `LUMAWAY_LANG` ou sélecteur dans Réglages |
 
@@ -273,7 +273,7 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 | 1.4 | **Chaînes i18n complètes** | Socle livré : libellés accueil + réglages + statuts principaux via `tr(...)` / `tr_format(...)`, `po/fr.po` étendu, erreurs courantes via codes stables + `user_messages` ; reste revue visuelle locale et extension au fil des écrans ajoutés. |
 | 1.5 | **Écran principal épuré** | Fait : accueil limité aux gestes quotidiens ; `duration`, `profile`, `color_profile`, clés, réactivité fine, actions Quality/Calibrate et journal repliés dans Réglages avancés ; option **cinema** uniquement en Réglages avancé (§6). |
 | 1.6 | Assistant première utilisation | Partiel livré : carte accueil “First setup” tant que la configuration est incomplète, avec étapes pont → bouton physique / Pair → zone → Test lights → Start sync ; si le pont ne renvoie aucune zone Entertainment, état guidé pour créer une zone dans l’app Hue puis recharger. Assistant pleine page post-v1.0 si nécessaire. |
-| 1.7 | Icône barre système | Partiel livré : fallback GNOME sans tray — fermer la fenêtre pendant une sync masque la fenêtre et garde la sync active ; une deuxième activation de l’app présente l’instance existante pour Stop ; notification minimale GApplication pour erreurs classifiées quand la fenêtre est masquée ou inactive. Reste StatusNotifier/AppIndicator : état, Start/Stop, mode, quitter **quand le bureau le supporte**. |
+| 1.7 | Icône barre système | Livré côté code : tray StatusNotifier/AppIndicator via `ksni` quand un watcher est disponible, menu `Show LumaWay`, Start/Stop, Quit avec confirmation si sync active, état Start/Stop synchronisé ; fallback GNOME sans tray conservé — fermer la fenêtre pendant une sync masque la fenêtre et garde la sync active, une deuxième activation présente l’instance existante pour Stop, notification minimale GApplication pour erreurs classifiées quand la fenêtre est masquée ou inactive. Reste validation manuelle sur bureau avec extension tray. |
 | 1.8 | Démarrage de session | Fait : option Réglages traduite pour ouvrir LumaWay à la connexion via `~/.config/autostart/io.github.BunnySweety.LumaWay.desktop`; option séparée « Start sync when app opens » conservée pour lancer la sync à l’ouverture. |
 | 1.9 | Échecs explicites | Fait : erreurs Portal / capture / pont classifiées via gettext et complétées par actions contextuelles `Retry` et/ou `Open Settings` sur l’accueil. |
 | 1.10 | Flux Portal | Fait : statut traduit « Choose the screen or window to sync » pendant l’ouverture du sélecteur ; `lumaway sync` réutilise et persiste `LUMAWAY_PORTAL_RESTORE_TOKEN` si le portail renvoie un `restore_token`, sinon le rappel reste affiché à chaque session. |
@@ -534,7 +534,7 @@ Pour une **v1.0 écran quotidien** sans Phase 3, remonter avant release les él�
 | Phase | Statut | Notes |
 |-------|--------|-------|
 | 0 | Terminé | Contrat `SyncMode`, presets CLI, config v1, gettext, AppStream et install script vérifiés ; câblage UI complet et i18n exhaustive restent Phase 1 |
-| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : guide première configuration + aucune zone Entertainment guidée ; 1.7 fallback sans tray livré : fenêtre masquée pendant sync + réactivation instance unique + notifications d’erreur classifiée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.12 livré : `LUMAWAY_LANG` + sélecteur langue ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
+| 1 | En cours | Tâches 1.1 / 1.2 / 1.3 lancées ; 1.4 socle livré : tuiles Mode et Intensité branchées, Music désactivé, Start propage mode/réactivité/profil, accueil/réglages/statuts et erreurs principales traduits ; 1.5 livré : réglages techniques et journal repliés ; 1.6 partiel : guide première configuration + aucune zone Entertainment guidée ; 1.7 livré côté code : StatusNotifier/AppIndicator opportuniste + fallback fenêtre masquée + réactivation instance unique + notifications d’erreur classifiée ; 1.8 livré : autostart de session + autostart sync séparés ; 1.9 livré : actions `Retry` / `Open Settings` sur erreurs classifiées ; 1.10 livré : rappel Portal + persistance opportuniste `restore_token` ; 1.11 livré : bouton unique et Réglages bloqués pendant sync ; 1.12 livré : `LUMAWAY_LANG` + sélecteur langue ; 1.13 P0 code livré : sortie subprocess inattendue, classification pont/Portal/DTLS, flux Portal fermé, pont perdu pendant envoi DTLS et reprise après veille détectés ; 1.14 livré : instance unique GUI ; 1.15 livré : modes bloqués pendant sync ; 1.16 livré : switch zone clarifié ; dialogue À propos livré |
 | 2 | À faire | |
 | 3 | À faire | |
 | 4 | À faire | |
@@ -620,7 +620,7 @@ Complète les phases ci-dessus ; priorités pour ne pas livrer une v1.0 « cassa
 | **Veille / reprise** | v1.0 : Stop + message ; pas de reconnexion automatique silencieuse. |
 | **`cinema` avancé** | Option Réglages ; prioritaire sur `vivid` en mode Video au Start (§6). |
 | **Musique / versioning** | v1.0 ne bloque pas sur Musique ; Phase 3 devient v1.1 si elle n’est pas terminée avant le gel v1.0. |
-| **Tray GNOME** | Le tray est opportuniste : requis quand StatusNotifier/AppIndicator est disponible, mais la v1.0 doit rester utilisable sans extension tray via fenêtre Start/Stop, avec notification minimale si disponible. |
+| **Tray GNOME** | Le tray est opportuniste : StatusNotifier/AppIndicator livré côté code quand un watcher est disponible, mais la v1.0 doit rester utilisable sans extension tray via fenêtre Start/Stop, avec notification minimale si disponible. |
 | **Gel du document** | Modifications via §15.7 + §16. |
 
 ### 15.2 Critères release v1.0
@@ -647,6 +647,7 @@ Tous requis sauf mention « optionnel » :
 
 | Lacune | Livrable | Phase |
 |--------|----------|-------|
+| **Tray StatusNotifier/AppIndicator** | Livré côté code : menu tray `Show LumaWay`, Start/Stop, Quit avec confirmation si sync active ; validation manuelle sur KDE/GNOME extension encore requise | 1.7 |
 | Reprise après **veille** / session Portal expirée | Livré partiel : écart horloge murale / monotone > 5 s → arrêt propre, désactivation Entertainment tentée, message i18n “sortie de veille” + `Retry` ; validation manuelle encore requise | 1.13 |
 | **Pont injoignable** ou perdu pendant sync | Livré partiel : échec d’envoi DTLS pendant sync → arrêt propre, désactivation Entertainment tentée, message i18n “connexion pont perdue” + `Retry` / `Open Settings` ; validation manuelle encore requise | 1.13 |
 | **Flux Portal fermé** pendant sync | Livré partiel : absence de frames > 5 s → arrêt propre + désactivation Entertainment + message i18n ; validation manuelle encore requise | 1.13 |
@@ -703,7 +704,7 @@ Tous requis sauf mention « optionnel » :
 | GUI subprocess vs orchestrateur | Documenté §4 ; refactor in-process post-v1.0 |
 | Tuiles vs curseur Hue Sync | Choix produit documenté §3.1 |
 | `cinema` / `vivid` | Défaut `vivid` §6 |
-| Tray GNOME | Fallback fenêtre Start/Stop documenté ; notification critique seulement si disponible ; tray testé seulement quand StatusNotifier/AppIndicator est disponible |
+| Tray GNOME | StatusNotifier/AppIndicator livré côté code ; fallback fenêtre Start/Stop documenté ; notification critique seulement si disponible ; tray à tester manuellement quand un watcher est disponible |
 | AppStream demandé sans tâche | Métadonnées ajoutées en Phase 0 et release §15.2 |
 | Musique v1.0 ambiguë | v1.0 = écran quotidien ; Musique = v1.1 si Phase 3 non terminée avant gel |
 
@@ -712,7 +713,7 @@ Tous requis sauf mention « optionnel » :
 | Fichier | Action |
 |---------|--------|
 | [`desktop-app.md`](desktop-app.md) | Aligné Phase 0 sur `LUMAWAY_SYNC_MODE`, Video/Game/Desktop et profils techniques avancés ; à relire après finalisation UX Phase 1 |
-| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.7 ajoute le fallback sans tray et notifications GApplication ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.12 ajoute `LUMAWAY_LANG` + sélecteur langue ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
+| [`lumaway-gui`](../crates/lumaway-gui/src/main.rs) | Phase 1 lancée : tuiles Video/Game/Desktop branchées, Music grisé, tuiles Subtle→Max branchées, preset/profil couleur dérivés au Start, accueil/réglages/statuts et erreurs principales via gettext ; Phase 1.5 replie clés, profils, durée, réactivité fine, Quality/Calibrate et journal dans Réglages ; Phase 1.7 ajoute StatusNotifier/AppIndicator opportuniste, Start/Stop/Quit depuis le tray, fallback sans tray et notifications GApplication ; Phase 1.9 affiche des actions de récupération sur les erreurs classifiées ; Phase 1.12 ajoute `LUMAWAY_LANG` + sélecteur langue ; Phase 1.13 classe flux Portal fermé, pont perdu pendant sync et reprise après veille |
 | README | Section « Comparaison Hue Sync » + guide traduction (Phase 4) |
 | [`test-matrix.md`](test-matrix.md) | Garder aligné avec §15.2 et §15.3 à chaque jalon |
 
@@ -720,6 +721,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 1.7 StatusNotifier/AppIndicator | Tray opportuniste via `ksni` : menu Show, Start/Stop, Quit avec confirmation si sync active ; MSRV relevé à Rust 1.80 pour suivre la dépendance |
 | 2026-05-16 | Phase 1.7 fallback sans tray | Close pendant sync masque la fenêtre au lieu de stopper ; relancer LumaWay présente l’instance existante ; notification minimale pour erreurs classifiées quand la fenêtre est masquée/inactive |
 | 2026-05-16 | Phase 1.12 langue | `LUMAWAY_LANG=system|en|fr` lu avant gettext ; sélecteur langue dans Réglages, persistance dans `lumaway.env`, message de redémarrage |
 | 2026-05-16 | Phase 1.6 bouton pont | Erreur Hue “link button not pressed” classifiée avec message i18n et action Pair explicite |

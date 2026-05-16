@@ -11,10 +11,11 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
 mod i18n;
+mod tray;
 mod user_messages;
 
 const APP_ID: &str = "io.github.BunnySweety.LumaWay";
@@ -120,6 +121,7 @@ struct Ui {
     error_open_settings: gtk::Button,
     logs: gtk::TextBuffer,
     event_queue: Arc<Mutex<VecDeque<GuiEvent>>>,
+    tray: Rc<RefCell<tray::TrayController>>,
     bridge_id: Rc<RefCell<String>>,
     /// Live Settings window; disabled while sync is running and cleared on destroy.
     settings_window: Rc<RefCell<Option<gtk::Window>>>,
@@ -135,6 +137,7 @@ struct AppState {
     echo_logs: bool,
     pending_restart: bool,
     stop_requested: bool,
+    quit_after_sync: bool,
     last_sync_failure: Option<String>,
 }
 
@@ -184,13 +187,17 @@ fn build_ui(app: &adw::Application) {
         echo_logs: env_flag("LUMAWAY_GUI_ECHO_LOGS"),
         pending_restart: false,
         stop_requested: false,
+        quit_after_sync: false,
         last_sync_failure: None,
     }));
 
     let saved = read_env_file().unwrap_or_default();
     let event_queue = state.borrow().event_queue.clone();
+    let (tray_sender, tray_receiver) = mpsc::channel();
     let ui = build_widgets(app, &saved, event_queue);
+    install_status_tray(&ui, tray_sender);
     wire_actions(&ui, state.clone());
+    start_tray_command_pump(&ui, state.clone(), tray_receiver);
     start_log_pump(&ui, state);
     ui.window.present();
     update_health(&ui);
@@ -553,6 +560,7 @@ fn build_widgets(
         error_open_settings,
         logs,
         event_queue,
+        tray: Rc::new(RefCell::new(tray::TrayController::default())),
         bridge_id: Rc::new(RefCell::new(saved_bridge_id)),
         settings_window: Rc::new(RefCell::new(None)),
         settings_bridge_id_label: Rc::new(RefCell::new(None)),
@@ -1200,14 +1208,7 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
     let start_ui = ui.clone();
     let start_state = state.clone();
     ui.start.connect_clicked(move |_| {
-        if sync_running(&start_state) {
-            stop_sync(&start_ui, &start_state);
-        } else if let Err(error) = start_sync(&start_ui, &start_state) {
-            clear_sync_status(&start_ui);
-            append_user_error(&start_ui, &error.to_string());
-            apply_sync_idle_button_style(&start_ui);
-            update_zone_controls(&start_ui, false);
-        }
+        toggle_sync(&start_ui, &start_state);
     });
 
     let retry_ui = ui.clone();
@@ -1247,6 +1248,106 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
             glib::Propagation::Proceed
         }
     });
+
+    let shutdown_tray = ui.tray.clone();
+    ui.app.connect_shutdown(move |_| {
+        shutdown_tray.borrow().shutdown();
+    });
+}
+
+fn install_status_tray(ui: &Ui, sender: mpsc::Sender<tray::TrayCommand>) {
+    let labels = tray::TrayLabels {
+        icon_name: APP_ID.into(),
+        show_window: i18n::tr("Show LumaWay"),
+        start_sync: i18n::tr("Start sync"),
+        stop_sync: i18n::tr("Stop sync"),
+        quit: i18n::tr("Quit"),
+        ready: i18n::tr("Ready"),
+        syncing: i18n::tr("Syncing"),
+    };
+    *ui.tray.borrow_mut() = tray::TrayController::install(sender, labels);
+}
+
+fn start_tray_command_pump(
+    ui: &Ui,
+    state: Rc<RefCell<AppState>>,
+    receiver: mpsc::Receiver<tray::TrayCommand>,
+) {
+    let ui = ui.clone();
+    glib::timeout_add_local(std::time::Duration::from_millis(120), move || {
+        while let Ok(command) = receiver.try_recv() {
+            handle_tray_command(&ui, &state, command);
+        }
+        glib::ControlFlow::Continue
+    });
+}
+
+fn handle_tray_command(ui: &Ui, state: &Rc<RefCell<AppState>>, command: tray::TrayCommand) {
+    match command {
+        tray::TrayCommand::Present => present_main_window(ui),
+        tray::TrayCommand::ToggleSync => toggle_sync(ui, state),
+        tray::TrayCommand::Quit => confirm_quit_or_quit(ui, state),
+        tray::TrayCommand::WatcherOnline => {
+            append_log_msg(&ui.logs, "Status tray available.");
+        }
+        tray::TrayCommand::WatcherOffline => {
+            append_log_msg(&ui.logs, "Status tray unavailable; using window controls.");
+        }
+    }
+}
+
+fn present_main_window(ui: &Ui) {
+    ui.window.set_visible(true);
+    ui.window.present();
+}
+
+fn toggle_sync(ui: &Ui, state: &Rc<RefCell<AppState>>) {
+    if sync_running(state) {
+        stop_sync(ui, state);
+    } else {
+        start_sync_or_report(ui, state);
+    }
+}
+
+fn start_sync_or_report(ui: &Ui, state: &Rc<RefCell<AppState>>) {
+    if let Err(error) = start_sync(ui, state) {
+        clear_sync_status(ui);
+        append_user_error(ui, &error.to_string());
+        apply_sync_idle_button_style(ui);
+        update_zone_controls(ui, false);
+    }
+}
+
+fn confirm_quit_or_quit(ui: &Ui, state: &Rc<RefCell<AppState>>) {
+    if !sync_running(state) {
+        ui.app.quit();
+        return;
+    }
+
+    present_main_window(ui);
+    let dialog = adw::AlertDialog::builder()
+        .heading(i18n::tr("Stop sync and quit?"))
+        .body(i18n::tr(
+            "LumaWay is syncing. Quitting will stop the active sync.",
+        ))
+        .default_response("cancel")
+        .close_response("cancel")
+        .build();
+    let cancel = i18n::tr("Cancel");
+    let quit = i18n::tr("Stop and quit");
+    dialog.add_responses(&[("cancel", cancel.as_str()), ("quit", quit.as_str())]);
+    dialog.set_response_appearance("quit", adw::ResponseAppearance::Destructive);
+
+    let quit_ui = ui.clone();
+    let quit_state = state.clone();
+    dialog.connect_response(None, move |dialog, response| {
+        if response == "quit" {
+            quit_state.borrow_mut().quit_after_sync = true;
+            stop_sync(&quit_ui, &quit_state);
+        }
+        dialog.close();
+    });
+    dialog.present(Some(&ui.window));
 }
 
 fn show_about_dialog(ui: &Ui) {
@@ -2242,9 +2343,9 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
         let mut exit_status = None;
         let mut wait_error = None;
         let mut last_sync_failure = None;
-        let (events, auto_quit_after_sync, sync_running, restart_requested, stop_requested) = {
+        let (events, quit_after_sync, sync_running, restart_requested, stop_requested) = {
             let mut state = state.borrow_mut();
-            let auto_quit_after_sync = state.auto_quit_after_sync;
+            let quit_after_sync = state.auto_quit_after_sync || state.quit_after_sync;
             if let Some(child) = state.child.as_mut() {
                 match child.try_wait() {
                     Ok(Some(status)) => {
@@ -2280,13 +2381,14 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                 last_sync_failure = state.last_sync_failure.take();
                 state.child = None;
                 state.stop_requested = false;
+                state.quit_after_sync = false;
                 if !restart_requested {
                     state.pending_restart = false;
                 }
             }
             (
                 drain_events(&state.event_queue),
-                auto_quit_after_sync,
+                quit_after_sync,
                 state.child.is_some(),
                 restart_requested,
                 stop_requested,
@@ -2314,7 +2416,7 @@ fn start_log_pump(ui: &Ui, state: Rc<RefCell<AppState>>) {
                     exit_status.as_ref(),
                     last_sync_failure.as_deref(),
                 );
-            } else if auto_quit_after_sync {
+            } else if quit_after_sync {
                 ui.window.close();
             }
         }
@@ -2631,6 +2733,7 @@ fn apply_sync_running_button_style(ui: &Ui) {
 }
 
 fn set_running_state(ui: &Ui, running: bool) {
+    ui.tray.borrow().set_running(running);
     if running {
         apply_sync_running_button_style(ui);
     } else {

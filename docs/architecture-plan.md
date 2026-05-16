@@ -412,7 +412,7 @@ Flatpak sandbox
 ## Langage
 
 ```text
-Rust stable
+Rust stable (MSRV 1.80)
 ```
 
 ## UI

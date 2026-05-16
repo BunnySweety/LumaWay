@@ -1194,6 +1194,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ksni"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7ca513d0be42df5edb485af9f44a12b2cb85af773d91c27dc796d1c58b78edc"
+dependencies = [
+ "futures-util",
+ "once_cell",
+ "pastey",
+ "serde",
+ "tokio",
+ "zbus",
+]
+
+[[package]]
 name = "kstring"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1314,6 +1328,7 @@ dependencies = [
  "anyhow",
  "gettext-rs",
  "gtk4",
+ "ksni",
  "libadwaita",
  "lumaway-core",
  "serde_json",
