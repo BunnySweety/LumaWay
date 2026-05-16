@@ -722,6 +722,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-16 | Phase 2 validation TV réelle | Commit `593bd0a` validé sur GNOME Wayland + zone TV : `backend-probe` recommande CPU, `sample-debug` et `capture-quality` capturent sans frame noire, `sync --area TV --duration-ms 3000` démarre sans `calibrate-capture`, bascule GL noir → CPU, envoie 75 frames puis désactive Entertainment |
 | 2026-05-16 | Phase 2.6 projection `z` | Sampling 2D garde `position.y` prioritaire et utilise `position.z` comme axe vertical de repli si `y` n'a pas de variation exploitable |
 | 2026-05-16 | Phase 2.4 harness | Ajout `docs/phase2-comparison-harness.md` et `docs/fixtures/phase2-patterns.html` : motifs, commandes, seuil ≤ 300 ms, modèle de résultats |
 | 2026-05-16 | Phase 2.3 backend-probe assistant | Erreur capture noire → carte assistant visible avec bouton `Probe backend`; exécution `lumaway backend-probe` et résumé CPU/GL dans le journal |
