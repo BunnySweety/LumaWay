@@ -27,6 +27,7 @@ Repository state:
 - field evidence preflight gate baseline: `3843b7d` (`Require Phase 2 field preflight evidence`);
 - field evidence preflight-output baseline: `ddccb25` (`Link Phase 2 evidence to saved preflight`);
 - field evidence preflight flag baseline: `4cf70ac` (`Reject ambiguous Phase 2 preflight flags`);
+- latency minimum-transition guard: current baseline (`Enforce positive Phase 2 transition minimum`);
 - field validation tracking issue: [#1](https://github.com/BunnySweety/LumaWay/issues/1);
 - CI evidence for the automated Phase 2 artifacts: `25974871811` on `4cf70ac`, workflow `CI`, job `rust`, conclusion `success`.
 
@@ -53,7 +54,7 @@ Prompt-to-artifact checklist:
 | 2.1 persistent crop profile values | `crates/lumaway-cli/src/cli_args.rs`, `crates/lumaway-cli/src/profile_env.rs`, tests | Tests include `sync_reads_sample_crop_from_environment` and `profile_template_includes_persistent_crop_defaults`; selected profile crop keys are non-secret profile values used by `sync`, `sample-debug`, and `capture-quality`. | Covered |
 | 2.2 Video / `vivid` black handling | `crates/lumaway-cli/src/color_tuning.rs`, tests | Test `vivid_tuning_lifts_dim_non_black_video_without_lighting_black` covers black/noise staying dark and dim non-black content receiving a soft luminance floor. | Covered |
 | 2.3 backend-probe assistant | `crates/lumaway-gui/src/main.rs`, `crates/lumaway-gui/src/user_messages.rs`, tests | `CaptureTooDark` exposes `Probe backend`; test `formats_backend_probe_summary` covers the CPU/GL recommendation summary. | Covered |
-| 2.4 fixed harness and latency verifier | `docs/phase2-comparison-harness.md`, `docs/fixtures/phase2-patterns.html`, `scripts/phase2-latency-summary.sh`, CI | Harness lists fixed patterns and result fields; helper enforces at least 5 transitions and <= 300 ms; workflow step `phase2 validation helpers` covers pass/fail examples. | Covered except external video evidence |
+| 2.4 fixed harness and latency verifier | `docs/phase2-comparison-harness.md`, `docs/fixtures/phase2-patterns.html`, `scripts/phase2-latency-summary.sh`, CI | Harness lists fixed patterns and result fields; helper enforces at least 5 transitions and <= 300 ms, and rejects a zero minimum-transition override; workflow step `phase2 validation helpers` covers pass/fail examples. | Covered except external video evidence |
 | 2.5 reusable diagnostics | `docs/phase2-comparison-harness.md`, `docs/test-matrix.md`, CLI/GUI evidence | Harness uses `backend-probe`, `capture-quality`, and `sample-debug`; test matrix records CLI diagnostics plus GUI `Quality` action evidence. | Covered |
 | 2.6 `position.z` vertical fallback | `crates/lumaway-cli/src/sampling.rs`, tests | Tests `maps_depth_position_when_vertical_span_is_missing` and `vertical_position_takes_priority_over_depth_position` cover fallback and Y priority. | Covered |
 | Existing TV user does not require `calibrate-capture` | Real TV command evidence below | `sync --area TV --duration-ms 3000 --capture-backend auto` started without `calibrate-capture`, selected CPU after GL-black fallback, sent 75 frames, and shut down cleanly. | Covered for this environment |

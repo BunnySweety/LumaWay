@@ -724,6 +724,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-17 | Phase 2 latency minimum | `scripts/phase2-latency-summary.sh` refuse désormais `--min-transitions 0`, pour empêcher une preuve latence sans transition acceptée |
 | 2026-05-17 | Phase 2 evidence preflight flags | `scripts/phase2-field-evidence.sh` refuse désormais une commande qui mélange `--preflight-output` et `--preflight-pass`, pour éviter une preuve finale ambiguë |
 | 2026-05-17 | Phase 2 evidence preflight output | `scripts/phase2-field-evidence.sh` peut désormais lire `--preflight-output phase2-preflight.txt` pour lier la preuve finale à la sortie preflight sauvegardée |
 | 2026-05-17 | Phase 2 evidence preflight gate | `scripts/phase2-field-evidence.sh` exige désormais un preflight réussi via `--preflight-output` ou `--preflight-pass yes` avant de produire `phase2_field_evidence=pass` |

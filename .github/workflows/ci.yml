@@ -52,6 +52,7 @@ jobs:
           scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-latency-summary.sh --fps 120 100:148 220:247 340:369 460:490 580:613
           ! scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490
+          ! scripts/phase2-latency-summary.sh --fps 120 --min-transitions 0
           scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 601 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used yes
@@ -61,6 +62,7 @@ jobs:
           printf "phase2_field_preflight=pass\nphase2_field_preflight=fail\n" > /tmp/phase2-preflight-ambiguous.txt
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output /tmp/phase2-preflight-ambiguous.txt --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-output /tmp/phase2-preflight-pass.txt --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no --min-transitions 0 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 60 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:118 220:238 340:358 460:478 580:598
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 601 --preflight-pass yes --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-pass yes --calibrate-used no --silent-black no 100:148 220:247 340:369 460:490 580:613

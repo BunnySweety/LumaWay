@@ -86,6 +86,13 @@ if [[ ! "$min_transitions" =~ $integer_re ]]; then
     exit 2
 fi
 
+min_transitions_value=$((10#$min_transitions))
+
+if (( min_transitions_value <= 0 )); then
+    echo "--min-transitions must be greater than zero" >&2
+    exit 2
+fi
+
 awk -v value="$fps" 'BEGIN { exit !(value > 0) }' || {
     echo "--fps must be greater than zero" >&2
     exit 2
@@ -96,8 +103,8 @@ awk -v value="$threshold_ms" 'BEGIN { exit !(value > 0) }' || {
     exit 2
 }
 
-if (( ${#pairs[@]} < min_transitions )); then
-    echo "need at least ${min_transitions} transitions, got ${#pairs[@]}" >&2
+if (( ${#pairs[@]} < min_transitions_value )); then
+    echo "need at least ${min_transitions_value} transitions, got ${#pairs[@]}" >&2
     exit 1
 fi
 
