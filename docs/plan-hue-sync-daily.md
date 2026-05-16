@@ -301,6 +301,8 @@ La v1.0 peut **rester en subprocess** tant que la GUI propage correctement `LUMA
 
 **Critère de fin** : utilisateur TV existant sans `calibrate-capture` obligatoire ; nouvel utilisateur ≤ 10 minutes jusqu’à une sync satisfaisante.
 
+**Statut de clôture** : livrables code/docs/helpers et validation TV disponible couverts dans [`phase2-validation-2026-05-16.md`](phase2-validation-2026-05-16.md). La clôture release reste bloquée uniquement par la preuve terrain externe suivie dans [l’issue #1](https://github.com/BunnySweety/LumaWay/issues/1) : vidéo écran + Hue à 120 fps, absence de session noire silencieuse et chronométrage premier lancement.
+
 <a id="phase-3--musique"></a>
 ### Phase 3 — Musique (~3–4 semaines, v1.1 si non livrée avant v1.0)
 
@@ -724,6 +726,8 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-17 | Phase 2 statut de clôture | La section Phase 2 pointe désormais explicitement vers `phase2-validation-2026-05-16.md` et l’issue #1 : code/docs/helpers livrés, clôture release bloquée uniquement par la preuve terrain externe |
+| 2026-05-17 | Phase 2 template résultat terrain | `docs/phase2-comparison-harness.md`, `docs/phase2-validation-2026-05-16.md` et `docs/test-matrix.md` tracent désormais preflight, FPS vidéo, paires `screen_frame:light_frame`, commande finale et sortie `phase2_field_evidence` |
 | 2026-05-17 | Phase 2 preflight caméra explicite | `scripts/phase2-field-preflight.sh` refuse désormais `--video-device` avec `--require-camera no`, car aucun périphérique local n'est vérifié dans ce mode |
 | 2026-05-17 | Phase 2 preflight FPS requis | `scripts/phase2-field-preflight.sh --require-camera no` échoue désormais sans `--camera-fps`, pour éviter un preflight téléphone/non-V4L2 sans preuve FPS |
 | 2026-05-17 | Phase 2 latency minimum | `scripts/phase2-latency-summary.sh` refuse désormais `--min-transitions 0`, pour empêcher une preuve latence sans transition acceptée |
