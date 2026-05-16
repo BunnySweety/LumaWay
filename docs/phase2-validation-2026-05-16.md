@@ -8,7 +8,6 @@ This file records the current Phase 2 evidence against `docs/plan-hue-sync-daily
 
 Repository state:
 
-- audited baseline head: `c3d10e4` (`Add Phase 2 field evidence helper`);
 - implementation commit: `593bd0a` (`Complete Phase 2 screen quality tasks`);
 - TV validation commit: `5bdb192` (`Record Phase 2 TV validation`);
 - field-gate clarification commit: `7e8286e` (`Clarify Phase 2 field validation gates`);
@@ -19,7 +18,7 @@ Repository state:
 - documentation status commit: `2c93ad1` (`Refresh Phase 2 documentation status`);
 - next-action alignment commit: `5b36a06` (`Update Phase 2 next actions`);
 - field evidence helper commit: `c3d10e4` (`Add Phase 2 field evidence helper`);
-- latest full CI observed during this audit: `25949853767` on `c3d10e4`, workflow `CI`, job `rust`, conclusion `success`.
+- CI evidence for the automated Phase 2 artifacts: `25949853767` on `c3d10e4`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
 
@@ -51,7 +50,7 @@ Prompt-to-artifact checklist:
 | New-user first satisfactory sync <= 10 min | `scripts/phase2-first-run-summary.sh`, CI | Helper enforces <= 600 seconds and `--calibrate-used no`; CI covers pass/fail examples. No observed new-user timing run exists. | Missing external observer run |
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency and first-run verifiers into one pasteable audit block and exits non-zero if either gate fails. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25949853767` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on `c3d10e4`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25949853767` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the helper baseline `c3d10e4`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the two external field proofs are captured and recorded.
 
