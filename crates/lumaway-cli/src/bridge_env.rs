@@ -40,11 +40,13 @@ pub fn persist_bridge_identity(bridge_ip: &str, bridge_id: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::{env_lock, restore_env};
     use lumaway_core::read_env_file;
     use std::fs;
 
     #[test]
     fn persist_bridge_identity_writes_env_key() {
+        let _env = env_lock();
         let dir = std::env::temp_dir().join(format!("lumaway-bridge-env-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
@@ -60,11 +62,7 @@ mod tests {
             Some("001788fffeabc123")
         );
 
-        if let Some(old) = old {
-            std::env::set_var("XDG_CONFIG_HOME", old);
-        } else {
-            std::env::remove_var("XDG_CONFIG_HOME");
-        }
+        restore_env("XDG_CONFIG_HOME", old);
         let _ = fs::remove_dir_all(&dir);
     }
 }

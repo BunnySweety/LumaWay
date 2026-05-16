@@ -109,6 +109,8 @@ struct Ui {
     bridge_display: gtk::Label,
     setup_card: gtk::Box,
     setup_status: gtk::Label,
+    backend_probe: gtk::Button,
+    backend_probe_suggested: Rc<Cell<bool>>,
     settings: gtk::Button,
     about: gtk::Button,
     discover: gtk::Button,
@@ -154,6 +156,7 @@ enum GuiEvent {
     TestLightsCompleted,
     TestLightsUnavailable { message: String },
     ProfilesListed(Vec<String>),
+    BackendProbeCompleted(String),
     ProfileCalibrated { profile: String, output: String },
     CaptureQualityMeasured(String),
     Error(String),
@@ -369,6 +372,12 @@ fn build_widgets(
     let auth = gtk::Button::with_label(&i18n::tr("Pair"));
     let discover = gtk::Button::with_label(&i18n::tr("Discover"));
     let test_lights = gtk::Button::with_label(&i18n::tr("Test lights"));
+    let backend_probe = gtk::Button::with_label(&i18n::tr("Probe backend"));
+    backend_probe.set_tooltip_text(Some(&i18n::tr(
+        "Compare CPU and GL screen capture backends",
+    )));
+    backend_probe.set_visible(false);
+    let backend_probe_suggested = Rc::new(Cell::new(false));
 
     let connection_status = gtk::Label::new(Some(&i18n::tr("Bridge not configured")));
     connection_status.set_xalign(0.0);
@@ -405,6 +414,7 @@ fn build_widgets(
     setup_actions.append(&discover);
     setup_actions.append(&auth);
     setup_actions.append(&test_lights);
+    setup_actions.append(&backend_probe);
     setup_card.append(&setup_heading);
     setup_card.append(&setup_status);
     setup_card.append(&setup_actions);
@@ -548,6 +558,8 @@ fn build_widgets(
         bridge_display,
         setup_card,
         setup_status,
+        backend_probe,
+        backend_probe_suggested,
         settings,
         about,
         discover,
@@ -1143,6 +1155,11 @@ fn wire_actions(ui: &Ui, state: Rc<RefCell<AppState>>) {
     let test_lights_ui = ui.clone();
     ui.test_lights.connect_clicked(move |_| {
         test_lights(&test_lights_ui);
+    });
+
+    let backend_probe_ui = ui.clone();
+    ui.backend_probe.connect_clicked(move |_| {
+        probe_capture_backend(&backend_probe_ui);
     });
 
     let area_ui = ui.clone();
@@ -1989,6 +2006,36 @@ fn measure_capture_quality(ui: &Ui) {
     });
 }
 
+fn probe_capture_backend(ui: &Ui) {
+    append_log_msg(
+        &ui.logs,
+        "Probing capture backends. Select the display in Portal.",
+    );
+    let queue = ui_event_queue(ui);
+    thread::spawn(move || {
+        let output = Command::new(resolve_lumaway_binary())
+            .arg("backend-probe")
+            .arg("--frames")
+            .arg("5")
+            .arg("--sample-width")
+            .arg("120")
+            .arg("--sample-height")
+            .arg("68")
+            .arg("--fps")
+            .arg("25")
+            .output();
+        let event = match output {
+            Ok(output) if output.status.success() => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                GuiEvent::BackendProbeCompleted(stdout.trim().to_string())
+            }
+            Ok(output) => GuiEvent::Error(String::from_utf8_lossy(&output.stderr).to_string()),
+            Err(error) => GuiEvent::Error(error.to_string()),
+        };
+        push_event(&queue, event);
+    });
+}
+
 fn load_areas(ui: &Ui) {
     let bridge = ui.bridge.text().trim().to_string();
     let app_key = ui.app_key.text().to_string();
@@ -2665,6 +2712,19 @@ fn handle_event(ui: &Ui, event: GuiEvent, sync_running: bool) {
                 }
             }
         }
+        GuiEvent::BackendProbeCompleted(output) => {
+            ui.backend_probe_suggested.set(false);
+            update_setup_guide(ui, sync_running);
+            if output.trim().is_empty() {
+                append_log_msg(&ui.logs, "Backend probe completed without output.");
+            } else if let Some(summary) = format_backend_probe_summary(&output) {
+                append_log(&ui.logs, &summary);
+            } else {
+                append_log_msg(&ui.logs, "Backend probe:");
+                append_log(&ui.logs, output.trim());
+                append_log(&ui.logs, "\n");
+            }
+        }
         GuiEvent::ProfileCalibrated { profile, output } => {
             ui.profile.set_text(&profile);
             let _ = write_current_env_file(ui);
@@ -2779,18 +2839,22 @@ fn update_setup_guide(ui: &Ui, running: bool) {
     let has_zone = !current_area_ref(ui).trim().is_empty();
     let zone_on = has_zone && ui.area_enabled.is_active();
     let complete = setup_guide_complete(bridge_configured, paired, has_zone, zone_on);
+    let backend_probe_suggested = ui.backend_probe_suggested.get();
 
-    ui.setup_card.set_visible(!complete);
-    ui.setup_status.set_text(&i18n::tr(setup_guide_status(
-        bridge_configured,
-        paired,
-        has_zone,
-        zone_on,
-    )));
+    ui.setup_card
+        .set_visible(backend_probe_suggested || !complete);
+    let status = if backend_probe_suggested {
+        "Screen capture looks black. Run backend probe, then calibrate if needed."
+    } else {
+        setup_guide_status(bridge_configured, paired, has_zone, zone_on)
+    };
+    ui.setup_status.set_text(&i18n::tr(status));
     ui.discover.set_sensitive(!running);
     ui.auth.set_sensitive(!running && bridge_configured);
     ui.test_lights
         .set_sensitive(!running && bridge_configured && paired && has_zone);
+    ui.backend_probe.set_visible(backend_probe_suggested);
+    ui.backend_probe.set_sensitive(!running);
 }
 
 fn setup_guide_complete(
@@ -3071,6 +3135,46 @@ fn format_capture_quality_summary(output: &str) -> Option<String> {
     ))
 }
 
+fn format_backend_probe_summary(output: &str) -> Option<String> {
+    let recommendation_line = output
+        .lines()
+        .find(|line| line.starts_with("backend_probe_recommendation "))?;
+    let recommendation_fields = parse_key_value_words(recommendation_line);
+    let backend = recommendation_fields.get("backend")?;
+    let reason = recommendation_fields
+        .get("reason")
+        .map(String::as_str)
+        .unwrap_or("?");
+    let cpu = output
+        .lines()
+        .find(|line| line.starts_with("backend_probe backend=cpu "))
+        .map(parse_key_value_words);
+    let gl = output
+        .lines()
+        .find(|line| line.starts_with("backend_probe backend=gl "))
+        .map(parse_key_value_words);
+    let cpu_status = backend_probe_status(cpu.as_ref());
+    let gl_status = backend_probe_status(gl.as_ref());
+
+    Some(format!(
+        "Backend probe: use {backend}\n- reason: {reason}\n- CPU: {cpu_status}\n- GL: {gl_status}\n"
+    ))
+}
+
+fn backend_probe_status(fields: Option<&HashMap<String, String>>) -> String {
+    let Some(fields) = fields else {
+        return "?".to_string();
+    };
+    if let Some(error) = fields.get("error") {
+        return format!("error={error}");
+    }
+    let dark = fields.get("dark").map(String::as_str).unwrap_or("?");
+    let frames = fields.get("frames").map(String::as_str).unwrap_or("?");
+    let max_rgb = fields.get("max_rgb").map(String::as_str).unwrap_or("?");
+    let luma = fields.get("avg_luma").map(String::as_str).unwrap_or("?");
+    format!("frames={frames}, dark={dark}, max_rgb={max_rgb}, avg_luma={luma}")
+}
+
 fn capture_quality_hint_label(hint: &str) -> &'static str {
     match hint {
         "choose_multi_channel_area_for_correlation_test" => {
@@ -3133,6 +3237,10 @@ fn append_log_msg_format(buffer: &gtk::TextBuffer, message: &str, values: &[(&st
 fn append_user_error(ui: &Ui, error: &str) {
     let code = user_messages::classify_error(error);
     append_log(&ui.logs, &user_messages::format_user_error(error));
+    if code == user_messages::UserMessageCode::CaptureTooDark {
+        ui.backend_probe_suggested.set(true);
+        update_setup_guide(ui, false);
+    }
     show_error_actions(ui, code);
     notify_user_error(ui, code);
 }
@@ -3566,16 +3674,16 @@ mod tests {
     use super::user_messages::UserMessageCode;
     use super::{
         bridge_id_display_text, color_profile_for_sync_mode, default_intensity_for_sync_mode,
-        desktop_exec_arg, format_bridge_title, format_capture_quality_summary,
-        initial_language_setting, initial_reactivity_percent, initial_sync_mode,
-        intensity_level_for_percent, is_sync_failure_candidate, language_gettext_override,
-        language_option_index, lumaway_bin_override_rejection_reason, parse_area_state_output,
-        parse_areas_output, parse_auth_output, parse_bridge_discovery_output,
-        parse_bridge_info_output, parse_profile_list_output, preset_for_sync_mode,
-        sanitize_color_profile, sanitize_language_setting, sanitize_profile_name,
-        selected_area_index, session_autostart_desktop_entry_for_exec, setup_guide_complete,
-        setup_guide_status, should_send_error_notification, sync_status_from_log, IntensityLevel,
-        ABOUT_COMMENTS,
+        desktop_exec_arg, format_backend_probe_summary, format_bridge_title,
+        format_capture_quality_summary, initial_language_setting, initial_reactivity_percent,
+        initial_sync_mode, intensity_level_for_percent, is_sync_failure_candidate,
+        language_gettext_override, language_option_index, lumaway_bin_override_rejection_reason,
+        parse_area_state_output, parse_areas_output, parse_auth_output,
+        parse_bridge_discovery_output, parse_bridge_info_output, parse_profile_list_output,
+        preset_for_sync_mode, sanitize_color_profile, sanitize_language_setting,
+        sanitize_profile_name, selected_area_index, session_autostart_desktop_entry_for_exec,
+        setup_guide_complete, setup_guide_status, should_send_error_notification,
+        sync_status_from_log, IntensityLevel, ABOUT_COMMENTS,
     };
     use lumaway_core::SyncMode;
     use std::collections::HashMap;
@@ -3742,6 +3850,21 @@ mod tests {
         assert!(summary.contains("Capture quality: low_temporal_variation"));
         assert!(summary.contains("warnings: low_luma,low_saturation,low_temporal_variation"));
         assert!(summary.contains("channel separation: 8.7"));
+    }
+
+    #[test]
+    fn formats_backend_probe_summary() {
+        let summary = format_backend_probe_summary(
+            "backend_probe backend=cpu status=ok frames=5/5 dark=false max_rgb=131 avg_luma=113.4 capture_avg_ms=4.100 capture_max_ms=5.200 elapsed_ms=40.000\n\
+             backend_probe backend=gl status=ok frames=5/5 dark=true max_rgb=0 avg_luma=0.0 capture_avg_ms=4.000 capture_max_ms=5.000 elapsed_ms=39.000\n\
+             backend_probe_recommendation backend=cpu reason=usable_stable_default",
+        )
+        .unwrap();
+
+        assert!(summary.contains("Backend probe: use cpu"));
+        assert!(summary.contains("reason: usable_stable_default"));
+        assert!(summary.contains("CPU: frames=5/5, dark=false, max_rgb=131, avg_luma=113.4"));
+        assert!(summary.contains("GL: frames=5/5, dark=true, max_rgb=0, avg_luma=0.0"));
     }
 
     #[test]

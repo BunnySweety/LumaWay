@@ -308,12 +308,15 @@ Store profiles separately from credentials.
 - Done: `lumaway sample-debug` prints per-channel sample points, sample radius, raw RGB, smoothed RGB, graded RGB, final output RGB, luma, saturation, capture backend, and capture timing without starting Hue streaming.
 - Done: the point-sampling patch was widened to reduce single-pixel/detail sensitivity.
 - Done: `SampleRegion` and `--sampling point|region` add weighted rectangular region sampling while keeping point sampling available for comparison.
+- Done: 2D channel projection uses Hue `position.y` first and falls back to `position.z` as vertical placement when the bridge exposes depth variation but no usable vertical span.
 - Done: `--color-profile soft|vivid|game|boosted|cinema|desktop` and `LUMAWAY_COLOR_PROFILE` select color grading curves for `sync`, `sync-bench`, and `sample-debug`.
 - Done: the default Video / `vivid` curve keeps true black and near-black capture noise dark while applying a soft minimum output luma to dim non-black content.
 - Done: the GTK Settings window exposes the same color-profile selector and passes it to the sync engine.
 - Done: `tv-wayland` uses CPU capture by default, weighted region sampling, and keeps max-step disabled for more responsive window changes.
 - Done: `lumaway backend-probe` compares CPU and GL on the same Portal stream and reports frames, max RGB, average luma, dark-frame detection, timing, and a conservative recommendation.
+- Done: the GUI offers a `Probe backend` assistant action after capture-too-dark failures and summarizes the CPU/GL recommendation in the app log.
 - Done: `--capture-backend auto` now probes GL output quality and falls back to CPU when GL starts but returns black/unusable frames.
+- Done: Phase 2.4 comparison harness is documented in `phase2-comparison-harness.md` with a local `fixtures/phase2-patterns.html` full-screen pattern page and a 300 ms latency gate.
 - Done: `lumaway capture-quality` summarizes real Portal capture luma, saturation, temporal variation, channel separation, dark frames, and a recommendation for weak capture symptoms.
 - Done: capture quality distinguishes one-channel areas from real spatial-correlation failures and tells the user to test with a multi-light area.
 - Done: `LUMAWAY_PROFILE=<name>` loads non-secret capture/color defaults from `~/.config/lumaway/profiles/<name>.env`; `lumaway profile-template --name <name>` creates a starter profile and `lumaway profile-list` lists available profile files.

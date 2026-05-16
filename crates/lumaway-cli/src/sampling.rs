@@ -83,6 +83,7 @@ pub fn channel_samples_by_position(
     let total = ordered.len().max(1);
     let x_range = position_axis_range(&ordered, |position| position.x);
     let y_range = position_axis_range(&ordered, |position| position.y);
+    let z_range = position_axis_range(&ordered, |position| position.z);
 
     ordered
         .into_iter()
@@ -98,10 +99,7 @@ pub fn channel_samples_by_position(
                     let x = x_range
                         .and_then(|(min, max)| normalize_position_axis(position.x, min, max))
                         .unwrap_or(0.5);
-                    let y = y_range
-                        .and_then(|(min, max)| normalize_position_axis(position.y, min, max))
-                        .map(|normalized| 1.0 - normalized)
-                        .unwrap_or(0.5);
+                    let y = project_vertical_axis(position, y_range, z_range).unwrap_or(0.5);
 
                     crop.apply(SamplePoint::new(
                         margin_sample_axis(x, edge_margin),
@@ -161,6 +159,17 @@ fn normalize_position_axis(value: f64, min: f64, max: f64) -> Option<f64> {
     Some((value - min) / span)
 }
 
+fn project_vertical_axis(
+    position: EntertainmentChannelPosition,
+    y_range: Option<(f64, f64)>,
+    z_range: Option<(f64, f64)>,
+) -> Option<f64> {
+    y_range
+        .and_then(|(min, max)| normalize_position_axis(position.y, min, max))
+        .or_else(|| z_range.and_then(|(min, max)| normalize_position_axis(position.z, min, max)))
+        .map(|normalized| 1.0 - normalized)
+}
+
 fn margin_sample_axis(value: f64, edge_margin: f64) -> f64 {
     edge_margin + value.clamp(0.0, 1.0) * (1.0 - edge_margin * 2.0)
 }
@@ -172,6 +181,18 @@ fn channels_by_horizontal_position(area: &EntertainmentArea) -> Vec<Entertainmen
             .x
             .partial_cmp(&right_position.x)
             .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| {
+                left_position
+                    .y
+                    .partial_cmp(&right_position.y)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .then_with(|| {
+                left_position
+                    .z
+                    .partial_cmp(&right_position.z)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
             .then_with(|| left.channel_id.cmp(&right.channel_id)),
         (Some(_), None) => std::cmp::Ordering::Less,
         (None, Some(_)) => std::cmp::Ordering::Greater,

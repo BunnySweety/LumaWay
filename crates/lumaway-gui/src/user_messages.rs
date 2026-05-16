@@ -108,7 +108,9 @@ impl UserMessageCode {
             Self::CaptureTimeout => {
                 i18n::tr("Start sync again and reselect the screen in the portal dialog.")
             }
-            Self::CaptureTooDark => i18n::tr("Open Settings and run Quality or Calibrate."),
+            Self::CaptureTooDark => {
+                i18n::tr("Run backend probe, then use Quality or Calibrate if needed.")
+            }
             Self::SystemSleepResume => {
                 i18n::tr("Start sync again and reselect the screen if the portal asks.")
             }

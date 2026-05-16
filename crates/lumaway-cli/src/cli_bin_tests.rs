@@ -1,5 +1,6 @@
 //! Unit tests for the `lumaway` CLI binary.
 
+use crate::test_support::{env_lock, restore_env};
 use crate::{
     available_profiles, cap_detected_crop, capture_quality_hint, channel_samples_by_position,
     default_profile_text, effective_capture_poll_timeout, effective_pipewire_fps, expected_frames,
@@ -15,25 +16,12 @@ use lumaway_hue::{
     DtlsTransport, EntertainmentArea, EntertainmentChannel, EntertainmentChannelPosition,
     HueStreamMessage,
 };
-use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::time::Duration;
 
 #[derive(Default)]
 struct RecordingTransport {
     sent: Vec<Vec<u8>>,
     drains: usize,
-}
-
-fn restore_env(key: &str, value: Option<std::ffi::OsString>) {
-    match value {
-        Some(value) => std::env::set_var(key, value),
-        None => std::env::remove_var(key),
-    }
-}
-
-fn env_lock() -> MutexGuard<'static, ()> {
-    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-    LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
 }
 
 impl DtlsTransport for RecordingTransport {
@@ -389,6 +377,70 @@ fn maps_vertical_position_when_channels_have_vertical_span() {
                     x: 0.0,
                     y: 1.0,
                     z: 0.0,
+                }),
+            },
+        ],
+        lights: None,
+    };
+
+    let samples =
+        channel_samples_by_position(&area, DEFAULT_SAMPLE_EDGE_MARGIN, SampleCrop::default());
+    assert_sample_point_close(samples[0].point, 0.5, 0.92);
+    assert_sample_point_close(samples[1].point, 0.5, 0.08);
+}
+
+#[test]
+fn maps_depth_position_when_vertical_span_is_missing() {
+    let area = EntertainmentArea {
+        id: "area".into(),
+        name: "Depth".into(),
+        channels: vec![
+            EntertainmentChannel {
+                channel_id: 1,
+                position: Some(EntertainmentChannelPosition {
+                    x: 0.0,
+                    y: 0.0,
+                    z: -1.0,
+                }),
+            },
+            EntertainmentChannel {
+                channel_id: 2,
+                position: Some(EntertainmentChannelPosition {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 1.0,
+                }),
+            },
+        ],
+        lights: None,
+    };
+
+    let samples =
+        channel_samples_by_position(&area, DEFAULT_SAMPLE_EDGE_MARGIN, SampleCrop::default());
+    assert_sample_point_close(samples[0].point, 0.5, 0.92);
+    assert_sample_point_close(samples[1].point, 0.5, 0.08);
+}
+
+#[test]
+fn vertical_position_takes_priority_over_depth_position() {
+    let area = EntertainmentArea {
+        id: "area".into(),
+        name: "Depth".into(),
+        channels: vec![
+            EntertainmentChannel {
+                channel_id: 1,
+                position: Some(EntertainmentChannelPosition {
+                    x: 0.0,
+                    y: -1.0,
+                    z: 1.0,
+                }),
+            },
+            EntertainmentChannel {
+                channel_id: 2,
+                position: Some(EntertainmentChannelPosition {
+                    x: 0.0,
+                    y: 1.0,
+                    z: -1.0,
                 }),
             },
         ],

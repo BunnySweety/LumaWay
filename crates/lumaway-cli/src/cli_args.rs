@@ -349,20 +349,8 @@ pub enum Command {
 #[cfg(test)]
 mod tests {
     use super::{Cli, Command};
+    use crate::test_support::{env_lock, restore_env};
     use clap::Parser;
-    use std::sync::{Mutex, MutexGuard, OnceLock};
-
-    fn env_lock() -> MutexGuard<'static, ()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
-    }
-
-    fn restore_env(key: &str, value: Option<std::ffi::OsString>) {
-        match value {
-            Some(value) => std::env::set_var(key, value),
-            None => std::env::remove_var(key),
-        }
-    }
 
     #[test]
     fn sync_reads_sample_crop_from_environment() {

@@ -89,6 +89,7 @@ On desktops without a StatusNotifier/AppIndicator tray, the Start/Stop window re
 The main window also exposes an `About` dialog with the app version, MPL-2.0 license, GitHub project links, local-processing privacy note, no-telemetry statement, and nominative Philips Hue compatibility note.
 While the Portal selector is open, the main window shows `Choose the screen or window to sync`. If the desktop portal returns a `restore_token`, `lumaway sync` stores it in `LUMAWAY_PORTAL_RESTORE_TOKEN` and reuses it on the next sync; desktops that do not expose one keep showing the selector reminder each session.
 If the selected Portal stream stops delivering frames for more than 5 seconds, `lumaway sync` exits with a classified Portal-stream error; the GUI returns to Start and exposes `Retry`.
+If capture looks black or too dark, the first-setup card offers `Probe backend`; this runs `lumaway backend-probe`, compares CPU and GL on the selected Portal stream, and prints the recommended backend in the log.
 If the Hue bridge becomes unreachable during active streaming, the next DTLS send error is annotated as bridge loss; `lumaway sync` exits, attempts to stop capture and deactivate Entertainment, and the GUI shows a translated bridge-lost recovery message.
 After the computer resumes from sleep, `lumaway sync` detects the wall-clock / monotonic-clock gap, exits instead of silently reusing an expired Portal or DTLS session, and the GUI shows a translated sleep-resume recovery message.
 

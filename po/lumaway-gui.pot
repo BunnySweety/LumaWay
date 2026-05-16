@@ -571,3 +571,24 @@ msgstr ""
 
 msgid "Syncing"
 msgstr ""
+
+msgid "Probe backend"
+msgstr ""
+
+msgid "Compare CPU and GL screen capture backends"
+msgstr ""
+
+msgid "Probing capture backends. Select the display in Portal."
+msgstr ""
+
+msgid "Backend probe completed without output."
+msgstr ""
+
+msgid "Backend probe:"
+msgstr ""
+
+msgid "Screen capture looks black. Run backend probe, then calibrate if needed."
+msgstr ""
+
+msgid "Run backend probe, then use Quality or Calibrate if needed."
+msgstr ""

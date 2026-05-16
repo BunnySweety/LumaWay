@@ -26,6 +26,9 @@ mod sync_stats;
 mod tracing_init;
 mod validation;
 
+#[cfg(test)]
+mod test_support;
+
 pub use cli_defaults::{DEFAULT_AUTO_CROP_MAX_EDGE, DEFAULT_CAPTURE_POLL_MS};
 
 pub use tracing_init::init_tracing;

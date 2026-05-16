@@ -593,3 +593,24 @@ msgstr "Synchronise les lumières Philips Hue Entertainment depuis le bureau Lin
 
 msgid "Syncing"
 msgstr "Synchronisation en cours"
+
+msgid "Probe backend"
+msgstr "Tester le backend"
+
+msgid "Compare CPU and GL screen capture backends"
+msgstr "Compare les backends de capture d'écran CPU et GL"
+
+msgid "Probing capture backends. Select the display in Portal."
+msgstr "Test des backends de capture. Sélectionnez l'écran dans le portail."
+
+msgid "Backend probe completed without output."
+msgstr "Le test des backends s'est terminé sans sortie."
+
+msgid "Backend probe:"
+msgstr "Test des backends :"
+
+msgid "Screen capture looks black. Run backend probe, then calibrate if needed."
+msgstr "La capture d'écran semble noire. Lancez le test des backends, puis calibrez si nécessaire."
+
+msgid "Run backend probe, then use Quality or Calibrate if needed."
+msgstr "Lancez le test des backends, puis utilisez Qualité ou Calibrer si nécessaire."

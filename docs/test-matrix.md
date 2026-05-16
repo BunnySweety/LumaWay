@@ -113,6 +113,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `/home/bunny/.local/bin/lumaway sample-debug --portal --preset tv-wayland --frames 1 --color-profile desktop`: real GNOME Wayland Portal capture completed without Hue streaming; printed per-channel raw/smoothed/graded/output RGB, luma, saturation, sample point, sample radius, and capture timing. Example validation: raw `25,39,53` graded to `50,77,102` with output luma `73.1`.
 - `/home/bunny/.local/bin/lumaway sample-debug --portal --preset tv-wayland --area TV --frames 1 --sampling region --color-profile desktop`: real GNOME Wayland Portal capture completed without Hue streaming; printed `sampling=Region`, CPU backend, TV left/right weighted regions, and per-channel graded output RGB.
 - `/home/bunny/.local/bin/lumaway backend-probe --frames 5 --sample-width 120 --sample-height 68 --fps 25`: real GNOME Wayland Portal probe confirmed CPU usable (`max_rgb=131`, `avg_luma=113.4`) while GL started but returned black (`max_rgb=0`, `avg_luma=0.0`); recommendation was `backend=cpu`.
+- `cargo test`: GUI formats `backend-probe` output into a compact CPU/GL recommendation summary; capture-too-dark errors expose the `Probe backend` assistant action.
 - `/home/bunny/.local/bin/lumaway capture-quality --portal --preset tv-wayland --frames 10`: command is installed and now loads `~/.config/lumaway/lumaway.env` automatically; live capture did not proceed because the current saved Hue application key is rejected by the bridge, and `doctor` also reports Portal session warnings outside the graphical user session.
 - `/home/bunny/.local/bin/lumaway doctor`: Hue authentication failures now include a repair hint to press the bridge button and pair again from Settings, instead of only reporting the raw `Hue bridge authentication failed` error.
 - `cargo test`: GUI error classification covers Hue authentication failures and keeps unrelated Portal errors out of the pairing-required path.
@@ -122,6 +123,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `Quality` reports secondary warnings such as `low_luma`, `low_saturation`, and `low_temporal_variation` together, so a stable measurement does not hide weak brightness or weak colorfulness.
 - `cargo test`: `boosted` color profile is covered as stronger than `game` on low-saturation captures and is accepted by the GUI profile sanitizer.
 - `cargo test`: `vivid` color tuning keeps black / near-black noise dark and lifts dim non-black content to a soft minimum output luma for Video mode.
+- `docs/phase2-comparison-harness.md` + `docs/fixtures/phase2-patterns.html`: Phase 2.4 harness defines fixed full-screen patterns, `sample-debug` / `capture-quality` commands, and the release latency gate of every accepted transition at or below 300 ms.
 - `/home/bunny/.local/bin/lumaway sample-debug --portal --area TV --frames 1 --capture-backend auto --sampling region --color-profile desktop`: real GNOME Wayland Portal capture detected dark GL output during the auto quality probe, logged fallback to CPU, and completed with `capture_backend=cpu`, `sampling=Region`, and non-black per-channel output.
 - `LUMAWAY_PROFILE=live /home/bunny/.local/bin/lumaway sample-debug --portal --area TV --frames 1`: real GNOME Wayland Portal capture loaded non-secret profile defaults from `~/.config/lumaway/profiles/live.env` equivalent test config, applied `preset=tv-wayland`, `capture_backend=auto`, `sampling=region`, `color_profile=desktop`, detected dark GL, and completed on CPU.
 - `XDG_CONFIG_HOME=<tmp> /home/bunny/.local/bin/lumaway profile-template --name testprofile`: created a starter non-secret profile containing capture backend, cadence, sampling, sample crop defaults, brightness, reactivity, color profile, and noise-threshold defaults.
@@ -149,6 +151,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 - `cargo test`: StatusNotifier tray menu switches Start/Stop labels by state and tray activation sends the expected UI command.
 - `cargo test`: empty area-list selection keeps no zone selected instead of picking a stale value.
 - `cargo test`: relative 2D channel sample mapping, configurable edge margin, manual crop bounds, same-height vertical centering, and fallback placement are covered with unit tests.
+- `cargo test`: Hue Entertainment `position.z` is used as a vertical fallback when `position.y` has no span, while real vertical `position.y` still takes priority over depth.
 - `cargo test`: sampled dark-border detection, fully dark frame handling, crop aggregation, auto-crop edge cap validation, manual-plus-auto crop merging, and copyable crop args are covered with unit tests.
 
 ## Current Gaps
