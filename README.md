@@ -133,7 +133,7 @@ scripts/install-desktop-app.sh
 
 Then launch `LumaWay` from the application menu. The GUI lets you associate the lighting controller, load zones, edit the connection, start or stop sync, and inspect logs. See [docs/desktop-app.md](docs/desktop-app.md).
 
-Lighting channel positions are read from the controller; the current spike maps relative `position.x` and `position.y` ranges to normalized screen sample points with an 8% edge margin. If all positioned channels share the same vertical coordinate, the sampler uses the vertical center instead of pinning lights to the top or bottom edge. Channels without controller positions fall back to an even horizontal distribution.
+Lighting channel positions are read from the controller; sync maps relative `position.x` and `position.y` ranges to normalized screen sample points with an 8% edge margin. If `position.y` has no usable vertical span, the sampler uses Hue Entertainment `position.z` as the vertical fallback; if neither axis has a usable span, it uses the vertical center. Channels without controller positions fall back to an even horizontal distribution.
 
 The Portal/PipeWire path currently negotiates the native sample format from GStreamer caps and samples that buffer directly. `--sample-width` and `--sample-height` define a CPU sampling grid over the native buffer. The default sync grid is `120x68`. GStreamer-side Portal scaling is disabled for now because width/height caps caused frame timeouts in GNOME Portal testing.
 
@@ -264,7 +264,7 @@ lumaway portal-probe
 
 `LUMAWAY_APP_KEY` and `LUMAWAY_CLIENT_KEY` can be used instead of passing secrets as CLI arguments.
 
-This sync path is still a spike. It has 2D spatial point and weighted-region sampling, manual crop controls, optional dark-border auto-crop, temporal smoothing, a small anti-noise threshold, and an optional per-frame step limiter, but not yet full 3D-aware placement, persistent crop profiles, or latency tuning.
+This sync path now has 2D spatial point and weighted-region sampling, Hue Entertainment `position.z` as a vertical fallback, manual and profile-persistent crop controls, optional dark-border auto-crop, temporal smoothing, a small anti-noise threshold, an optional per-frame step limiter, backend probing/fallback, and Phase 2 latency and first-run validation helpers. Full 3D projection and the external latency/user-timing proof still require field validation.
 
 ## Documentation
 

@@ -43,7 +43,7 @@
    - Relative `position.x` and `position.y` ranges are mapped to normalized screen sample points.
    - Sample points use a configurable edge margin with `--sample-edge-margin`; default is 8%.
    - Sample points can be constrained with manual crop controls: `--sample-crop-left`, `--sample-crop-right`, `--sample-crop-top`, and `--sample-crop-bottom`.
-   - If all positioned channels share the same vertical coordinate, the sampler uses vertical center.
+   - If `position.y` has no usable vertical span, the sampler uses Hue Entertainment `position.z` as the vertical fallback; if neither axis has a usable span, it uses vertical center.
    - Channels without positions fall back to an even horizontal distribution.
 4. Add backpressure rules.
 5. Add temporal smoothing. Done.
@@ -106,4 +106,3 @@ Voir aussi la section « Éléments reportés » dans [plan-hue-sync-daily.md](p
 - Secret Service storage.
 - Migration from Lumux.
 - Multi-monitor polish (Phase **1.10** du plan — flux Portal).
-- Persistent crop profiles (Phase 2.1 du plan — retiré du différé une fois livré).

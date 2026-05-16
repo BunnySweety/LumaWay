@@ -166,7 +166,7 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 Product roadmap items (music, tray, mode selector) are tracked in [plan-hue-sync-daily.md](plan-hue-sync-daily.md).
 
 - Portal scaled RGB conversion path must be remeasured after accepting the GNOME Portal selector.
-- Sync uses 2D point or weighted-region sampling, not full 3D-aware placement.
+- Sync uses 2D point or weighted-region sampling with `position.z` as a vertical fallback, not full 3D projection.
 - Smoothing, noise-threshold, and max-step defaults need visual tuning on real content.
 - `--sample-edge-margin` and persistent manual crop values need visual tuning on real content and black-bar scenarios.
 - `--auto-crop` still needs real Portal validation on black-bar video content.
