@@ -45,6 +45,8 @@ jobs:
 
       - name: phase2 validation helpers
         run: |
+          scripts/phase2-field-preflight.sh --require-camera no
+          ! scripts/phase2-field-preflight.sh --video-device /tmp/lumaway-missing-camera
           scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-latency-summary.sh --fps 120 100:148 220:247 340:369 460:490 580:613
           ! scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490

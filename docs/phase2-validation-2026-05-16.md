@@ -52,6 +52,7 @@ Prompt-to-artifact checklist:
 | Existing TV user does not require `calibrate-capture` | Real TV command evidence below | `sync --area TV --duration-ms 3000 --capture-backend auto` started without `calibrate-capture`, selected CPU after GL-black fallback, sent 75 frames, and shut down cleanly. | Covered for this environment |
 | New-user first satisfactory sync <= 10 min | `scripts/phase2-first-run-summary.sh`, CI | Helper enforces <= 600 seconds and `--calibrate-used no`; CI covers pass/fail examples. No observed new-user timing run exists. | Missing external observer run |
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
+| Field capture preflight | `scripts/phase2-field-preflight.sh`, CI | Helper checks local helper/harness files and camera availability before a manual run; CI covers camera-optional pass and missing-camera fail paths. | Covered |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
 | CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950935562` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 latency wording baseline `936e75b`. | Covered |
 
@@ -128,6 +129,9 @@ The remaining Phase 2 finish criteria require a person and/or camera:
 - new-user timing: start from installed app, no prior capture calibration, and time until first satisfactory non-black TV/monitor sync; pass threshold is <= 10 minutes.
 
 No `/dev/video*` capture device is available in this environment, so these field criteria cannot be completed by the agent here.
+
+Use `scripts/phase2-field-preflight.sh` on the target machine before recording to confirm that
+the helper files and a `/dev/video*` camera are available.
 
 Use `scripts/phase2-latency-summary.sh` after reading video frame numbers to produce a repeatable
 pass/fail result for the 300 ms visible-latency gate.

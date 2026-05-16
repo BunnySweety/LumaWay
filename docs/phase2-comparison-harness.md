@@ -72,6 +72,14 @@ because Hue bridge/light processing and camera-visible emission happen after Lum
 
 Use the `Latency flash` pattern. Record the screen and the Hue lights in the same video at 120 fps or higher. Measure from the first frame where the screen changes to the first frame where any target light visibly changes.
 
+Before starting the manual run, use the preflight helper on the target machine:
+
+```sh
+scripts/phase2-field-preflight.sh
+```
+
+It checks that the Phase 2 helpers, harness files, and a `/dev/video*` camera are present. It does not replace the measured evidence below.
+
 Phase 2.4 / v1.0 pass criteria:
 
 - measure at least 5 full-screen black-to-white or white-to-black transitions;
