@@ -167,11 +167,20 @@ Scénarios produit (modes, musique, tray) : [plan-hue-sync-daily.md](plan-hue-sy
 
 Product roadmap items (music, tray, mode selector) are tracked in [plan-hue-sync-daily.md](plan-hue-sync-daily.md).
 
-- Portal scaled RGB conversion path must be remeasured after accepting the GNOME Portal selector.
-- Sync uses 2D point or weighted-region sampling with `position.z` as a vertical fallback, not full 3D projection.
+Phase 2 release blocker:
+
+- External field evidence is still missing: visible latency video at 120 fps or higher, no-silent-black observation, and first-run timing. This is tracked in [issue #1](https://github.com/BunnySweety/LumaWay/issues/1).
+
+Phase 2 tuning that requires real content or hardware after field capture:
+
 - Smoothing, noise-threshold, and max-step defaults need visual tuning on real content.
 - `--sample-edge-margin` and persistent manual crop values need visual tuning on real content and black-bar scenarios.
 - `--auto-crop` still needs real Portal validation on black-bar video content.
-- GStreamer-side Portal scaling needs a safer implementation; native sample caps are used for now.
 - CPU sampling grid defaults to `120x68`; quality still needs tuning across content types.
+
+Post-v1.0 or architectural follow-up, not a blocker for the current Phase 2 field gate:
+
+- Portal scaled RGB conversion path must be remeasured after accepting the GNOME Portal selector.
+- Sync uses 2D point or weighted-region sampling with `position.z` as a vertical fallback, not full 3D projection.
+- GStreamer-side Portal scaling needs a safer implementation; native sample caps are used for now.
 - No automated integration test exists for local lighting hardware or Portal permission flows.
