@@ -31,7 +31,8 @@ scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee pha
 ```
 
 Do not omit `--camera-fps` when using `--require-camera no`; the preflight must
-verify the planned capture rate.
+verify the planned capture rate. Do not combine `--require-camera no` with
+`--video-device`.
 
 For a local `/dev/video*` camera, use:
 

@@ -84,7 +84,7 @@ It checks that the Phase 2 helpers, harness files, and a `/dev/video*` camera ar
 scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee phase2-preflight.txt
 ```
 
-The helper checks declared camera FPS directly, or V4L2-reported FPS when `v4l2-ctl` is available for a local `/dev/video*` camera. `--require-camera no` without `--camera-fps` fails because the planned capture rate would be unchecked. It does not replace the measured evidence below.
+The helper checks declared camera FPS directly, or V4L2-reported FPS when `v4l2-ctl` is available for a local `/dev/video*` camera. `--require-camera no` without `--camera-fps` fails because the planned capture rate would be unchecked; `--video-device` is only valid when the local camera requirement is enabled. It does not replace the measured evidence below.
 
 Phase 2.4 / v1.0 pass criteria:
 

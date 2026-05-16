@@ -48,6 +48,7 @@ jobs:
           ! scripts/phase2-field-preflight.sh --require-camera no
           scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 | tee /tmp/phase2-preflight-pass.txt
           ! scripts/phase2-field-preflight.sh --require-camera no --camera-fps 60
+          ! scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120 --video-device /tmp/lumaway-missing-camera
           ! scripts/phase2-field-preflight.sh --video-device /tmp/lumaway-missing-camera
           scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
           ! scripts/phase2-latency-summary.sh --fps 120 100:148 220:247 340:369 460:490 580:613

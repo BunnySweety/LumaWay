@@ -106,6 +106,11 @@ case "$require_camera" in
         ;;
 esac
 
+if [[ "$require_camera" == "no" && -n "$video_device" ]]; then
+    echo "--video-device cannot be used with --require-camera no" >&2
+    exit 2
+fi
+
 status=0
 
 echo "phase2_field_preflight"
