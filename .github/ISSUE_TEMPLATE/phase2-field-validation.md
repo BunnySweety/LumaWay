@@ -12,19 +12,43 @@ Relevant artifacts:
 
 - `docs/phase2-comparison-harness.md`
 - `docs/phase2-validation-2026-05-16.md`
+- `scripts/phase2-field-preflight.sh`
 - `scripts/phase2-field-evidence.sh`
 
 ## Required Evidence
 
+- [ ] Run the field preflight on the target machine before recording.
 - [ ] Record the `Latency flash` pattern with the screen and Hue lights visible in the same video at 120 fps or higher.
 - [ ] Measure at least 5 accepted full-screen black/white transitions from `screen_frame:light_frame`.
 - [ ] Confirm no non-black pattern stayed black silently during the run.
 - [ ] Time a new-user installed-app flow from launching LumaWay to first satisfactory non-black TV/monitor sync.
 - [ ] Confirm `calibrate-capture` was not required for the timed flow.
+
+For a phone or another non-V4L2 camera, use:
+
+```sh
+scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120
+```
+
+For a local `/dev/video*` camera, use:
+
+```sh
+scripts/phase2-field-preflight.sh
+```
+
 - [ ] Run the combined verifier:
 
 ```sh
 scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --calibrate-used no --silent-black no <screen_frame:light_frame>...
+```
+
+## Preflight Block
+
+Paste the preflight output here:
+
+```text
+phase2_field_preflight
+...
 ```
 
 ## Evidence Block
