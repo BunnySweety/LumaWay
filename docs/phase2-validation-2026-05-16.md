@@ -24,8 +24,9 @@ Repository state:
 - field preflight helper commit: `a17b966` (`Add Phase 2 field preflight helper`);
 - camera FPS preflight coverage baseline: `23f6e36` (`Cover Phase 2 preflight camera FPS`);
 - field evidence FPS gate baseline: `1f2d36a` (`Enforce Phase 2 field evidence FPS`);
+- field evidence preflight gate baseline: `3843b7d` (`Require Phase 2 field preflight evidence`);
 - field validation tracking issue: [#1](https://github.com/BunnySweety/LumaWay/issues/1);
-- CI evidence for the automated Phase 2 artifacts: `25974138455` on `1f2d36a`, workflow `CI`, job `rust`, conclusion `success`.
+- CI evidence for the automated Phase 2 artifacts: `25974378460` on `3843b7d`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
 
@@ -58,7 +59,7 @@ Prompt-to-artifact checklist:
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Field capture preflight | `scripts/phase2-field-preflight.sh`, CI | Helper checks local helper/harness files, camera availability, and either declared or V4L2-reported camera FPS before a manual run; CI covers camera-optional pass, declared-FPS pass/fail, and missing-camera fail paths. | Covered |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps preflight status, video FPS, latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25974138455` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 field-evidence FPS gate baseline `1f2d36a`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25974378460` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 field-evidence preflight gate baseline `3843b7d`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
