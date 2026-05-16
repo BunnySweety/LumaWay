@@ -415,6 +415,12 @@ pub(crate) fn build_hue_http_client(bridge_ip: &str) -> Result<reqwest::Client, 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+
+    fn env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
 
     #[test]
     fn truthy_env_values() {
@@ -425,6 +431,7 @@ mod tests {
 
     #[test]
     fn pin_kind_from_env_defaults_to_spki() {
+        let _guard = temp_env();
         std::env::remove_var(ENV_PIN_MODE);
         assert_eq!(bridge_tls_pin_kind(), BridgeTlsPinKind::Spki);
     }
@@ -452,19 +459,24 @@ mod tests {
         assert!(!constant_time_eq_32(&a, &b));
     }
 
-    fn temp_env() -> impl Drop {
-        struct Guard;
-        impl Drop for Guard {
-            fn drop(&mut self) {
-                std::env::remove_var(ENV_PIN_DIR);
-                std::env::remove_var(ENV_PIN_MODE);
-                std::env::remove_var(ENV_BRIDGE_ID);
-            }
+    struct Guard {
+        _lock: MutexGuard<'static, ()>,
+    }
+
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            std::env::remove_var(ENV_PIN_DIR);
+            std::env::remove_var(ENV_PIN_MODE);
+            std::env::remove_var(ENV_BRIDGE_ID);
         }
+    }
+
+    fn temp_env() -> Guard {
+        let lock = env_lock().lock().unwrap();
         let dir = std::env::temp_dir().join(format!("lumaway-hue-pin-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         std::env::set_var(ENV_PIN_DIR, dir.as_os_str());
-        Guard
+        Guard { _lock: lock }
     }
 
     #[test]
