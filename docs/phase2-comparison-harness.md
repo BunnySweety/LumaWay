@@ -133,11 +133,12 @@ scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --preflight-out
 
 This command reuses the latency and first-run helpers above. It exits non-zero
 if the saved preflight is missing, ambiguous, or did not pass, both preflight
-options are provided, the recording frame rate is below 120 fps, latency,
-first-run timing, or the no-silent-black gate fails. With a valid preflight file
-and valid arguments, it still prints every evidence section so the failed result
-can be copied into the validation audit; missing, ambiguous, or conflicting
-preflight inputs are treated as command errors.
+options are provided, `--min-transitions` is not greater than zero, the recording
+frame rate is below 120 fps, latency, first-run timing, or the no-silent-black
+gate fails. With a valid preflight file and valid arguments, it still prints
+every evidence section so the failed result can be copied into the validation
+audit; missing, ambiguous, or conflicting preflight inputs are treated as
+command errors.
 
 ## Result Template
 
@@ -147,9 +148,13 @@ desktop/session:
 bridge firmware:
 zone:
 profile:
+preflight command:
+preflight output file:
+recording fps:
 capture backend recommendation:
 sync command:
 sync_stats internal latency guard:
+field evidence command:
 first-run timer start:
 first satisfactory sync:
 first-run elapsed:
@@ -167,12 +172,14 @@ top white / bottom black
 dark movie frame
 moving red window
 
-latency transition       ms          pass/fail
+latency transition       screen_frame:light_frame   ms          pass/fail
 1
 2
 3
 4
 5
+
+phase2_field_evidence output:
 
 notes:
 ```
