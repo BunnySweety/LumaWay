@@ -45,6 +45,16 @@ lumaway sync --sync-mode video --preset video-wayland --area TV --duration-ms 10
 
 Replace `TV` with the configured Entertainment zone when needed.
 
+For the internal latency guard, keep the final `sync_stats` line from the live run. At 25 Hz, the
+stream frame interval is 40 ms. The internal budget is considered healthy when:
+
+```text
+capture_max_ms + send_max_ms + 80 ms < 300 ms
+```
+
+This is only a pipeline sanity check. It does not replace the visible light-response video below,
+because Hue bridge/light processing and camera-visible emission happen after LumaWay sends a frame.
+
 ## Expected Results
 
 | Pattern | Expected evidence |
@@ -69,6 +79,19 @@ Phase 2.4 / v1.0 pass criteria:
 - no session may stay black silently after a non-black pattern is shown;
 - if a transition is discarded, record why, for example camera exposure loss or occluded light.
 
+## First-Run Timing
+
+For the Phase 2 finish criterion, time a user who starts from an installed app and no prior capture
+calibration. Start the timer when they launch LumaWay. Stop it when the selected TV/monitor zone
+is syncing a non-black screen with acceptable spatial response.
+
+Pass criteria:
+
+- existing TV user: sync starts without running `calibrate-capture`;
+- new user: first satisfactory sync is reached in 10 minutes or less;
+- if the bridge has no Entertainment zone, record that as environment setup time outside LumaWay;
+- if `Probe backend` or `Quality` is used, record it as part of the timed flow.
+
 ## Result Template
 
 ```text
@@ -79,6 +102,11 @@ zone:
 profile:
 capture backend recommendation:
 sync command:
+sync_stats internal latency guard:
+first-run timer start:
+first satisfactory sync:
+first-run elapsed:
+calibrate-capture used: yes/no
 
 pattern                  pass/fail   evidence
 black
