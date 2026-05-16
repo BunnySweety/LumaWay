@@ -1,7 +1,7 @@
 # Plan LumaWay — Hue Sync au quotidien (Linux) + trajectoire Musique
 
 Date : 2026-05-15  
-Dernière revue : 2026-05-16 (Phase 2 — état livré et preuves terrain restantes)
+Dernière revue : 2026-05-17 (Phase 2 — état livré et preuves terrain restantes)
 Statut : approuvé pour exécution — **document de référence unique** pour la v1.0 écran quotidien, avec trajectoire Musique post-v1.0  
 Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvement-roadmap.md](capture-improvement-roadmap.md), [desktop-app.md](desktop-app.md), [backlog.md](backlog.md), [security.md](security.md), [test-matrix.md](test-matrix.md), [architecture-plan.md](architecture-plan.md), [open-questions.md](open-questions.md)
 
@@ -724,6 +724,7 @@ Tous requis sauf mention « optionnel » :
 
 | Date / passe | Sujet | Résolution |
 |--------------|-------|------------|
+| 2026-05-17 | Phase 2 evidence preflight flags | `scripts/phase2-field-evidence.sh` refuse désormais une commande qui mélange `--preflight-output` et `--preflight-pass`, pour éviter une preuve finale ambiguë |
 | 2026-05-17 | Phase 2 evidence preflight output | `scripts/phase2-field-evidence.sh` peut désormais lire `--preflight-output phase2-preflight.txt` pour lier la preuve finale à la sortie preflight sauvegardée |
 | 2026-05-17 | Phase 2 evidence preflight gate | `scripts/phase2-field-evidence.sh` exige désormais un preflight réussi via `--preflight-output` ou `--preflight-pass yes` avant de produire `phase2_field_evidence=pass` |
 | 2026-05-17 | Phase 2 evidence FPS gate | `scripts/phase2-field-evidence.sh` vérifie désormais que la vidéo déclarée respecte le minimum 120 fps avant de produire `phase2_field_evidence=pass` |
