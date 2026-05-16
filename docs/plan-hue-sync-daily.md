@@ -49,7 +49,7 @@ Références : [hue-sync-research.md](hue-sync-research.md), [capture-improvemen
 | **Simplicité (parité Hue Sync)** | Après installation, aucune commande terminal requise pour configurer ou utiliser l’app ; zéro jargon visible par défaut (`app-key`, `client-key`, `preset`, chemins `~/.config` masqués). |
 | Usage quotidien | Pont + zone configurés une fois ; démarrer la sync en ≤ 2 clics (ou 1 clic depuis la barre système quand l’environnement l’expose). |
 | Modes explicites | v1.0 : **Vidéo**, **Jeu**, **Bureau** branchés ; **Musique** visible mais désactivée jusqu’à Phase 3 si elle n’est pas livrée dans la même release. |
-| Sync écran | Réaction visible en < 300 ms sur changement de couleur plein écran (validation : **Phase 2.4**, §15.2) ; pas de session « noire » silencieuse. |
+| Sync écran | Réaction visible en ≤ 300 ms sur changement de couleur plein écran (validation : **Phase 2.4**, §15.2) ; pas de session « noire » silencieuse. |
 | Sync musique | Phase 3 / v1.1 : couleurs qui suivent rythme et énergie sans stroboscope ; choix de la source audio (sortie système par défaut). |
 | Robustesse | Arrêt propre (désactivation Entertainment) ; après veille : **Stop propre + message** en v1.0, reconnexion automatique = post-v1.0 ; identité pont via `LUMAWAY_BRIDGE_ID` et pinning optionnel. |
 | **Internationalisation** | UI GTK selon la **locale système** (`LANG` / `LC_MESSAGES`) ; anglais (`en`) comme catalogue source et repli ; au minimum **en + fr** en v1.0, extension progressive (de, es, …). |
@@ -636,7 +636,7 @@ Tous requis sauf mention « optionnel » :
 - [ ] Tray Start/Stop opérationnel quand le bureau expose StatusNotifier/AppIndicator ; sur GNOME vanilla, fenêtre Start/Stop validée et notification critique testée si disponible.
 - [ ] Robustesse §15.3 P0 passée sur matrice test (sleep, pont perdu, Portal fermé, **subprocess terminé avec erreur**).
 - [ ] Changement de mode **uniquement après Stop** (tâche 1.15) validé manuellement.
-- [ ] Harness / test latence : réaction perceptible **&lt; 300 ms** sur plein écran (Phase 2.4, §5).
+- [ ] Harness / test latence : réaction perceptible **≤ 300 ms** sur plein écran (Phase 2.4, §5).
 - [ ] `install-desktop-app.sh` installe binaires + `.mo` + `.desktop` + AppStream `.metainfo.xml`.
 - [ ] Aucune clé API sur l’écran principal ; pairing guidé.
 - [x] Dialogue **À propos** (version, confidentialité locale, pas de télémétrie).
@@ -759,7 +759,7 @@ Tous requis sauf mention « optionnel » :
 | 2026-05-15 | Tuiles vs `smoothing` preset | §6.1 : tuiles écrasent preset au Start |
 | 2026-05-15 | Vidéo `cinema` / `vivid` | Défaut `vivid` ; `cinema` via Réglages avancé (§6) |
 | 2026-05-15 | §13 « Phase 3.4 » | → Musique — extension v2 |
-| 2026-05-15 | Latence &lt; 300 ms | Phase 2.4 + §15.2 (plus de renvoi §2.4 erroné) |
+| 2026-05-15 | Latence ≤ 300 ms | Phase 2.4 + §15.2 (plus de renvoi §2.4 erroné) |
 | 2026-05-15 | DTLS P0 vs Phase 4 / code actuel | v1.0 = 3 tentatives de handshake initial ; doc complète Phase 4 |
 | 2026-05-15 | gettext / i18n-embed | gettext + install script en v1.0 |
 | 2026-05-15 | `COLOR_PROFILE` vs mode | Mode gagne ; exception `cinema` avancé en mode Video |
