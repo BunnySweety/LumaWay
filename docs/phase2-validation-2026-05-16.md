@@ -18,7 +18,8 @@ Repository state:
 - documentation status commit: `2c93ad1` (`Refresh Phase 2 documentation status`);
 - next-action alignment commit: `5b36a06` (`Update Phase 2 next actions`);
 - field evidence helper commit: `c3d10e4` (`Add Phase 2 field evidence helper`);
-- CI evidence for the automated Phase 2 artifacts: `25949853767` on `c3d10e4`, workflow `CI`, job `rust`, conclusion `success`.
+- silent-black evidence gate commit: `b74ff6c` (`Track Phase 2 silent black evidence`);
+- CI evidence for the automated Phase 2 artifacts: `25950147956` on `b74ff6c`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
 
@@ -50,7 +51,7 @@ Prompt-to-artifact checklist:
 | New-user first satisfactory sync <= 10 min | `scripts/phase2-first-run-summary.sh`, CI | Helper enforces <= 600 seconds and `--calibrate-used no`; CI covers pass/fail examples. No observed new-user timing run exists. | Missing external observer run |
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25949853767` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the helper baseline `c3d10e4`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950147956` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the silent-black helper baseline `b74ff6c`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the two external field proofs are captured and recorded.
 
