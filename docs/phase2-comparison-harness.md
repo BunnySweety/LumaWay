@@ -78,7 +78,13 @@ Before starting the manual run, use the preflight helper on the target machine:
 scripts/phase2-field-preflight.sh
 ```
 
-It checks that the Phase 2 helpers, harness files, and a `/dev/video*` camera are present. It does not replace the measured evidence below.
+It checks that the Phase 2 helpers, harness files, and a `/dev/video*` camera are present. When using a phone or another non-V4L2 camera, declare the planned capture rate and skip the local device requirement:
+
+```sh
+scripts/phase2-field-preflight.sh --require-camera no --camera-fps 120
+```
+
+The helper checks declared camera FPS directly, or V4L2-reported FPS when `v4l2-ctl` is available for a local `/dev/video*` camera. It does not replace the measured evidence below.
 
 Phase 2.4 / v1.0 pass criteria:
 
