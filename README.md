@@ -107,22 +107,22 @@ lumaway sync --bridge <ip> --app-key <app-key> --client-key <client-key> --area 
 lumaway sync --bridge <ip> --area <id> --capture-fps 8 --stream-fps 25 --pipewire-fps 25 --capture-backend cpu --capture-poll-ms 5
 ```
 
-The validated GNOME Wayland TV setup is also available as a preset. It uses `--capture-backend cpu` by default because the GL path can produce black frames on some Portal/PipeWire sessions:
+The validated GNOME Wayland Video setup is also available as a preset. It uses `--capture-backend cpu` by default because the GL path can produce black frames on some Portal/PipeWire sessions. `tv-wayland` remains accepted as a legacy alias for `video-wayland`:
 
 ```text
-lumaway sync --bridge <ip> --area TV --preset tv-wayland
+lumaway sync --bridge <ip> --area TV --sync-mode video --preset video-wayland
 ```
 
 With environment variables set, the daily command becomes:
 
 ```text
-lumaway sync --preset tv-wayland
+lumaway sync --sync-mode video --preset video-wayland
 ```
 
 For a long-running TV session:
 
 ```text
-lumaway sync --preset tv-wayland --duration-ms 0
+lumaway sync --sync-mode video --preset video-wayland --duration-ms 0
 ```
 
 For daily use, install the desktop application:
@@ -139,7 +139,7 @@ The Portal/PipeWire path currently negotiates the native sample format from GStr
 
 `--sample-edge-margin` controls how far 2D sample points stay away from the exact screen edges. The default is `0.08`. Lower it if lights should react closer to screen borders.
 
-`--sampling point|region` selects the spatial sampler. `point` samples a small patch around each channel anchor and is useful for comparisons. `region` samples a larger weighted rectangle around each channel anchor, so lights react to window-sized color changes instead of tiny pixels. The `tv-wayland` preset uses `region`.
+`--sampling point|region` selects the spatial sampler. `point` samples a small patch around each channel anchor and is useful for comparisons. `region` samples a larger weighted rectangle around each channel anchor, so lights react to window-sized color changes instead of tiny pixels. The `video-wayland` preset and legacy `tv-wayland` alias use `region`.
 
 `--sample-crop-left`, `--sample-crop-right`, `--sample-crop-top`, and `--sample-crop-bottom` constrain sampling to a content region before points are read. Use these for black bars or desktop areas that should not influence lighting output:
 
@@ -153,7 +153,7 @@ lumaway sync --bridge <ip> --area <id> --sample-crop-top 0.12 --sample-crop-bott
 lumaway sync --bridge <ip> --area <id> --auto-crop --auto-crop-frames 5 --auto-crop-threshold 8 --auto-crop-max-edge 0.35
 ```
 
-Temporal smoothing is enabled by default, while the `tv-wayland` preset leaves `--max-step` disabled so window changes remain responsive. The sync path also applies a Hue-oriented color grade (gain, gamma lift, and saturation boost) before the final brightness scale, so dim captured windows still produce visible light output at `--brightness 1.0`.
+Temporal smoothing is enabled by default, while the `video-wayland` preset leaves `--max-step` disabled so window changes remain responsive. The sync path also applies a Hue-oriented color grade (gain, gamma lift, and saturation boost) before the final brightness scale, so dim captured windows still produce visible light output at `--brightness 1.0`.
 
 ```text
 lumaway sync --bridge <ip> --area <id> --smoothing 0.35 --noise-threshold 3 --max-step 32
@@ -191,7 +191,7 @@ This compares CPU and GL capture on the selected stream, writes `~/.config/lumaw
 Measure whether capture is bright, changing over time, and spatially different between Hue channels:
 
 ```text
-lumaway capture-quality --portal --preset tv-wayland --area TV --frames 30
+lumaway capture-quality --portal --sync-mode video --preset video-wayland --area TV --frames 30
 ```
 
 The summary reports average luma, saturation, per-frame RGB delta, channel separation, dark frames, and a recommendation such as `capture_too_dark`, `low_temporal_variation`, `low_spatial_separation`, `low_saturation`, or `usable`.
@@ -201,7 +201,7 @@ If `doctor` reports that the saved Hue application key was rejected, pair again 
 Inspect the capture-to-color pipeline without starting Hue streaming:
 
 ```text
-lumaway sample-debug --portal --preset tv-wayland --frames 3
+lumaway sample-debug --portal --sync-mode video --preset video-wayland --frames 3
 ```
 
 The command prints one row per Hue Entertainment channel with sample point, effective region, sample radius, raw RGB, smoothed RGB, graded RGB, final output RGB, luma, saturation, and capture timing. Use it before tuning a room or debugging a light that does not match the expected screen region.

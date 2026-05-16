@@ -1,6 +1,6 @@
 # Capture improvement roadmap
 
-Date: 2026-05-11
+Date: 2026-05-16
 
 Aligné avec la **Phase 2** du plan produit : [plan-hue-sync-daily.md](plan-hue-sync-daily.md).
 
@@ -24,7 +24,7 @@ Keep the current Linux Wayland architecture:
 - XDG Desktop Portal for user-approved screen/window capture;
 - PipeWire/GStreamer for frame delivery;
 - Hue Entertainment API over DTLS for low-latency streaming;
-- CPU capture as the `tv-wayland` default until the GL path is proven reliable across sessions;
+- CPU capture as the `video-wayland` Video default (`tv-wayland` remains a legacy alias) until the GL path is proven reliable across sessions;
 - one active Hue Entertainment area at a time.
 
 The improvement work should focus on the capture-to-color pipeline:
@@ -158,7 +158,7 @@ Do not depend on private APIs or undocumented bridge behavior unless there is no
 Add a command like:
 
 ```text
-lumaway sample-debug --portal --preset tv-wayland
+lumaway sample-debug --portal --sync-mode video --preset video-wayland
 ```
 
 It should print one row per channel:
@@ -240,7 +240,7 @@ Separate these concepts:
 - reactivity: user-facing speed control;
 - signal detection: decide when content is actually black or absent.
 
-The current `tv-wayland` preset should stay responsive:
+The current Video preset (`video-wayland`, with `tv-wayland` as a legacy alias) should stay responsive:
 
 - no default max-step limiter;
 - moderate smoothing;
@@ -312,7 +312,7 @@ Store profiles separately from credentials.
 - Done: `--color-profile soft|vivid|game|boosted|cinema|desktop` and `LUMAWAY_COLOR_PROFILE` select color grading curves for `sync`, `sync-bench`, and `sample-debug`.
 - Done: the default Video / `vivid` curve keeps true black and near-black capture noise dark while applying a soft minimum output luma to dim non-black content.
 - Done: the GTK Settings window exposes the same color-profile selector and passes it to the sync engine.
-- Done: `tv-wayland` uses CPU capture by default, weighted region sampling, and keeps max-step disabled for more responsive window changes.
+- Done: `video-wayland` and the legacy `tv-wayland` alias use CPU capture by default, weighted region sampling, and keep max-step disabled for more responsive window changes.
 - Done: `lumaway backend-probe` compares CPU and GL on the same Portal stream and reports frames, max RGB, average luma, dark-frame detection, timing, and a conservative recommendation.
 - Done: the GUI offers a `Probe backend` assistant action after capture-too-dark failures and summarizes the CPU/GL recommendation in the app log.
 - Done: `--capture-backend auto` now probes GL output quality and falls back to CPU when GL starts but returns black/unusable frames.
