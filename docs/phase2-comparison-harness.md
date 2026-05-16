@@ -110,6 +110,17 @@ scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
 The command exits non-zero if elapsed time is greater than 600 seconds or if
 `calibrate-capture` was used.
 
+To generate one pasteable Phase 2 field-evidence block after both manual
+measurements are available, run:
+
+```sh
+scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no 100:124 220:247 340:369 460:490 580:613
+```
+
+This command reuses the latency and first-run helpers above. It exits non-zero
+if either gate fails, but it still prints both sections so the failed evidence
+can be copied into the validation audit.
+
 ## Result Template
 
 ```text
