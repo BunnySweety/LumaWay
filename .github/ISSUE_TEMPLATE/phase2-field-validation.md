@@ -17,7 +17,7 @@ Relevant artifacts:
 
 ## Required Evidence
 
-- [ ] Run the field preflight on the target machine before recording.
+- [ ] Run the field preflight on the target machine before recording and save its output.
 - [ ] Record the `Latency flash` pattern with the screen and Hue lights visible in the same video at 120 fps or higher.
 - [ ] Measure at least 5 accepted full-screen black/white transitions from `screen_frame:light_frame`.
 - [ ] Confirm no non-black pattern stayed black silently during the run.
