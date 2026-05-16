@@ -2,8 +2,6 @@
 name: Phase 2 field validation
 about: Record visible latency and first-run evidence for Phase 2
 title: "Phase 2 field validation evidence"
-labels: ""
-assignees: ""
 ---
 
 ## Context
