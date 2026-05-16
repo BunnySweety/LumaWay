@@ -1,6 +1,6 @@
 ---
 name: Phase 2 field validation
-about: Record visible latency and first-run evidence for Phase 2
+about: Record visible latency, first-run, and no-silent-black evidence for Phase 2
 title: "Phase 2 field validation evidence"
 ---
 

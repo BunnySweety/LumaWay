@@ -1,6 +1,6 @@
 # Phase 2 Validation Evidence - 2026-05-16
 
-Status: code/docs delivered; field release proof still requires external video and a timed observer run.
+Status: code/docs delivered; field release proof still requires external video, no-silent-black observation, and a timed observer run.
 
 ## Scope
 
@@ -54,7 +54,7 @@ Prompt-to-artifact checklist:
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
 | CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950327030` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the required-flag baseline `7a6db70`. | Covered |
 
-Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the two external field proofs are captured and recorded.
+Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
 ## Deliverable Checklist
 
@@ -63,7 +63,7 @@ Completion verdict: Phase 2 is delivered for code, docs, helpers, and available 
 | 2.1 persistent manual crop profile via `LUMAWAY_SAMPLE_CROP_LEFT/RIGHT/TOP/BOTTOM`, reused by `sync`, `sample-debug`, and `capture-quality` | `crates/lumaway-cli/src/cli_args.rs` reads crop env keys for all three commands; `crates/lumaway-cli/src/profile_env.rs` includes crop defaults and whitelists profile keys; tests `sync_reads_sample_crop_from_environment` and `profile_template_includes_persistent_crop_defaults` pass in CI. | Delivered |
 | 2.2 Video / `vivid` preserves true black and near-black noise while lifting dim non-black content | `crates/lumaway-cli/src/color_tuning.rs`; test `vivid_tuning_lifts_dim_non_black_video_without_lighting_black` confirms black/noise stay off and dim content reaches soft output luma. | Delivered |
 | 2.3 GUI suggests `backend-probe` after black/too-dark capture | `crates/lumaway-gui/src/main.rs` shows `Probe backend` after `CaptureTooDark`, runs `lumaway backend-probe`, and formats CPU/GL summary; `crates/lumaway-gui/src/user_messages.rs` recovery action points to backend probe; test `formats_backend_probe_summary` passes in CI. | Delivered |
-| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, and result fields; `scripts/phase2-latency-summary.sh` converts observed video frame pairs into pass/fail latency evidence; `scripts/phase2-first-run-summary.sh` converts observed setup time into pass/fail first-run evidence. | Delivered |
+| 2.4 comparison harness with fixed patterns, diagnostics, latency threshold, and result template | `docs/phase2-comparison-harness.md` and `docs/fixtures/phase2-patterns.html` define fixed patterns, `backend-probe`, `capture-quality`, `sample-debug`, internal latency guard, visible latency gate <= 300 ms, no-silent-black field, and result fields; `scripts/phase2-latency-summary.sh` converts observed video frame pairs into pass/fail latency evidence; `scripts/phase2-first-run-summary.sh` converts observed setup time into pass/fail first-run evidence; `scripts/phase2-field-evidence.sh` combines latency, first-run, and no-silent-black gates. | Delivered |
 | 2.5 diagnostics reuse `sample-debug` and `capture-quality` | `docs/desktop-app.md` documents GUI `Quality`; `docs/phase2-comparison-harness.md` uses both diagnostics; `docs/test-matrix.md` contains live diagnostic evidence. | Delivered |
 | 2.6 Entertainment `position.z` handling | `crates/lumaway-cli/src/sampling.rs` uses `position.y` first and falls back to `position.z` when Y has no span; tests `maps_depth_position_when_vertical_span_is_missing` and `vertical_position_takes_priority_over_depth_position` pass in CI. | Delivered |
 
@@ -123,9 +123,10 @@ This is below the 300 ms internal guard, but it does not prove visible light-res
 The remaining Phase 2 finish criteria require a person and/or camera:
 
 - visible latency: record screen and Hue lights together at 120 fps or higher and measure at least 5 accepted full-screen black/white transitions, each <= 300 ms;
+- no-silent-black observation: confirm no non-black pattern stayed black silently during the manual run;
 - new-user timing: start from installed app, no prior capture calibration, and time until first satisfactory non-black TV/monitor sync; pass threshold is <= 10 minutes.
 
-No `/dev/video*` capture device is available in this environment, so these two criteria cannot be completed by the agent here.
+No `/dev/video*` capture device is available in this environment, so these field criteria cannot be completed by the agent here.
 
 Use `scripts/phase2-latency-summary.sh` after reading video frame numbers to produce a repeatable
 pass/fail result for the 300 ms visible-latency gate.
