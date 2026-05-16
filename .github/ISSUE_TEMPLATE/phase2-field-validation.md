@@ -48,9 +48,9 @@ scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds <seconds> --preflig
 
 Use exactly one preflight option. The combined verifier exits non-zero when the
 saved preflight output is missing, ambiguous, or did not pass, when both
-`--preflight-output` and `--preflight-pass` are provided, or when `--fps` is
-below the default 120 fps minimum, even if the frame pairs would otherwise
-satisfy the latency threshold.
+`--preflight-output` and `--preflight-pass` are provided, when `--min-transitions`
+is not greater than zero, or when `--fps` is below the default 120 fps minimum,
+even if the frame pairs would otherwise satisfy the latency threshold.
 
 ## Preflight Block
 
