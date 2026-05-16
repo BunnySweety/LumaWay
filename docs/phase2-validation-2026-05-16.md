@@ -30,9 +30,8 @@ Repository state:
 - latency minimum-transition guard: `e4c72f8` (`Enforce positive Phase 2 transition minimum`);
 - preflight declared camera FPS guard: `5b6151a` (`Require declared Phase 2 camera FPS`);
 - preflight camera option guard: `857f3d4` (`Reject conflicting Phase 2 camera preflight options`);
-- latest validation docs refresh: `f09d2c2` (`Refresh Phase 2 camera option CI evidence`);
 - field validation tracking issue: [#1](https://github.com/BunnySweety/LumaWay/issues/1);
-- latest full CI evidence for the automated Phase 2 artifacts: `25975680551` on `f09d2c2`, workflow `CI`, job `rust`, conclusion `success`;
+- audited full CI evidence for the automated Phase 2 artifacts: `25975680551` on `f09d2c2`, workflow `CI`, job `rust`, conclusion `success`;
 - verifier implementation CI baseline: `25975537478` on `857f3d4`, workflow `CI`, job `rust`, conclusion `success`.
 
 ## Completion Audit
@@ -66,7 +65,7 @@ Prompt-to-artifact checklist:
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Field capture preflight | `scripts/phase2-field-preflight.sh`, CI | Helper checks local helper/harness files, camera availability, and either declared or V4L2-reported camera FPS before a manual run; CI covers camera-optional pass with declared FPS, missing declared FPS, declared-FPS fail, conflicting `--video-device`, and missing-camera fail paths. | Covered |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps saved preflight output, video FPS, latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. The saved preflight output must contain exactly one final `phase2_field_preflight` verdict, and `--preflight-output` is mutually exclusive with the legacy `--preflight-pass` fallback. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions runs `25975680551` and `25975537478` | Latest full main CI completed with conclusion `success` on `f09d2c2`; the verifier implementation baseline also completed with conclusion `success` on `857f3d4`. Both ran `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions runs `25975680551` and `25975537478` | Audited full main CI completed with conclusion `success` on `f09d2c2`; the verifier implementation baseline also completed with conclusion `success` on `857f3d4`. Both ran `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
