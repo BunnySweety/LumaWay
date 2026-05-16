@@ -53,7 +53,7 @@ Prompt-to-artifact checklist:
 | New-user first satisfactory sync <= 10 min | `scripts/phase2-first-run-summary.sh`, CI | Helper enforces <= 600 seconds and `--calibrate-used no`; CI covers pass/fail examples. No observed new-user timing run exists. | Missing external observer run |
 | Visible reaction <= 300 ms, >= 5 transitions | `scripts/phase2-latency-summary.sh`, CI | Helper enforces the numeric gate from video frame pairs; CI covers pass/fail examples. No camera video evidence exists from this environment. | Missing external video |
 | Combined field evidence block | `scripts/phase2-field-evidence.sh`, CI | Helper wraps latency, first-run, and no-silent-black verifiers into one pasteable audit block and exits non-zero if any gate fails. | Covered except external measurements |
-| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950935562` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the latest Phase 2 audit alignment commit `936e75b`. | Covered |
+| CI actually covers validators | `.github/workflows/ci.yml`, GitHub Actions run `25950935562` | `cargo fmt`, `cargo clippy`, `cargo test`, and `phase2 validation helpers` all completed with conclusion `success` on the Phase 2 latency wording baseline `936e75b`. | Covered |
 
 Completion verdict: Phase 2 is delivered for code, docs, helpers, and available TV validation, but the objective is not fully complete until the external field evidence block is captured and recorded.
 
