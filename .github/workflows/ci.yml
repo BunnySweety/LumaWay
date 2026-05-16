@@ -42,3 +42,12 @@ jobs:
 
       - name: cargo test
         run: cargo test --workspace
+
+      - name: phase2 validation helpers
+        run: |
+          scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490 580:613
+          ! scripts/phase2-latency-summary.sh --fps 120 100:148 220:247 340:369 460:490 580:613
+          ! scripts/phase2-latency-summary.sh --fps 120 100:124 220:247 340:369 460:490
+          scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
+          ! scripts/phase2-first-run-summary.sh --elapsed-seconds 601 --calibrate-used no
+          ! scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used yes
