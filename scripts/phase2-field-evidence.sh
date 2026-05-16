@@ -6,6 +6,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 fps=""
 elapsed_seconds=""
 calibrate_used="no"
+silent_black=""
 latency_threshold_ms="300"
 first_run_threshold_seconds="600"
 min_transitions="5"
@@ -14,16 +15,17 @@ declare -a pairs=()
 usage() {
     cat <<'EOF'
 Usage:
-  scripts/phase2-field-evidence.sh --fps <fps> --elapsed-seconds <seconds> [options] <screen_frame:light_frame>...
+  scripts/phase2-field-evidence.sh --fps <fps> --elapsed-seconds <seconds> --silent-black yes|no [options] <screen_frame:light_frame>...
 
 Options:
   --calibrate-used yes|no              Whether calibrate-capture was used in the timed flow. Default: no.
+  --silent-black yes|no                Whether a non-black pattern stayed black silently. Required.
   --latency-threshold-ms <ms>          Visible latency gate. Default: 300.
   --first-run-threshold-seconds <sec>  First-run timing gate. Default: 600.
   --min-transitions <n>                Minimum accepted video transitions. Default: 5.
 
 Example:
-  scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no 100:124 220:247 340:369 460:490 580:613
+  scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
 
 Each frame pair is measured from the first video frame where the screen changes
 to the first frame where any target Hue light visibly changes.
@@ -54,6 +56,14 @@ while [[ $# -gt 0 ]]; do
                 exit 2
             }
             calibrate_used="$2"
+            shift 2
+            ;;
+        --silent-black)
+            [[ $# -ge 2 ]] || {
+                echo "missing value for --silent-black" >&2
+                exit 2
+            }
+            silent_black="$2"
             shift 2
             ;;
         --latency-threshold-ms)
@@ -115,6 +125,27 @@ if [[ -z "$elapsed_seconds" ]]; then
     exit 2
 fi
 
+if [[ -z "$silent_black" ]]; then
+    echo "missing required --silent-black" >&2
+    usage >&2
+    exit 2
+fi
+
+case "$silent_black" in
+    yes)
+        silent_black_status=1
+        silent_black_verdict="fail"
+        ;;
+    no)
+        silent_black_status=0
+        silent_black_verdict="pass"
+        ;;
+    *)
+        echo "--silent-black must be yes or no" >&2
+        exit 2
+        ;;
+esac
+
 set +e
 latency_output="$("$script_dir/phase2-latency-summary.sh" \
     --fps "$fps" \
@@ -143,16 +174,19 @@ else
 fi
 
 echo "phase2_field_evidence"
-printf "latency=%s first_run=%s\n" "$latency_verdict" "$first_run_verdict"
-printf "fps=%s elapsed_seconds=%s calibrate_used=%s\n" "$fps" "$elapsed_seconds" "$calibrate_used"
+printf "latency=%s first_run=%s silent_black=%s\n" "$latency_verdict" "$first_run_verdict" "$silent_black_verdict"
+printf "fps=%s elapsed_seconds=%s calibrate_used=%s silent_black_observed=%s\n" "$fps" "$elapsed_seconds" "$calibrate_used" "$silent_black"
 echo
 echo "[latency]"
 printf "%s\n" "$latency_output"
 echo
 echo "[first_run]"
 printf "%s\n" "$first_run_output"
+echo
+echo "[silent_black]"
+printf "observed=%s result=%s\n" "$silent_black" "$silent_black_verdict"
 
-if (( latency_status == 0 && first_run_status == 0 )); then
+if (( latency_status == 0 && first_run_status == 0 && silent_black_status == 0 )); then
     echo "phase2_field_evidence=pass"
     exit 0
 fi

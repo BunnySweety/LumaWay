@@ -114,12 +114,13 @@ To generate one pasteable Phase 2 field-evidence block after both manual
 measurements are available, run:
 
 ```sh
-scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no 100:124 220:247 340:369 460:490 580:613
+scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
 ```
 
 This command reuses the latency and first-run helpers above. It exits non-zero
-if either gate fails, but it still prints both sections so the failed evidence
-can be copied into the validation audit.
+if latency, first-run timing, or the no-silent-black gate fails, but it still
+prints every section so the failed evidence can be copied into the validation
+audit.
 
 ## Result Template
 
@@ -136,6 +137,7 @@ first-run timer start:
 first satisfactory sync:
 first-run elapsed:
 calibrate-capture used: yes/no
+silent black session observed: yes/no
 
 pattern                  pass/fail   evidence
 black

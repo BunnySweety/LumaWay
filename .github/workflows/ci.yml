@@ -51,6 +51,7 @@ jobs:
           scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 601 --calibrate-used no
           ! scripts/phase2-first-run-summary.sh --elapsed-seconds 420 --calibrate-used yes
-          scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no 100:124 220:247 340:369 460:490 580:613
-          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 601 --calibrate-used no 100:124 220:247 340:369 460:490 580:613
-          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no 100:148 220:247 340:369 460:490 580:613
+          scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 601 --calibrate-used no --silent-black no 100:124 220:247 340:369 460:490 580:613
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black no 100:148 220:247 340:369 460:490 580:613
+          ! scripts/phase2-field-evidence.sh --fps 120 --elapsed-seconds 420 --calibrate-used no --silent-black yes 100:124 220:247 340:369 460:490 580:613
