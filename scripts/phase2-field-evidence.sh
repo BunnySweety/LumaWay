@@ -162,6 +162,12 @@ if [[ -z "$preflight_output" && -z "$preflight_pass" ]]; then
     exit 2
 fi
 
+if [[ -n "$preflight_output" && -n "$preflight_pass" ]]; then
+    echo "use only one of --preflight-output or --preflight-pass" >&2
+    usage >&2
+    exit 2
+fi
+
 if [[ -z "$silent_black" ]]; then
     echo "missing required --silent-black" >&2
     usage >&2
